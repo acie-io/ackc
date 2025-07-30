@@ -9,7 +9,7 @@ ACKC (ACIE Keycloak Client) is a fully-typed Python library that wraps Keycloak'
 ## Features
 
 - **Complete API Coverage**: Implements all major Keycloak Admin API endpoints
-- **Type Safety**: Full type annotations with Pydantic models for all requests and responses  
+- **Type Safety**: Full type annotations with attrs models for all requests and responses  
 - **Async Support**: Both sync and async methods for all operations
 - **Modern Python**: Built for Python 3.13+ using latest language features
 - **Auto-generated Models**: Generated from Keycloak's OpenAPI specification for accuracy
@@ -316,10 +316,12 @@ To update the generated code when Keycloak API changes:
 python scripts/generate_client.py
 ```
 
+After generating, delete the generated `README.md` and `pyproject.toml` files, as they are not needed nor do they properly reflect the code.
+
 ## Requirements
 
 - Python 3.13+
-- Keycloak 17+ (tested with Keycloak 25)
+- Keycloak 26+ (tested with Keycloak 26.3)
 
 ## License
 
