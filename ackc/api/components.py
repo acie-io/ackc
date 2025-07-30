@@ -1,0 +1,189 @@
+"""Component management API methods."""
+from functools import cached_property
+
+from .base import BaseAPI
+from ..exceptions import AuthError
+from ..generated.api.component import (
+    get_admin_realms_realm_components,
+    post_admin_realms_realm_components,
+    get_admin_realms_realm_components_id,
+    put_admin_realms_realm_components_id,
+    delete_admin_realms_realm_components_id,
+    get_admin_realms_realm_components_id_sub_component_types,
+)
+from ..generated.models import ComponentRepresentation
+from ..generated.types import UNSET, Unset
+
+__all__ = "ComponentsAPI", "ComponentsClientMixin", "ComponentRepresentation"
+
+
+class ComponentsAPI(BaseAPI):
+    """Component management API methods."""
+
+    def get_all(
+        self,
+        realm: str | None = None,
+        *,
+        name: Unset | str = UNSET,
+        parent: Unset | str = UNSET,
+        type: Unset | str = UNSET,
+    ) -> list[ComponentRepresentation] | None:
+        """List components in a realm.
+        
+        Args:
+            realm: The realm name
+            name: Filter by component name
+            parent: Filter by parent ID
+            type: Filter by component type
+            
+        Returns:
+            List of components matching the filters
+        """
+        return self._sync(
+            get_admin_realms_realm_components.sync,
+            realm,
+            name=name,
+            parent=parent,
+            type_=type,
+        )
+
+    async def aget_all(
+        self,
+        realm: str | None = None,
+        *,
+        name: Unset | str = UNSET,
+        parent: Unset | str = UNSET,
+        type: Unset | str = UNSET,
+    ) -> list[ComponentRepresentation] | None:
+        """List components in a realm (async).
+        
+        Args:
+            realm: The realm name
+            name: Filter by component name
+            parent: Filter by parent ID
+            type: Filter by component type
+            
+        Returns:
+            List of components matching the filters
+        """
+        return await self._async(
+            get_admin_realms_realm_components.asyncio,
+            realm,
+            name=name,
+            parent=parent,
+            type_=type,
+        )
+
+    def create(self, realm: str | None = None, component_data: dict | ComponentRepresentation = None) -> str:
+        """Create a component (sync). Returns component ID."""
+        component_obj = component_data if isinstance(component_data, ComponentRepresentation) else ComponentRepresentation.from_dict(component_data)
+        response = self._sync_detailed(
+            post_admin_realms_realm_components.sync_detailed,
+            realm=realm,
+            body=component_obj
+        )
+        if response.status_code != 201:
+            raise AuthError(f"Failed to create component: {response.status_code}")
+        location = response.headers.get("Location", "")
+        return location.split("/")[-1] if location else ""
+
+    async def acreate(self, realm: str | None = None, component_data: dict | ComponentRepresentation = None) -> str:
+        """Create a component (async). Returns component ID."""
+        component_obj = component_data if isinstance(component_data, ComponentRepresentation) else ComponentRepresentation.from_dict(component_data)
+        response = await self._async_detailed(
+            post_admin_realms_realm_components.asyncio_detailed,
+            realm=realm,
+            body=component_obj
+        )
+        if response.status_code != 201:
+            raise AuthError(f"Failed to create component: {response.status_code}")
+        location = response.headers.get("Location", "")
+        return location.split("/")[-1] if location else ""
+
+    def get(self, realm: str | None = None, component_id: str = None) -> ComponentRepresentation | None:
+        """Get a component by ID (sync)."""
+        return self._sync(
+            get_admin_realms_realm_components_id.sync,
+            realm=realm,
+            id=component_id
+        )
+
+    async def aget(self, realm: str | None = None, component_id: str = None) -> ComponentRepresentation | None:
+        """Get a component by ID (async)."""
+        return await self._async(
+            get_admin_realms_realm_components_id.asyncio,
+            realm=realm,
+            id=component_id
+        )
+
+    def update(self, realm: str | None = None, component_id: str = None, component_data: dict | ComponentRepresentation = None) -> None:
+        """Update a component (sync)."""
+        component_obj = component_data if isinstance(component_data, ComponentRepresentation) else ComponentRepresentation.from_dict(component_data)
+        response = self._sync_detailed(
+            put_admin_realms_realm_components_id.sync_detailed,
+            realm=realm,
+            id=component_id,
+            body=component_obj
+        )
+        if response.status_code not in (200, 204):
+            raise AuthError(f"Failed to update component: {response.status_code}")
+
+    async def aupdate(self, realm: str | None = None, component_id: str = None, component_data: dict | ComponentRepresentation = None) -> None:
+        """Update a component (async)."""
+        component_obj = component_data if isinstance(component_data, ComponentRepresentation) else ComponentRepresentation.from_dict(component_data)
+        response = await self._async_detailed(
+            put_admin_realms_realm_components_id.asyncio_detailed,
+            realm=realm,
+            id=component_id,
+            body=component_obj
+        )
+        if response.status_code not in (200, 204):
+            raise AuthError(f"Failed to update component: {response.status_code}")
+
+    def delete(self, realm: str | None = None, component_id: str = None) -> None:
+        """Delete a component (sync)."""
+        response = self._sync_detailed(
+            delete_admin_realms_realm_components_id.sync_detailed,
+            realm=realm,
+            id=component_id
+        )
+        if response.status_code not in (200, 204):
+            raise AuthError(f"Failed to delete component: {response.status_code}")
+
+    async def adelete(self, realm: str | None = None, component_id: str = None) -> None:
+        """Delete a component (async)."""
+        response = await self._async_detailed(
+            delete_admin_realms_realm_components_id.asyncio_detailed,
+            realm=realm,
+            id=component_id
+        )
+        if response.status_code not in (200, 204):
+            raise AuthError(f"Failed to delete component: {response.status_code}")
+
+    def get_sub_component_types(self, realm: str | None = None, component_id: str = None, type: str | None = None) -> list | None:
+        """Get sub-component types (sync)."""
+        return self._sync(
+            get_admin_realms_realm_components_id_sub_component_types.sync,
+            realm=realm,
+            id=component_id,
+            type=type
+        )
+
+    async def aget_sub_component_types(self, realm: str | None = None, component_id: str = None, type: str | None = None) -> list | None:
+        """Get sub-component types (async)."""
+        return await self._async(
+            get_admin_realms_realm_components_id_sub_component_types.asyncio,
+            realm=realm,
+            id=component_id,
+            type=type
+        )
+
+
+class ComponentsClientMixin:
+    """Mixin for BaseClientManager subclasses to be connected to the ComponentsAPI.
+    """
+
+    @cached_property
+    def components(self) -> ComponentsAPI:
+        """Get the ComponentsAPI instance."""
+        return ComponentsAPI(manager=self)  # type: ignore[arg-type]

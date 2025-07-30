@@ -1,0 +1,36 @@
+[project]
+name = "ackc"
+version = "0.1.1"
+description = "Acie's API Client for Keycloak"
+readme = "readme.md"
+requires-python = ">=3.13"
+
+authors = [
+    { name = "Phillip Sitbon", email = "phillip.sitbon@gmail.com"},
+]
+
+packages = [
+    { include = "ackc" },
+    { include = "scripts", format = "sdist" },  # NOTE: uv_build doesn't include these as expected
+    { include = "examples", format = "sdist" }, #   <- ^
+]
+
+dependencies = [
+    "niquests>=3.14.1",
+]
+
+[dependency-groups]
+dev = [
+    "openapi-python-client>=0.25.3",
+]
+
+[project.scripts]
+auth-realm-export = "ackc.tool.export_realm:main"
+auth-get-token = "ackc.tool.get_token:main"
+
+[tool.uv.build-backend]
+module-root = ""
+
+[build-system]
+requires = ["uv_build"]
+build-backend = "uv_build"

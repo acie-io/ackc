@@ -1,0 +1,10 @@
+.*
+!.gitignore
+!.gitkeep
+!.github/
+!.python-version
+!.env.example
+!.dockerignore
+
+*.py[co]
+__pycache__/
