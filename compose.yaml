@@ -18,9 +18,7 @@ services:
     #   - "54320:5432"
 
   keycloak:
-    build:
-      context: .
-      dockerfile: dockerfile
+    image: quay.io/keycloak/keycloak:26.3
     environment:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://postgres:5432/auth
@@ -29,6 +27,8 @@ services:
       KC_HOSTNAME_STRICT: false
       KC_PROXY_HEADERS: xforwarded
       KC_HTTP_ENABLED: true
+      KC_HEALTH_ENABLED: true
+      KC_METRICS_ENABLED: true
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
     command: start-dev

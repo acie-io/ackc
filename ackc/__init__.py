@@ -18,12 +18,11 @@ Basic usage:
 """
 from importlib.metadata import version
 
-# Re-export the generated client classes
 from .generated import AuthenticatedClient, Client
-from .generated import models  # All the attrs models
+from .generated import models
 
-# Our additions
 from .keycloak import KeycloakClient
+from .management import KeycloakManagementClient, HealthStatus, HealthCheck, HealthResponse
 from .exceptions import (
     AuthError,
     ClientError,
@@ -40,6 +39,11 @@ __all__ = (
     "models",
     # Our wrapper
     "KeycloakClient",
+    # Management client
+    "KeycloakManagementClient",
+    "HealthStatus",
+    "HealthCheck",
+    "HealthResponse",
     # Exceptions
     "AuthError",
     "ClientError",
