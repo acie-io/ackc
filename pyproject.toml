@@ -16,6 +16,7 @@ packages = [
 ]
 
 dependencies = [
+    "attrs>=25.3.0",
     "niquests>=3.14.1",
 ]
 

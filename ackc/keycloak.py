@@ -4,6 +4,8 @@ Keycloak client that provides a clean interface over the generated code.
 This handles authentication and provides proper sync/async support without
 requiring separate client classes.
 """
+from urllib.parse import urlencode, urljoin
+
 from .api import KeycloakClientMixin
 from .base import BaseKeycloakClient
 
@@ -29,7 +31,7 @@ class KeycloakClient(KeycloakClientMixin, BaseKeycloakClient):
             users = await client.users.aget_all("master")
         
         # Direct access to generated API still works
-        from acie.auth.client.api.users import get_admin_realms_realm_users
+        from ackc.generated.api.users import get_admin_realms_realm_users
         users = get_admin_realms_realm_users.sync(realm="master", client=client.client)
     """
     realm: str = "acie"
@@ -68,13 +70,109 @@ class KeycloakClient(KeycloakClientMixin, BaseKeycloakClient):
             **kwds
         )
 
-    def export_realm_config(self, realm: str, include_users: bool = False) -> dict:
-        """Export complete realm configuration for backup or migration.
+    def _build_url(self, path: str, **params) -> str:
+        """Build a complete URL with server, path, and optional query parameters.
         
+        Args:
+            path: The URL path (relative to server_url)
+            **params: Optional query parameters as keyword arguments
+            
+        Returns:
+            The complete URL with encoded query parameters
+        """
+        # Build full URL using urljoin to handle paths properly
+        full_url = urljoin(self.server_url, path.lstrip('/'))
+        
+        # Filter out None values and add query parameters
+        filtered_params = {k: v for k, v in params.items() if v is not None}
+        if filtered_params:
+            return f"{full_url}?{urlencode(filtered_params)}"
+        return full_url
+
+    def get_login_url(self, realm: str, redirect_uri: str | None = None) -> str:
+        """Get the login URL for a specific realm.
+
+        Args:
+            realm: The realm name
+            redirect_uri: Optional redirect URI after successful login
+
+        Returns:
+            The login URL for the specified realm
+        """
+        return self._build_url(f"realms/{realm}/protocol/openid-connect/auth", redirect_uri=redirect_uri)
+
+    @property
+    def login_url(self) -> str:
+        """Get the login URL for the default realm.
+
+        Returns:
+            The login URL for the default realm
+        """
+        return self.get_login_url(self.realm)
+
+    @property
+    def auth_login_url(self) -> str:
+        """Get the login URL for the authentication realm.
+
+        Returns:
+            The login URL for the authentication realm (typically 'master')
+        """
+        return self.get_login_url(self.auth_realm)
+
+    def check_registration_enabled(self, realm: str) -> bool:
+        """Check if registration is enabled for a specific realm.
+
+        Args:
+            realm: The realm name
+
+        Returns:
+            True if registration is enabled, False otherwise
+        """
+        realm_data = self.realms.get(realm)
+        return bool(realm_data and getattr(realm_data, 'registration_allowed', False))
+
+    async def acheck_registration_enabled(self, realm: str) -> bool:
+        """Check if registration is enabled for a specific realm (async).
+
+        Args:
+            realm: The realm name
+
+        Returns:
+            True if registration is enabled, False otherwise
+        """
+        realm_data = await self.realms.aget(realm)
+        return bool(realm_data and getattr(realm_data, 'registration_allowed', False))
+
+    def get_registration_url(self, realm: str, *, redirect_uri: str | None = None) -> str:
+        """Get the registration URL for a specific realm if registration is enabled.
+
+        Does not guarantee that registration is enabled; use `check_registration_enabled` first.
+
+        Args:
+            realm: The realm name
+            redirect_uri: Optional redirect URI after successful registration
+
+        Returns:
+            The registration URL for the specified realm
+        """
+        return self._build_url(f"realms/{realm}/protocol/openid-connect/registrations", redirect_uri=redirect_uri)
+
+    @property
+    def registration_url(self) -> str | None:
+        """Get the registration URL for the default realm if registration is enabled.
+
+        Returns:
+            The registration URL for the default realm, or None if registration is disabled
+        """
+        return self.get_registration_url(self.realm)
+
+    def export_realm_config(self, realm: str, *, include_users: bool = False) -> dict:
+        """Export complete realm configuration for backup or migration.
+
         Args:
             realm: Realm name to export
             include_users: Whether to include users in export (can be large)
-            
+
         Returns:
             Dictionary containing full realm configuration
         """
@@ -118,7 +216,7 @@ class KeycloakClient(KeycloakClientMixin, BaseKeycloakClient):
         config["components"] = [c.to_dict() if hasattr(c, 'to_dict') else c for c in components]
 
         # Get events config
-        events_config = self.events.get_config(realm)
+        events_config = self.events.get_events_config(realm)
         if events_config:
             config["eventsConfig"] = events_config.to_dict() if hasattr(events_config, 'to_dict') else events_config
 
@@ -129,7 +227,7 @@ class KeycloakClient(KeycloakClientMixin, BaseKeycloakClient):
 
         return config
 
-    async def aexport_realm_config(self, realm: str, include_users: bool = False) -> dict:
+    async def aexport_realm_config(self, realm: str, *, include_users: bool = False) -> dict:
         """Export complete realm configuration for backup or migration (async).
         
         Args:

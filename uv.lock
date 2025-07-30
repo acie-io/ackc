@@ -4,9 +4,10 @@ requires-python = ">=3.13"
 
 [[package]]
 name = "ackc"
-version = "0.1.1"
+version = "0.1.2"
 source = { editable = "." }
 dependencies = [
+    { name = "attrs" },
     { name = "niquests" },
 ]
 
@@ -16,7 +17,10 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "niquests", specifier = ">=3.14.1" }]
+requires-dist = [
+    { name = "attrs", specifier = ">=25.3.0" },
+    { name = "niquests", specifier = ">=3.14.1" },
+]
 
 [package.metadata.requires-dev]
 dev = [{ name = "openapi-python-client", specifier = ">=0.25.3" }]
