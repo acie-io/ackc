@@ -56,7 +56,7 @@ Manage users, credentials, roles, and user sessions.
 - User role mappings and group memberships
 - User sessions and consent management
 
-[Keycloak Documentation: User Management](https://www.keycloak.org/docs/latest/server_admin/#user-management)
+[Keycloak Documentation: User Management](https://www.keycloak.org/docs/latest/server_admin/#assembly-managing-users_server_administration_guide)
 
 ### Realms API (`client.realms`)
 Configure realms, realm settings, and realm-level operations.
@@ -66,7 +66,7 @@ Configure realms, realm settings, and realm-level operations.
 - Realm events and admin events
 - Localization and internationalization
 
-[Keycloak Documentation: Realms](https://www.keycloak.org/docs/latest/server_admin/#configuring-realms)
+[Keycloak Documentation: Realms](https://www.keycloak.org/docs/latest/server_admin/#_configuring-realms)
 
 ### Clients API (`client.clients`)
 Manage OAuth2/OIDC clients and their configurations.
@@ -76,7 +76,7 @@ Manage OAuth2/OIDC clients and their configurations.
 - Service accounts and permissions
 - Client session management
 
-[Keycloak Documentation: Clients](https://www.keycloak.org/docs/latest/server_admin/#oidc-clients)
+[Keycloak Documentation: Clients](https://www.keycloak.org/docs/latest/server_admin/#_oidc_clients)
 
 ### Roles API (`client.roles`)
 Define and manage realm and client roles.
@@ -85,7 +85,7 @@ Define and manage realm and client roles.
 - Role permissions and attributes
 - List role members
 
-[Keycloak Documentation: Roles](https://www.keycloak.org/docs/latest/server_admin/#roles)
+[Keycloak Documentation: Roles](https://www.keycloak.org/docs/latest/server_admin/#proc-creating-realm-roles_server_administration_guide)
 
 ### Groups API (`client.groups`)
 Organize users into groups with hierarchical structures.
@@ -94,7 +94,7 @@ Organize users into groups with hierarchical structures.
 - Group role mappings
 - Group members management
 
-[Keycloak Documentation: Groups](https://www.keycloak.org/docs/latest/server_admin/#groups)
+[Keycloak Documentation: Groups](https://www.keycloak.org/docs/latest/server_admin/#proc-managing-groups_server_administration_guide)
 
 ### Identity Providers API (`client.identity_providers`)
 Configure external identity providers for federation.
@@ -103,7 +103,7 @@ Configure external identity providers for federation.
 - Identity provider mappers
 - First broker login flows
 
-[Keycloak Documentation: Identity Providers](https://www.keycloak.org/docs/latest/server_admin/#identity-broker)
+[Keycloak Documentation: Identity Providers](https://www.keycloak.org/docs/latest/server_admin/#_identity_broker)
 
 ### Authentication API (`client.authentication`)
 Customize authentication flows and requirements.
@@ -112,7 +112,7 @@ Customize authentication flows and requirements.
 - Authenticator providers
 - Password policies
 
-[Keycloak Documentation: Authentication](https://www.keycloak.org/docs/latest/server_admin/#authentication-flows)
+[Keycloak Documentation: Authentication](https://www.keycloak.org/docs/latest/server_admin/#_authentication-flows)
 
 ### Authorization API (`client.authorization`)
 Fine-grained authorization using Keycloak Authorization Services.
@@ -130,7 +130,7 @@ Manage reusable scope configurations for clients.
 - Default and optional client scopes
 - Scope evaluation
 
-[Keycloak Documentation: Client Scopes](https://www.keycloak.org/docs/latest/server_admin/#client-scopes)
+[Keycloak Documentation: Client Scopes](https://www.keycloak.org/docs/latest/server_admin/#_client_scopes)
 
 ### Protocol Mappers API (`client.protocol_mappers`)
 Configure how tokens and assertions are populated.
@@ -139,7 +139,7 @@ Configure how tokens and assertions are populated.
 - User attribute and role mappings
 - Hardcoded and dynamic values
 
-[Keycloak Documentation: Protocol Mappers](https://www.keycloak.org/docs/latest/server_admin/#protocol-mappers)
+[Keycloak Documentation: Protocol Mappers](https://www.keycloak.org/docs/latest/server_admin/#_protocol-mappers)
 
 ### Components API (`client.components`)
 Manage pluggable components like user storage providers.
@@ -148,7 +148,7 @@ Manage pluggable components like user storage providers.
 - Theme providers
 - Other SPI implementations
 
-[Keycloak Documentation: User Storage](https://www.keycloak.org/docs/latest/server_admin/#user-storage-federation)
+[Keycloak Documentation: User Storage](https://www.keycloak.org/docs/latest/server_admin/#_user-storage-federation)
 
 ### Sessions API (`client.sessions`)
 Monitor and manage active user and client sessions.
@@ -157,7 +157,7 @@ Monitor and manage active user and client sessions.
 - Offline sessions
 - Session revocation
 
-[Keycloak Documentation: Sessions](https://www.keycloak.org/docs/latest/server_admin/#user-session-management)
+[Keycloak Documentation: Sessions](https://www.keycloak.org/docs/latest/server_admin/#managing-user-sessions)
 
 ### Events API (`client.events`)
 Access and configure audit and admin events.
@@ -166,7 +166,7 @@ Access and configure audit and admin events.
 - Event types and details
 - Event retention policies
 
-[Keycloak Documentation: Events](https://www.keycloak.org/docs/latest/server_admin/#auditing-and-events)
+[Keycloak Documentation: Events](https://www.keycloak.org/docs/latest/server_admin/#configuring-auditing-to-track-events)
 
 ### Keys API (`client.keys`)
 Manage realm cryptographic keys.
@@ -175,7 +175,7 @@ Manage realm cryptographic keys.
 - Algorithm configuration
 - Certificate management
 
-[Keycloak Documentation: Keys](https://www.keycloak.org/docs/latest/server_admin/#realm-keys)
+[Keycloak Documentation: Keys](https://www.keycloak.org/docs/latest/server_admin/#realm_keys)
 
 ### Organizations API (`client.organizations`)
 Manage organizations (Keycloak 25+).
@@ -184,7 +184,7 @@ Manage organizations (Keycloak 25+).
 - Organization identity providers
 - Multi-tenancy support
 
-[Keycloak Documentation: Organizations](https://www.keycloak.org/docs/latest/server_admin/#organizations)
+[Keycloak Documentation: Organizations](https://www.keycloak.org/docs/latest/server_admin/#_managing_organizations)
 
 ## Authentication Methods
 
@@ -265,11 +265,18 @@ auth-realm-export --help
 auth-realm-export --server https://keycloak.example.com --realm my-realm
 ```
 
+### Management Commands
+```bash
+auth-mc --help
+auth-mc --url http://localhost:9000 --json metrics  # Dump Keycloak prometheus metrics
+```
+
 ## Advanced Usage
 
-### Custom Authentication
+### Cloudflare Access Integration
 ```python
-# Use with CloudFlare Access (+ Tunnel = HTTPS for local development)
+# Use with Cloudflare Access (+ Tunnel = HTTPS for local development or secure remote management)
+# Note: This gets you past Cloudflare, but you still need to authenticate with Keycloak.
 
 client = KeycloakClient(
     server_url="https://keycloak.example.com",
@@ -278,13 +285,18 @@ client = KeycloakClient(
 )
 ```
 
-### Per-Request Realm Override
+### Per-Request Realm and Auth Realm Override
 ```python
 # Initialize client for master realm
 client = KeycloakClient(server_url="...", realm="master")
 
 # Override realm for specific calls
 users = client.users.get_all(realm="other-realm")
+
+# Use a different realm for authentication.
+# Recommended for backend production clients to maintain least privilege.
+company_realm = "acie"
+client = KeycloakClient(server_url="...", auth_realm=company_realm, realm=company_realm)
 ```
 
 ### Direct API Access
