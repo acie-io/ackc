@@ -1,5 +1,7 @@
 # ACKC - Acie API Client for Keycloak
 
+TODO: Get hostnames attached to realms to configure the reverse proxy properly.
+
 A comprehensive Python client library for Keycloak Admin REST API, providing a clean and typed interface for managing Keycloak resources.
 
 ## Overview

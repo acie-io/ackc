@@ -27,6 +27,7 @@ from .exceptions import (
     AuthError,
     ClientError,
     TokenExpiredError,
+    InvalidTokenError,
     UserNotFoundError,
 )
 
@@ -48,5 +49,6 @@ __all__ = (
     "AuthError",
     "ClientError",
     "TokenExpiredError",
+    "InvalidTokenError",
     "UserNotFoundError",
 )

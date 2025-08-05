@@ -4,6 +4,7 @@ import sys
 import webbrowser
 
 from .api import BaseClientManager, AuthenticatedClient, Client, AuthError
+from .exceptions import TokenExpiredError, InvalidTokenError
 
 __all__ = (
     "AuthError",
@@ -19,21 +20,21 @@ class BaseKeycloakClient(BaseClientManager):
     _server_url: str
     _client_id: str
     _client_secret: str
-    _token: str | None = None
+    _token: dict | None = None
 
     def __init__(
-        self,
-        realm: str | None = None, *,
-        server_url: str | None = None,
-        client_id: str | None = None,
-        client_secret: str | None = None,
-        auth_realm: str = "master",
-        verify_ssl: bool = True,
-        timeout: float = 30.0,
-        headers: dict[str, str] | None = None,
-        cf_client_id: str | None = None,
-        cf_client_secret: str | None = None,
-        **kwds,
+            self,
+            realm: str | None = None, *,
+            server_url: str | None = None,
+            client_id: str | None = None,
+            client_secret: str | None = None,
+            auth_realm: str = "master",
+            verify_ssl: bool = True,
+            timeout: float = 30.0,
+            headers: dict[str, str] | None = None,
+            cf_client_id: str | None = None,
+            cf_client_secret: str | None = None,
+            **kwds,
     ):
         """
         Initialize the Keycloak client.
@@ -97,12 +98,20 @@ class BaseKeycloakClient(BaseClientManager):
         return self._client_id
 
     @property
-    def token(self) -> str | None:
-        """Access token (does NOT trigger authentication).
+    def token(self) -> dict | None:
+        """Token dict (does NOT trigger authentication).
 
         Use `get_token()` or `aget_token()` to ensure token retrieval.
         """
         return self._token
+
+    @property
+    def access_token(self) -> str | None:
+        """Extract access token string from token property (does NOT trigger authentication).
+
+        Use `get_token()` or `aget_token()` to ensure token retrieval.
+        """
+        return self._token.get("access_token") if self._token else None
 
     def _ensure_authenticated(self):
         """Ensure we have a valid token and client."""
@@ -111,7 +120,7 @@ class BaseKeycloakClient(BaseClientManager):
 
         if self._client is None:
             self._client = AuthenticatedClient(
-                token=self._token,
+                token=self.access_token,
                 **self._client_config
             )
 
@@ -122,12 +131,12 @@ class BaseKeycloakClient(BaseClientManager):
 
         if self._client is None:
             self._client = AuthenticatedClient(
-                token=self._token,
+                token=self.access_token,
                 **self._client_config
             )
 
-    def _get_token(self) -> str:
-        """Get an access token synchronously."""
+    def _get_token(self) -> dict:
+        """Get token response synchronously."""
         with Client(**self._client_config) as temp_client:
             token_url = f"{self.server_url}/realms/{self.auth_realm}/protocol/openid-connect/token"
             response = temp_client.get_niquests_client().post(
@@ -142,10 +151,10 @@ class BaseKeycloakClient(BaseClientManager):
             if response.status_code != 200:
                 raise AuthError(f"Authentication failed: {response.status_code} - {response.text}")
 
-            return response.json()["access_token"]
+            return response.json()
 
-    async def _get_token_async(self) -> str:
-        """Get an access token asynchronously."""
+    async def _get_token_async(self) -> dict:
+        """Get token response asynchronously."""
         async with Client(**self._client_config) as temp_client:
             token_url = f"{self.server_url}/realms/{self.auth_realm}/protocol/openid-connect/token"
             response = await temp_client.get_async_niquests_client().post(
@@ -160,38 +169,48 @@ class BaseKeycloakClient(BaseClientManager):
             if response.status_code != 200:
                 raise AuthError(f"Authentication failed: {response.status_code} - {response.text}")
 
-            return response.json()["access_token"]
+            return response.json()
 
     def get_token(self) -> str:
         """Get the current access token, authenticating if necessary."""
         self._ensure_authenticated()
-        return self._token
+        return self.access_token
 
     async def aget_token(self) -> str:
         """Get the current access token asynchronously, authenticating if necessary."""
         await self._ensure_authenticated_async()
-        return self._token
+        return self.access_token
 
     def refresh_token(self):
         """Refresh the access token synchronously."""
         self._token = self._get_token()
         if self._client:
-            self._client.token = self._token
+            self._client.token = self.access_token
 
     async def arefresh_token(self):
         """Refresh the access token asynchronously."""
         self._token = await self._get_token_async()
         if self._client:
-            self._client.token = self._token
+            self._client.token = self.access_token
 
     def get_token_password(
-        self,
-        username: str,
-        password: str,
-        realm: str = "acie",
-        client_id: str = "admin-cli",
-    ) -> str:
-        """Get token using password grant (legacy flow)."""
+            self,
+            username: str,
+            password: str,
+            realm: str = "acie",
+            client_id: str = "admin-cli",
+    ) -> dict:
+        """Get token using password grant (legacy flow).
+        
+        Args:
+            username: Username to authenticate
+            password: Password for the user
+            realm: Realm to authenticate against
+            client_id: Client ID to use for authentication
+            
+        Returns:
+            Full token response dict with access_token, refresh_token, etc.
+        """
         token_url = f"{self.server_url}/realms/{realm}/protocol/openid-connect/token"
 
         with Client(**self._client_config) as temp_client:
@@ -209,16 +228,26 @@ class BaseKeycloakClient(BaseClientManager):
             if response.status_code != 200:
                 raise AuthError(f"Password authentication failed: {response.status_code} - {response.text}")
 
-            return response.json()["access_token"]
+            return response.json()
 
     async def aget_token_password(
-        self,
-        username: str,
-        password: str,
-        realm: str = "acie",
-        client_id: str = "admin-cli",
-    ) -> str:
-        """Get token using password grant (legacy flow) asynchronously."""
+            self,
+            username: str,
+            password: str,
+            realm: str = "acie",
+            client_id: str = "admin-cli",
+    ) -> dict:
+        """Get token using password grant (legacy flow) asynchronously.
+        
+        Args:
+            username: Username to authenticate
+            password: Password for the user
+            realm: Realm to authenticate against
+            client_id: Client ID to use for authentication
+            
+        Returns:
+            Full token response dict with access_token, refresh_token, etc.
+        """
         token_url = f"{self.server_url}/realms/{realm}/protocol/openid-connect/token"
 
         async with Client(multiplexed=False, **self._client_config) as temp_client:
@@ -236,7 +265,7 @@ class BaseKeycloakClient(BaseClientManager):
             if response.status_code != 200:
                 raise AuthError(f"Password authentication failed: {response.status_code} - {response.text}")
 
-            return response.json()["access_token"]
+            return response.json()
 
     async def aget_token_device(self, realm: str = "acie", client_id: str = "dev-cli") -> str:
         """Get token using device authorization flow (OAuth 2.1)."""
@@ -298,3 +327,191 @@ class BaseKeycloakClient(BaseClientManager):
                     raise AuthError(f"Token request failed: {response.status_code}")
 
             raise AuthError("Device authorization expired")
+
+    def jwt_decode(self, jwt: str, realm: str) -> dict:
+        """Get user information from an access token using Keycloak's userinfo endpoint.
+        
+        This method validates the token and returns user profile information. It's
+        typically used when you need to know WHO a token belongs to.
+        
+        Args:
+            jwt: The JWT string (e.g. from Authorization header)
+            realm: The realm the token was issued from
+            
+        Returns:
+            User profile dict with structure like:
+            {
+                "sub": "f:550e8400-e29b-41d4-a716-446655440000:johndoe",
+                "email_verified": true,
+                "name": "John Doe",
+                "preferred_username": "johndoe",
+                "given_name": "John",
+                "family_name": "Doe",
+                "email": "john.doe@example.com"
+            }
+            
+        Raises:
+            TokenExpiredError: If the token has expired
+            InvalidTokenError: If the token is invalid or malformed
+            AuthError: For other authentication errors
+        """
+        userinfo_url = f"{self.server_url}/realms/{realm}/protocol/openid-connect/userinfo"
+
+        with Client(**self._client_config) as temp_client:
+            response = temp_client.get_niquests_client().get(
+                userinfo_url,
+                headers={"Authorization": f"Bearer {jwt}"}
+            )
+
+            if response.status_code == 401:
+                # Check if it's specifically an expired token
+                error_desc = response.json().get("error_description", "")
+                if "expired" in error_desc.lower():
+                    raise TokenExpiredError("Token has expired")
+                raise InvalidTokenError("Invalid or malformed token")
+            elif response.status_code != 200:
+                raise AuthError(f"Token validation failed: {response.status_code} - {response.text}")
+
+            return response.json()
+
+    async def ajwt_decode(self, jwt: str, realm: str) -> dict:
+        """Get user information from an access token using Keycloak's userinfo endpoint (async).
+        
+        This method validates the token and returns user profile information. It's
+        typically used when you need to know WHO a token belongs to.
+        
+        Args:
+            jwt: The JWT string (e.g. from Authorization header)
+            realm: The realm the token was issued from
+            
+        Returns:
+            User profile dict with structure like:
+            {
+                "sub": "f:550e8400-e29b-41d4-a716-446655440000:johndoe",
+                "email_verified": true,
+                "name": "John Doe",
+                "preferred_username": "johndoe",
+                "given_name": "John",
+                "family_name": "Doe",
+                "email": "john.doe@example.com"
+            }
+            
+        Raises:
+            TokenExpiredError: If the token has expired
+            InvalidTokenError: If the token is invalid or malformed
+            AuthError: For other authentication errors
+        """
+        userinfo_url = f"{self.server_url}/realms/{realm}/protocol/openid-connect/userinfo"
+
+        async with Client(**self._client_config) as temp_client:
+            response = await temp_client.get_async_niquests_client().get(
+                userinfo_url,
+                headers={"Authorization": f"Bearer {jwt}"}
+            )
+
+            if response.status_code == 401:
+                # Check if it's specifically an expired token
+                error_desc = response.json().get("error_description", "")
+                if "expired" in error_desc.lower():
+                    raise TokenExpiredError("Token has expired")
+                raise InvalidTokenError("Invalid or malformed token")
+            elif response.status_code != 200:
+                raise AuthError(f"Token validation failed: {response.status_code} - {response.text}")
+
+            return response.json()
+
+    def jwt_introspect(self, jwt: str, realm: str) -> dict:
+        """Validate and get metadata about an access token.
+        
+        This method checks if a token is valid and returns detailed metadata. It's
+        typically used when you need to know IF a token is valid and its properties.
+        
+        Args:
+            jwt: The JWT string to validate
+            realm: The realm the token was issued from
+            
+        Returns:
+            Token metadata dict with structure like:
+            {
+                "active": true,  # false if token is invalid/expired
+                "scope": "openid email profile",
+                "username": "johndoe",
+                "exp": 1735689600,  # expiration timestamp
+                "iat": 1735686000,  # issued at timestamp
+                "sub": "f:550e8400-e29b-41d4-a716-446655440000:johndoe",
+                "aud": "my-client",
+                "iss": "https://auth.example.com/realms/my-realm",
+                "typ": "Bearer",
+                "azp": "my-client",
+                "session_state": "...",
+                "client_id": "my-client",
+                "token_type": "Bearer"
+            }
+            
+        Raises:
+            AuthError: If introspection request fails (not for invalid tokens)
+        """
+        introspect_url = f"{self.server_url}/realms/{realm}/protocol/openid-connect/token/introspect"
+
+        with Client(**self._client_config) as temp_client:
+            response = temp_client.get_niquests_client().post(
+                introspect_url,
+                data={
+                    "token": jwt,
+                    "client_id": self._client_id,
+                    "client_secret": self._client_secret,
+                }
+            )
+
+            if response.status_code != 200:
+                raise AuthError(f"Token introspection failed: {response.status_code} - {response.text}")
+
+            return response.json()
+
+    async def ajwt_introspect(self, jwt: str, realm: str) -> dict:
+        """Validate and get metadata about an access token (async).
+        
+        This method checks if a token is valid and returns detailed metadata. It's
+        typically used when you need to know IF a token is valid and its properties.
+        
+        Args:
+            jwt: The JWT string to validate
+            realm: The realm the token was issued from
+            
+        Returns:
+            Token metadata dict with structure like:
+            {
+                "active": true,  # false if token is invalid/expired
+                "scope": "openid email profile",
+                "username": "johndoe",
+                "exp": 1735689600,  # expiration timestamp
+                "iat": 1735686000,  # issued at timestamp
+                "sub": "f:550e8400-e29b-41d4-a716-446655440000:johndoe",
+                "aud": "my-client",
+                "iss": "https://auth.example.com/realms/my-realm",
+                "typ": "Bearer",
+                "azp": "my-client",
+                "session_state": "...",
+                "client_id": "my-client",
+                "token_type": "Bearer"
+            }
+            
+        Raises:
+            AuthError: If introspection request fails (not for invalid tokens)
+        """
+        introspect_url = f"{self.server_url}/realms/{realm}/protocol/openid-connect/token/introspect"
+
+        async with Client(**self._client_config) as temp_client:
+            response = await temp_client.get_async_niquests_client().post(
+                introspect_url,
+                data={
+                    "token": jwt,
+                    "client_id": self._client_id,
+                    "client_secret": self._client_secret,
+                }
+            )
+
+            if response.status_code != 200:
+                raise AuthError(f"Token introspection failed: {response.status_code} - {response.text}")
+
+            return response.json()

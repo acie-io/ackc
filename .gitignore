@@ -8,3 +8,5 @@
 
 *.py[co]
 __pycache__/
+
+CLAUDE*.md

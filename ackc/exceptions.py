@@ -17,6 +17,11 @@ class TokenExpiredError(AuthError):
     pass
 
 
+class InvalidTokenError(AuthError):
+    """Token is invalid or malformed."""
+    pass
+
+
 class UserNotFoundError(ClientError):
     """User not found in Keycloak."""
     pass

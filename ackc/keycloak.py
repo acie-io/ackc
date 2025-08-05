@@ -30,7 +30,7 @@ class KeycloakClient(KeycloakClientMixin, BaseKeycloakClient):
         async with client:
             users = await client.users.aget_all("master")
         
-        # Direct access to generated API still works
+        # Direct access to generated API still works (not recommended for most use cases):
         from ackc.generated.api.users import get_admin_realms_realm_users
         users = get_admin_realms_realm_users.sync(realm="master", client=client.client)
     """
@@ -82,7 +82,7 @@ class KeycloakClient(KeycloakClientMixin, BaseKeycloakClient):
         """
         # Build full URL using urljoin to handle paths properly
         full_url = urljoin(self.server_url, path.lstrip('/'))
-        
+
         # Filter out None values and add query parameters
         filtered_params = {k: v for k, v in params.items() if v is not None}
         if filtered_params:
