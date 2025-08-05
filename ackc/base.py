@@ -288,7 +288,7 @@ class BaseKeycloakClient(BaseClientManager):
             self,
             username: str,
             password: str,
-            realm: str = "acie",
+            realm: str | None = None,
             client_id: str = "admin-cli",
     ) -> dict:
         """Get token using password grant (legacy flow).
@@ -296,13 +296,13 @@ class BaseKeycloakClient(BaseClientManager):
         Args:
             username: Username to authenticate
             password: Password for the user
-            realm: Realm to authenticate against
+            realm: Realm to authenticate against (defaults to instance realm)
             client_id: Client ID to use for authentication
             
         Returns:
             Full token response dict with access_token, refresh_token, etc.
         """
-        token_url = f"{self.server_url}/realms/{realm}/protocol/openid-connect/token"
+        token_url = f"{self.server_url}/realms/{realm or self.realm}/protocol/openid-connect/token"
 
         with Client(**self._client_config) as temp_client:
             response = temp_client.get_niquests_client().post(
@@ -325,7 +325,7 @@ class BaseKeycloakClient(BaseClientManager):
             self,
             username: str,
             password: str,
-            realm: str = "acie",
+            realm: str | None = None,
             client_id: str = "admin-cli",
     ) -> dict:
         """Get token using password grant (legacy flow) asynchronously.
@@ -333,13 +333,13 @@ class BaseKeycloakClient(BaseClientManager):
         Args:
             username: Username to authenticate
             password: Password for the user
-            realm: Realm to authenticate against
+            realm: Realm to authenticate against (defaults to instance realm)
             client_id: Client ID to use for authentication
             
         Returns:
             Full token response dict with access_token, refresh_token, etc.
         """
-        token_url = f"{self.server_url}/realms/{realm}/protocol/openid-connect/token"
+        token_url = f"{self.server_url}/realms/{realm or self.realm}/protocol/openid-connect/token"
 
         async with Client(multiplexed=False, **self._client_config) as temp_client:
             response = await temp_client.get_async_niquests_client().post(
@@ -358,10 +358,10 @@ class BaseKeycloakClient(BaseClientManager):
 
             return response.json()
 
-    async def aget_token_device(self, realm: str = "acie", client_id: str = "dev-cli") -> dict:
+    async def aget_token_device(self, realm: str | None = None, client_id: str = "dev-cli") -> dict:
         """Get token using device authorization flow (OAuth 2.1)."""
-        device_url = f"{self.server_url}/realms/{realm}/protocol/openid-connect/auth/device"
-        token_url = f"{self.server_url}/realms/{realm}/protocol/openid-connect/token"
+        device_url = f"{self.server_url}/realms/{realm or self.realm}/protocol/openid-connect/auth/device"
+        token_url = f"{self.server_url}/realms/{realm or self.realm}/protocol/openid-connect/token"
 
         async with Client(multiplexed=False, **self._client_config) as temp_client:
             response = await temp_client.get_async_niquests_client().post(
@@ -417,11 +417,11 @@ class BaseKeycloakClient(BaseClientManager):
 
             raise AuthError("Device authorization expired")
 
-    def exchange_authorization_code(self, realm: str, code: str, redirect_uri: str) -> dict:
+    def exchange_authorization_code(self, realm: str | None = None, *, code: str, redirect_uri: str) -> dict:
         """Exchange an authorization code for tokens.
         
         Args:
-            realm: The realm to authenticate against
+            realm: The realm to authenticate against (defaults to instance realm)
             code: The authorization code received from Keycloak
             redirect_uri: The redirect URI used in the initial authorization request
             
@@ -432,7 +432,7 @@ class BaseKeycloakClient(BaseClientManager):
         Raises:
             AuthError: If the code exchange fails
         """
-        token_url = f"{self.server_url}/realms/{realm}/protocol/openid-connect/token"
+        token_url = f"{self.server_url}/realms/{realm or self.realm}/protocol/openid-connect/token"
 
         with Client(**self._client_config) as temp_client:
             response = temp_client.get_niquests_client().post(
@@ -453,11 +453,11 @@ class BaseKeycloakClient(BaseClientManager):
             token["issued_at"] = int(time.time())
             return token
 
-    async def aexchange_authorization_code(self, realm: str, code: str, redirect_uri: str) -> dict:
+    async def aexchange_authorization_code(self, realm: str | None = None, *, code: str, redirect_uri: str) -> dict:
         """Exchange an authorization code for tokens (async).
         
         Args:
-            realm: The realm to authenticate against
+            realm: The realm to authenticate against (defaults to instance realm)
             code: The authorization code received from Keycloak
             redirect_uri: The redirect URI used in the initial authorization request
             
@@ -468,7 +468,7 @@ class BaseKeycloakClient(BaseClientManager):
         Raises:
             AuthError: If the code exchange fails
         """
-        token_url = f"{self.server_url}/realms/{realm}/protocol/openid-connect/token"
+        token_url = f"{self.server_url}/realms/{realm or self.realm}/protocol/openid-connect/token"
 
         async with Client(**self._client_config) as temp_client:
             response = await temp_client.get_async_niquests_client().post(
@@ -489,7 +489,7 @@ class BaseKeycloakClient(BaseClientManager):
             token["issued_at"] = int(time.time())
             return token
 
-    def jwt_decode(self, jwt: str, realm: str) -> dict:
+    def jwt_decode(self, jwt: str, realm: str | None = None) -> dict:
         """Get user information from an access token using Keycloak's userinfo endpoint.
         
         This method validates the token and returns user profile information. It's
@@ -497,7 +497,7 @@ class BaseKeycloakClient(BaseClientManager):
         
         Args:
             jwt: The JWT string (e.g. from Authorization header)
-            realm: The realm the token was issued from
+            realm: The realm the token was issued from (defaults to instance realm)
             
         Returns:
             User profile dict with structure like:
@@ -516,7 +516,7 @@ class BaseKeycloakClient(BaseClientManager):
             InvalidTokenError: If the token is invalid or malformed
             AuthError: For other authentication errors
         """
-        userinfo_url = f"{self.server_url}/realms/{realm}/protocol/openid-connect/userinfo"
+        userinfo_url = f"{self.server_url}/realms/{realm or self.realm}/protocol/openid-connect/userinfo"
 
         with Client(**self._client_config) as temp_client:
             response = temp_client.get_niquests_client().get(
@@ -534,7 +534,7 @@ class BaseKeycloakClient(BaseClientManager):
 
             return response.json()
 
-    async def ajwt_decode(self, jwt: str, realm: str) -> dict:
+    async def ajwt_decode(self, jwt: str, realm: str | None = None) -> dict:
         """Get user information from an access token using Keycloak's userinfo endpoint (async).
         
         This method validates the token and returns user profile information. It's
@@ -542,7 +542,7 @@ class BaseKeycloakClient(BaseClientManager):
         
         Args:
             jwt: The JWT string (e.g. from Authorization header)
-            realm: The realm the token was issued from
+            realm: The realm the token was issued from (defaults to instance realm)
             
         Returns:
             User profile dict with structure like:
@@ -561,7 +561,7 @@ class BaseKeycloakClient(BaseClientManager):
             InvalidTokenError: If the token is invalid or malformed
             AuthError: For other authentication errors
         """
-        userinfo_url = f"{self.server_url}/realms/{realm}/protocol/openid-connect/userinfo"
+        userinfo_url = f"{self.server_url}/realms/{realm or self.realm}/protocol/openid-connect/userinfo"
 
         async with Client(**self._client_config) as temp_client:
             response = await temp_client.get_async_niquests_client().get(
@@ -579,7 +579,7 @@ class BaseKeycloakClient(BaseClientManager):
 
             return response.json()
 
-    def jwt_introspect(self, jwt: str, realm: str) -> dict:
+    def jwt_introspect(self, jwt: str, realm: str | None = None) -> dict:
         """Validate and get metadata about an access token.
         
         This method checks if a token is valid and returns detailed metadata. It's
@@ -587,7 +587,7 @@ class BaseKeycloakClient(BaseClientManager):
         
         Args:
             jwt: The JWT string to validate
-            realm: The realm the token was issued from
+            realm: The realm the token was issued from (defaults to instance realm)
             
         Returns:
             Token metadata dict with structure like:
@@ -610,7 +610,7 @@ class BaseKeycloakClient(BaseClientManager):
         Raises:
             AuthError: If introspection request fails (not for invalid tokens)
         """
-        introspect_url = f"{self.server_url}/realms/{realm}/protocol/openid-connect/token/introspect"
+        introspect_url = f"{self.server_url}/realms/{realm or self.realm}/protocol/openid-connect/token/introspect"
 
         with Client(**self._client_config) as temp_client:
             response = temp_client.get_niquests_client().post(
@@ -627,7 +627,7 @@ class BaseKeycloakClient(BaseClientManager):
 
             return response.json()
 
-    async def ajwt_introspect(self, jwt: str, realm: str) -> dict:
+    async def ajwt_introspect(self, jwt: str, realm: str | None = None) -> dict:
         """Validate and get metadata about an access token (async).
         
         This method checks if a token is valid and returns detailed metadata. It's
@@ -635,7 +635,7 @@ class BaseKeycloakClient(BaseClientManager):
         
         Args:
             jwt: The JWT string to validate
-            realm: The realm the token was issued from
+            realm: The realm the token was issued from (defaults to instance realm)
             
         Returns:
             Token metadata dict with structure like:
@@ -658,7 +658,7 @@ class BaseKeycloakClient(BaseClientManager):
         Raises:
             AuthError: If introspection request fails (not for invalid tokens)
         """
-        introspect_url = f"{self.server_url}/realms/{realm}/protocol/openid-connect/token/introspect"
+        introspect_url = f"{self.server_url}/realms/{realm or self.realm}/protocol/openid-connect/token/introspect"
 
         async with Client(**self._client_config) as temp_client:
             response = await temp_client.get_async_niquests_client().post(
@@ -675,12 +675,12 @@ class BaseKeycloakClient(BaseClientManager):
 
             return response.json()
 
-    def jwt_refresh(self, realm: str, refresh_token: str) -> dict:
+    def jwt_refresh(self, refresh_token: str, realm: str | None = None) -> dict:
         """Exchange a refresh token for new tokens.
         
         Args:
-            realm: The realm to authenticate against
             refresh_token: The refresh token to exchange
+            realm: The realm to authenticate against (defaults to instance realm)
             
         Returns:
             New token dict with access_token, refresh_token, expires_in, etc.
@@ -690,7 +690,7 @@ class BaseKeycloakClient(BaseClientManager):
             TokenExpiredError: If the refresh token has expired
             AuthError: If the refresh fails for other reasons
         """
-        token_url = f"{self.server_url}/realms/{realm}/protocol/openid-connect/token"
+        token_url = f"{self.server_url}/realms/{realm or self.realm}/protocol/openid-connect/token"
 
         with Client(**self._client_config) as temp_client:
             response = temp_client.get_niquests_client().post(
@@ -715,12 +715,12 @@ class BaseKeycloakClient(BaseClientManager):
             token["issued_at"] = int(time.time())
             return token
 
-    async def ajwt_refresh(self, realm: str, refresh_token: str) -> dict:
+    async def ajwt_refresh(self, refresh_token: str, realm: str | None = None) -> dict:
         """Exchange a refresh token for new tokens (async).
         
         Args:
-            realm: The realm to authenticate against
             refresh_token: The refresh token to exchange
+            realm: The realm to authenticate against (defaults to instance realm)
             
         Returns:
             New token dict with access_token, refresh_token, expires_in, etc.
@@ -730,7 +730,7 @@ class BaseKeycloakClient(BaseClientManager):
             TokenExpiredError: If the refresh token has expired
             AuthError: If the refresh fails for other reasons
         """
-        token_url = f"{self.server_url}/realms/{realm}/protocol/openid-connect/token"
+        token_url = f"{self.server_url}/realms/{realm or self.realm}/protocol/openid-connect/token"
 
         async with Client(**self._client_config) as temp_client:
             response = await temp_client.get_async_niquests_client().post(

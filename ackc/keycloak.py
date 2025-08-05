@@ -87,17 +87,17 @@ class KeycloakClient(KeycloakClientMixin, BaseKeycloakClient):
             return f"{full_url}?{urlencode(filtered_params)}"
         return full_url
 
-    def get_login_url(self, realm: str, **params) -> str:
+    def get_login_url(self, realm: str | None = None, **params) -> str:
         """Get the login URL for a specific realm.
 
         Args:
-            realm: The realm name
+            realm: The realm name (defaults to instance realm)
             **params: Additional query parameters (e.g., client_id, response_type, scope, state)
 
         Returns:
             The login URL for the specified realm
         """
-        return self._build_url(f"realms/{realm}/protocol/openid-connect/auth", **params)
+        return self._build_url(f"realms/{realm or self.realm}/protocol/openid-connect/auth", **params)
 
     @property
     def login_url(self) -> str:
@@ -117,43 +117,43 @@ class KeycloakClient(KeycloakClientMixin, BaseKeycloakClient):
         """
         return self.get_login_url(self.auth_realm)
 
-    def check_registration_enabled(self, realm: str) -> bool:
+    def check_registration_enabled(self, realm: str | None = None) -> bool:
         """Check if registration is enabled for a specific realm.
 
         Args:
-            realm: The realm name
+            realm: The realm name (defaults to instance realm)
 
         Returns:
             True if registration is enabled, False otherwise
         """
-        realm_data = self.realms.get(realm)
+        realm_data = self.realms.get(realm or self.realm)
         return bool(realm_data and getattr(realm_data, 'registration_allowed', False))
 
-    async def acheck_registration_enabled(self, realm: str) -> bool:
+    async def acheck_registration_enabled(self, realm: str | None = None) -> bool:
         """Check if registration is enabled for a specific realm (async).
 
         Args:
-            realm: The realm name
+            realm: The realm name (defaults to instance realm)
 
         Returns:
             True if registration is enabled, False otherwise
         """
-        realm_data = await self.realms.aget(realm)
+        realm_data = await self.realms.aget(realm or self.realm)
         return bool(realm_data and getattr(realm_data, 'registration_allowed', False))
 
-    def get_registration_url(self, realm: str, *, redirect_uri: str | None = None) -> str:
+    def get_registration_url(self, realm: str | None = None, *, redirect_uri: str | None = None) -> str:
         """Get the registration URL for a specific realm if registration is enabled.
 
         Does not guarantee that registration is enabled; use `check_registration_enabled` first.
 
         Args:
-            realm: The realm name
+            realm: The realm name (defaults to instance realm)
             redirect_uri: Optional redirect URI after successful registration
 
         Returns:
             The registration URL for the specified realm
         """
-        return self._build_url(f"realms/{realm}/protocol/openid-connect/registrations", redirect_uri=redirect_uri)
+        return self._build_url(f"realms/{realm or self.realm}/protocol/openid-connect/registrations", redirect_uri=redirect_uri)
 
     @property
     def registration_url(self) -> str | None:
@@ -164,102 +164,104 @@ class KeycloakClient(KeycloakClientMixin, BaseKeycloakClient):
         """
         return self.get_registration_url(self.realm)
 
-    def export_realm_config(self, realm: str, *, include_users: bool = False) -> dict:
+    def export_realm_config(self, realm: str | None = None, *, include_users: bool = False) -> dict:
         """Export complete realm configuration for backup or migration.
 
         Args:
-            realm: Realm name to export
+            realm: Realm name to export (defaults to instance realm)
             include_users: Whether to include users in export (can be large)
 
         Returns:
             Dictionary containing full realm configuration
         """
+        realm = realm or self.realm
         config = {}
 
         realm_data = self.realms.get(realm)
         if realm_data:
-            config["realm"] = realm_data.to_dict() if hasattr(realm_data, 'to_dict') else realm_data
+            config["realm"] = realm_data.to_dict()
 
         clients = self.clients.get_all(realm) or []
-        config["clients"] = [c.to_dict() if hasattr(c, 'to_dict') else c for c in clients]
+        config["clients"] = [c.to_dict() for c in clients]
 
         client_scopes = self.client_scopes.get_all(realm) or []
-        config["clientScopes"] = [cs.to_dict() if hasattr(cs, 'to_dict') else cs for cs in client_scopes]
+        config["clientScopes"] = [cs.to_dict() for cs in client_scopes]
 
         idps = self.identity_providers.get_all(realm) or []
-        config["identityProviders"] = [idp.to_dict() if hasattr(idp, 'to_dict') else idp for idp in idps]
+        config["identityProviders"] = [idp.to_dict() for idp in idps]
 
         flows = self.authentication.get_flows(realm) or []
-        config["authenticationFlows"] = [f.to_dict() if hasattr(f, 'to_dict') else f for f in flows]
+        config["authenticationFlows"] = [f.to_dict() for f in flows]
 
         actions = self.authentication.get_required_actions(realm) or []
-        config["requiredActions"] = [a.to_dict() if hasattr(a, 'to_dict') else a for a in actions]
+        config["requiredActions"] = [a.to_dict() for a in actions]
 
         roles = self.roles.get_all(realm) or []
-        config["roles"] = {"realm": [r.to_dict() if hasattr(r, 'to_dict') else r for r in roles]}
+        config["roles"] = {"realm": [r.to_dict() for r in roles]}
 
         groups = self.groups.get_all(realm) or []
         config["groups"] = groups
 
         components = self.components.get_all(realm) or []
-        config["components"] = [c.to_dict() if hasattr(c, 'to_dict') else c for c in components]
+        config["components"] = [c.to_dict() for c in components]
 
         events_config = self.events.get_events_config(realm)
         if events_config:
-            config["eventsConfig"] = events_config.to_dict() if hasattr(events_config, 'to_dict') else events_config
+            config["eventsConfig"] = events_config.to_dict()
 
         if include_users:
             users = self.users.get_all(realm) or []
-            config["users"] = [u.to_dict() if hasattr(u, 'to_dict') else u for u in users]
+            config["users"] = [u.to_dict() for u in users]
 
         return config
 
-    async def aexport_realm_config(self, realm: str, *, include_users: bool = False) -> dict:
+    async def aexport_realm_config(self, realm: str | None = None, *, include_users: bool = False) -> dict:
         """Export complete realm configuration for backup or migration (async).
         
         Args:
-            realm: Realm name to export
+            realm: Realm name to export (defaults to instance realm)
             include_users: Whether to include users in export (can be large)
             
         Returns:
             Dictionary containing full realm configuration
         """
+        realm = realm or self.realm
         config = {}
 
         realm_data = await self.realms.aget(realm)
         if realm_data:
-            config["realm"] = realm_data.to_dict() if hasattr(realm_data, 'to_dict') else realm_data
+            config["realm"] = realm_data.to_dict()
 
         clients = await self.clients.aget_all(realm) or []
-        config["clients"] = [c.to_dict() if hasattr(c, 'to_dict') else c for c in clients]
+        config["clients"] = [c.to_dict() for c in clients]
 
         client_scopes = await self.client_scopes.aget_all(realm) or []
-        config["clientScopes"] = [cs.to_dict() if hasattr(cs, 'to_dict') else cs for cs in client_scopes]
+        config["clientScopes"] = [cs.to_dict() for cs in client_scopes]
 
         idps = await self.identity_providers.aget_all(realm) or []
-        config["identityProviders"] = [idp.to_dict() if hasattr(idp, 'to_dict') else idp for idp in idps]
+        config["identityProviders"] = [idp.to_dict() for idp in idps]
 
         flows = await self.authentication.aget_flows(realm) or []
-        config["authenticationFlows"] = [f.to_dict() if hasattr(f, 'to_dict') else f for f in flows]
+        config["authenticationFlows"] = [f.to_dict() for f in flows]
 
         actions = await self.authentication.aget_required_actions(realm) or []
-        config["requiredActions"] = [a.to_dict() if hasattr(a, 'to_dict') else a for a in actions]
+        config["requiredActions"] = [a.to_dict() for a in actions]
 
         roles = await self.roles.aget_all(realm) or []
-        config["roles"] = {"realm": [r.to_dict() if hasattr(r, 'to_dict') else r for r in roles]}
+        config["roles"] = {"realm": [r.to_dict() for r in roles]}
 
         groups = await self.groups.aget_all(realm) or []
         config["groups"] = groups
 
         components = await self.components.aget_all(realm) or []
-        config["components"] = [c.to_dict() if hasattr(c, 'to_dict') else c for c in components]
+        config["components"] = [c.to_dict() for c in components]
 
         events_config = await self.events.aget_events_config(realm)
         if events_config:
-            config["eventsConfig"] = events_config.to_dict() if hasattr(events_config, 'to_dict') else events_config
+            config["eventsConfig"] = events_config.to_dict()
 
         if include_users:
             users = await self.users.aget_all(realm) or []
-            config["users"] = [u.to_dict() if hasattr(u, 'to_dict') else u for u in users]
+            config["users"] = [u.to_dict() for u in users]
 
         return config

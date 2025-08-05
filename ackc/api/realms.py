@@ -65,11 +65,11 @@ class RealmsAPI(BaseAPI):
         if response.status_code != 201:
             raise AuthError(f"Failed to create realm: {response.status_code}")
 
-    def get(self, realm: str) -> dict | None:
+    def get(self, realm: str) -> RealmRepresentation | None:
         """Get a realm (sync)."""
         return self._sync_any(get_admin_realms_realm.sync, realm=realm)
 
-    async def aget(self, realm: str) -> dict | None:
+    async def aget(self, realm: str) -> RealmRepresentation | None:
         """Get a realm (async)."""
         return await self._async_any(get_admin_realms_realm.asyncio, realm=realm)
 
