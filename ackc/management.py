@@ -111,7 +111,7 @@ class KeycloakManagementClient:
 
         if client is not None:
             if not isinstance(client, (Client, AuthenticatedClient)):
-                raise TypeError("client must be an instance of Client or AuthenticatedClient")
+                raise TypeError("client must be an instance of Client or AuthenticatedClient")  # noqa: This is reachable if caller passes an invalid type
             self._client = client
 
     @property
@@ -125,13 +125,6 @@ class KeycloakManagementClient:
         client = self.client
         url = urljoin(self.url, endpoint.lstrip('/'))
 
-        # # Use context manager only if we created the client
-        # if self._provided_client:
-        #     return client.get_niquests_client().get(url)
-        # else:
-        #     with client:
-        #         return client.get_niquests_client().get(url)
-
         with client:
             return client.get_niquests_client().get(url)
 
@@ -139,13 +132,6 @@ class KeycloakManagementClient:
         """Make an asynchronous request to a management endpoint."""
         client = self.client
         url = urljoin(self.url, endpoint.lstrip('/'))
-
-        # # Use context manager only if we created the client
-        # if self._provided_client:
-        #     return await client.get_async_niquests_client().get(url)
-        # else:
-        #     async with client:
-        #         return await client.get_async_niquests_client().get(url)
 
         async with client:
             return await client.get_async_niquests_client().get(url)
@@ -249,7 +235,6 @@ class KeycloakManagementClient:
                     if len(parts) >= 4 and current_metric:
                         metrics[current_metric]["type"] = parts[3]
             else:
-                # Parse metric value line
                 if ' ' in line:
                     metric_with_labels, value = line.rsplit(' ', 1)
                     try:
@@ -257,13 +242,11 @@ class KeycloakManagementClient:
                     except ValueError:
                         continue
 
-                    # Extract metric name and labels
                     if '{' in metric_with_labels:
                         metric_name, labels_str = metric_with_labels.split('{', 1)
                         labels_str = labels_str.rstrip('}')
                         labels = {}
 
-                        # Simple label parsing (doesn't handle escaped quotes)
                         for label_pair in labels_str.split(','):
                             if '=' in label_pair:
                                 key, val = label_pair.split('=', 1)

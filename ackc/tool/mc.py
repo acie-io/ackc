@@ -12,22 +12,28 @@ from ..management import KeycloakManagementClient
 
 def handle_health(client: KeycloakManagementClient, args) -> None:
     """Handle health commands."""
-    if args.health_type == "live":
+    probe_type = args.health_type or "overall"
+    
+    if probe_type == "live":
         response = client.health_live()
-    elif args.health_type == "ready":
+    elif probe_type == "ready":
         response = client.health_ready()
-    elif args.health_type == "started":
+    elif probe_type == "started":
         response = client.health_started()
     else:
         response = client.health()
     
     if args.json:
-        print(json.dumps(response.to_dict(), indent=2))
+        output = response.to_dict()
+        output["probe"] = probe_type
+        print(json.dumps(output, indent=2))
     else:
-        print(f"Status: {response.status}")
+        status_line = f"[{probe_type.upper()}] Status: {response.status}"
         if response.checks:
-            for check in response.checks:
-                print(f"  - {check.name}: {check.status}")
+            checks_info = " (" + ", ".join(f"{check.name}: {check.status}" for check in response.checks) + ")"
+            print(status_line + checks_info)
+        else:
+            print(status_line)
 
 
 def handle_metrics(client: KeycloakManagementClient, args) -> None:

@@ -62,12 +62,10 @@ class EventsAPI(BaseAPI):
         Returns:
             List of user events matching the filters
         """
-        # Convert datetime objects to ISO strings
         if isinstance(date_from, datetime):
             date_from = date_from.isoformat()
         if isinstance(date_to, datetime):
             date_to = date_to.isoformat()
-        # Convert single event type to list
         if isinstance(type, str):
             type = [type]
             
@@ -116,12 +114,10 @@ class EventsAPI(BaseAPI):
         Returns:
             List of user events matching the filters
         """
-        # Convert datetime objects to ISO strings
         if isinstance(date_from, datetime):
             date_from = date_from.isoformat()
         if isinstance(date_to, datetime):
             date_to = date_to.isoformat()
-        # Convert single event type to list
         if isinstance(type, str):
             type = [type]
             
@@ -196,12 +192,10 @@ class EventsAPI(BaseAPI):
         Returns:
             List of admin events matching the filters
         """
-        # Convert datetime objects to ISO strings
         if isinstance(date_from, datetime) and date_from is not UNSET:
             date_from = date_from.isoformat()
         if isinstance(date_to, datetime) and date_to is not UNSET:
             date_to = date_to.isoformat()
-        # Convert single type to list
         if isinstance(operation_types, str):
             operation_types = [operation_types]
         if isinstance(resource_types, str):
@@ -263,12 +257,10 @@ class EventsAPI(BaseAPI):
         Returns:
             List of admin events matching the filters
         """
-        # Convert datetime objects to ISO strings
         if isinstance(date_from, datetime):
             date_from = date_from.isoformat()
         if isinstance(date_to, datetime):
             date_to = date_to.isoformat()
-        # Convert single type to list
         if isinstance(operation_types, str):
             operation_types = [operation_types]
         if isinstance(resource_types, str):
@@ -309,7 +301,6 @@ class EventsAPI(BaseAPI):
         if response.status_code not in (200, 204):
             raise AuthError(f"Failed to delete admin events: {response.status_code}")
 
-    # Events configuration
     def get_events_config(self, realm: str | None = None) -> RealmEventsConfigRepresentation | None:
         """Get events configuration (sync)."""
         return self._sync(get_admin_realms_realm_events_config.sync, realm)

@@ -1,6 +1,9 @@
 import asyncio
+import base64
+import json
 import os
 import sys
+import time
 import webbrowser
 
 from .api import BaseClientManager, AuthenticatedClient, Client, AuthError
@@ -21,6 +24,7 @@ class BaseKeycloakClient(BaseClientManager):
     _client_id: str
     _client_secret: str
     _token: dict | None = None
+    _refresh_buffer_seconds: int
 
     def __init__(
             self,
@@ -28,12 +32,13 @@ class BaseKeycloakClient(BaseClientManager):
             server_url: str | None = None,
             client_id: str | None = None,
             client_secret: str | None = None,
-            auth_realm: str = "master",
-            verify_ssl: bool = True,
-            timeout: float = 30.0,
+            auth_realm: str | None = None,
+            verify_ssl: bool | None = None,
+            timeout: float | None = None,
             headers: dict[str, str] | None = None,
             cf_client_id: str | None = None,
             cf_client_secret: str | None = None,
+            refresh_buffer_seconds: int | None = None,
             **kwds,
     ):
         """
@@ -45,11 +50,12 @@ class BaseKeycloakClient(BaseClientManager):
             client_id: OAuth2 client ID (defaults to KEYCLOAK_CLIENT_ID env var)
             client_secret: OAuth2 client secret (defaults to KEYCLOAK_CLIENT_SECRET env var)
             auth_realm: Realm to authenticate against (default: master)
-            verify_ssl: Whether to verify SSL certificates
-            timeout: Request timeout in seconds
+            verify_ssl: Whether to verify SSL certificates (default: True)
+            timeout: Request timeout in seconds (default: 30.0)
             headers: Custom headers to include in requests
             cf_client_id: Cloudflare Access client ID
             cf_client_secret: Cloudflare Access client secret
+            refresh_buffer_seconds: Seconds before expiry to consider token needs refresh (default: 60)
             **kwds: Additional arguments for the underlying client
         """
         super().__init__(realm=realm)
@@ -57,7 +63,8 @@ class BaseKeycloakClient(BaseClientManager):
         self._server_url = server_url or os.getenv("KEYCLOAK_URL")
         self._client_id = client_id or os.getenv("KEYCLOAK_CLIENT_ID")
         self._client_secret = client_secret or os.getenv("KEYCLOAK_CLIENT_SECRET")
-        self._auth_realm = auth_realm
+        self._auth_realm = auth_realm or "master"
+        self._refresh_buffer_seconds = refresh_buffer_seconds or 60
 
         if not self._client_id or not self._client_secret:
             raise AuthError(
@@ -76,8 +83,8 @@ class BaseKeycloakClient(BaseClientManager):
 
         self._client_config = {
             "base_url": self._server_url,
-            "verify_ssl": verify_ssl,
-            "timeout": timeout,
+            "verify_ssl": verify_ssl if verify_ssl is not None else True,
+            "timeout": timeout or 30.0,
             "headers": headers or {},
             **kwds
         }
@@ -106,12 +113,42 @@ class BaseKeycloakClient(BaseClientManager):
         return self._token
 
     @property
-    def access_token(self) -> str | None:
+    def _access_token(self) -> str | None:
         """Extract access token string from token property (does NOT trigger authentication).
 
         Use `get_token()` or `aget_token()` to ensure token retrieval.
         """
         return self._token.get("access_token") if self._token else None
+    
+    @property
+    def _refresh_token(self) -> str | None:
+        """Extract refresh token string from token property (does NOT trigger authentication).
+
+        Use `get_token()` or `aget_token()` to ensure token retrieval.
+        """
+        return self._token.get("refresh_token") if self._token else None
+
+    @property
+    def needs_refresh(self) -> bool:
+        """Check if the internal token needs refreshing.
+        
+        Returns:
+            True if the token needs refresh (expires within buffer), False otherwise
+        """
+        if not self._token:
+            return True
+            
+        issued_at = self._token.get("issued_at")
+        expires_in = self._token.get("expires_in")
+        
+        if issued_at is None or expires_in is None:
+            return True
+            
+        current_time = time.time()
+        expiry_time = issued_at + expires_in
+        time_until_expiry = expiry_time - current_time
+        
+        return time_until_expiry <= self._refresh_buffer_seconds
 
     def _ensure_authenticated(self):
         """Ensure we have a valid token and client."""
@@ -120,7 +157,7 @@ class BaseKeycloakClient(BaseClientManager):
 
         if self._client is None:
             self._client = AuthenticatedClient(
-                token=self.access_token,
+                token=self._access_token,
                 **self._client_config
             )
 
@@ -131,7 +168,7 @@ class BaseKeycloakClient(BaseClientManager):
 
         if self._client is None:
             self._client = AuthenticatedClient(
-                token=self.access_token,
+                token=self._access_token,
                 **self._client_config
             )
 
@@ -171,27 +208,81 @@ class BaseKeycloakClient(BaseClientManager):
 
             return response.json()
 
-    def get_token(self) -> str:
-        """Get the current access token, authenticating if necessary."""
+    def get_token(self) -> dict:
+        """Get the current token dict, authenticating if necessary."""
         self._ensure_authenticated()
-        return self.access_token
+        return self._token
 
-    async def aget_token(self) -> str:
-        """Get the current access token asynchronously, authenticating if necessary."""
+    async def aget_token(self) -> dict:
+        """Get the current token dict asynchronously, authenticating if necessary."""
         await self._ensure_authenticated_async()
-        return self.access_token
+        return self._token
 
     def refresh_token(self):
-        """Refresh the access token synchronously."""
-        self._token = self._get_token()
-        if self._client:
-            self._client.token = self.access_token
+        """Refresh the internal token synchronously."""
+        if self._token and self._refresh_token:
+            token_url = f"{self.server_url}/realms/{self.auth_realm}/protocol/openid-connect/token"
+            with Client(**self._client_config) as temp_client:
+                response = temp_client.get_niquests_client().post(
+                    token_url,
+                    data={
+                        "grant_type": "refresh_token",
+                        "refresh_token": self._refresh_token,
+                        "client_id": self._client_id,
+                        "client_secret": self._client_secret,
+                    }
+                )
+                if response.status_code == 400:
+                    error_data = response.json()
+                    if error_data.get("error") == "invalid_grant":
+                        self._token = self._get_token()
+                        if self._client:
+                            self._client.token = self._access_token
+                        return
+                
+                if response.status_code != 200:
+                    raise AuthError(f"Token refresh failed: {response.status_code} - {response.text}")
+                
+                self._token = response.json()
+                if self._client:
+                    self._client.token = self._access_token
+        else:
+            self._token = self._get_token()
+            if self._client:
+                self._client.token = self._access_token
 
     async def arefresh_token(self):
-        """Refresh the access token asynchronously."""
-        self._token = await self._get_token_async()
-        if self._client:
-            self._client.token = self.access_token
+        """Refresh the internal token asynchronously."""
+        if self._token and self._refresh_token:
+            token_url = f"{self.server_url}/realms/{self.auth_realm}/protocol/openid-connect/token"
+            async with Client(**self._client_config) as temp_client:
+                response = await temp_client.get_async_niquests_client().post(
+                    token_url,
+                    data={
+                        "grant_type": "refresh_token",
+                        "refresh_token": self._refresh_token,
+                        "client_id": self._client_id,
+                        "client_secret": self._client_secret,
+                    }
+                )
+                if response.status_code == 400:
+                    error_data = response.json()
+                    if error_data.get("error") == "invalid_grant":
+                        self._token = await self._get_token_async()
+                        if self._client:
+                            self._client.token = self._access_token
+                        return
+                
+                if response.status_code != 200:
+                    raise AuthError(f"Token refresh failed: {response.status_code} - {response.text}")
+                
+                self._token = response.json()
+                if self._client:
+                    self._client.token = self._access_token
+        else:
+            self._token = await self._get_token_async()
+            if self._client:
+                self._client.token = self._access_token
 
     def get_token_password(
             self,
@@ -267,13 +358,12 @@ class BaseKeycloakClient(BaseClientManager):
 
             return response.json()
 
-    async def aget_token_device(self, realm: str = "acie", client_id: str = "dev-cli") -> str:
+    async def aget_token_device(self, realm: str = "acie", client_id: str = "dev-cli") -> dict:
         """Get token using device authorization flow (OAuth 2.1)."""
         device_url = f"{self.server_url}/realms/{realm}/protocol/openid-connect/auth/device"
         token_url = f"{self.server_url}/realms/{realm}/protocol/openid-connect/token"
 
         async with Client(multiplexed=False, **self._client_config) as temp_client:
-            # Start device flow
             response = await temp_client.get_async_niquests_client().post(
                 device_url,
                 data={"client_id": client_id}
@@ -294,10 +384,9 @@ class BaseKeycloakClient(BaseClientManager):
 
             try:
                 webbrowser.open(verification_uri)
-            except Exception as e:
+            except (OSError, webbrowser.Error) as e:
                 print(f"Failed to open browser: {e}", file=sys.stderr)
 
-            # Poll for token
             start_time = asyncio.get_event_loop().time()
 
             while asyncio.get_event_loop().time() - start_time < expires_in:
@@ -313,7 +402,7 @@ class BaseKeycloakClient(BaseClientManager):
                 )
 
                 if response.status_code == 200:
-                    return response.json()['access_token']
+                    return response.json()
                 elif response.status_code == 400:
                     error = response.json().get('error', 'unknown_error')
                     if error == 'authorization_pending':
@@ -327,6 +416,78 @@ class BaseKeycloakClient(BaseClientManager):
                     raise AuthError(f"Token request failed: {response.status_code}")
 
             raise AuthError("Device authorization expired")
+
+    def exchange_authorization_code(self, realm: str, code: str, redirect_uri: str) -> dict:
+        """Exchange an authorization code for tokens.
+        
+        Args:
+            realm: The realm to authenticate against
+            code: The authorization code received from Keycloak
+            redirect_uri: The redirect URI used in the initial authorization request
+            
+        Returns:
+            Token dict with access_token, refresh_token, id_token, expires_in, etc.
+            Includes 'issued_at' timestamp added by this method.
+            
+        Raises:
+            AuthError: If the code exchange fails
+        """
+        token_url = f"{self.server_url}/realms/{realm}/protocol/openid-connect/token"
+
+        with Client(**self._client_config) as temp_client:
+            response = temp_client.get_niquests_client().post(
+                token_url,
+                data={
+                    "grant_type": "authorization_code",
+                    "code": code,
+                    "redirect_uri": redirect_uri,
+                    "client_id": self._client_id,
+                    "client_secret": self._client_secret,
+                }
+            )
+
+            if response.status_code != 200:
+                raise AuthError(f"Authorization code exchange failed: {response.status_code} - {response.text}")
+
+            token = response.json()
+            token["issued_at"] = int(time.time())
+            return token
+
+    async def aexchange_authorization_code(self, realm: str, code: str, redirect_uri: str) -> dict:
+        """Exchange an authorization code for tokens (async).
+        
+        Args:
+            realm: The realm to authenticate against
+            code: The authorization code received from Keycloak
+            redirect_uri: The redirect URI used in the initial authorization request
+            
+        Returns:
+            Token dict with access_token, refresh_token, id_token, expires_in, etc.
+            Includes 'issued_at' timestamp added by this method.
+            
+        Raises:
+            AuthError: If the code exchange fails
+        """
+        token_url = f"{self.server_url}/realms/{realm}/protocol/openid-connect/token"
+
+        async with Client(**self._client_config) as temp_client:
+            response = await temp_client.get_async_niquests_client().post(
+                token_url,
+                data={
+                    "grant_type": "authorization_code",
+                    "code": code,
+                    "redirect_uri": redirect_uri,
+                    "client_id": self._client_id,
+                    "client_secret": self._client_secret,
+                }
+            )
+
+            if response.status_code != 200:
+                raise AuthError(f"Authorization code exchange failed: {response.status_code} - {response.text}")
+
+            token = response.json()
+            token["issued_at"] = int(time.time())
+            return token
 
     def jwt_decode(self, jwt: str, realm: str) -> dict:
         """Get user information from an access token using Keycloak's userinfo endpoint.
@@ -364,7 +525,6 @@ class BaseKeycloakClient(BaseClientManager):
             )
 
             if response.status_code == 401:
-                # Check if it's specifically an expired token
                 error_desc = response.json().get("error_description", "")
                 if "expired" in error_desc.lower():
                     raise TokenExpiredError("Token has expired")
@@ -410,7 +570,6 @@ class BaseKeycloakClient(BaseClientManager):
             )
 
             if response.status_code == 401:
-                # Check if it's specifically an expired token
                 error_desc = response.json().get("error_description", "")
                 if "expired" in error_desc.lower():
                     raise TokenExpiredError("Token has expired")
@@ -515,3 +674,120 @@ class BaseKeycloakClient(BaseClientManager):
                 raise AuthError(f"Token introspection failed: {response.status_code} - {response.text}")
 
             return response.json()
+
+    def jwt_refresh(self, realm: str, refresh_token: str) -> dict:
+        """Exchange a refresh token for new tokens.
+        
+        Args:
+            realm: The realm to authenticate against
+            refresh_token: The refresh token to exchange
+            
+        Returns:
+            New token dict with access_token, refresh_token, expires_in, etc.
+            Includes 'issued_at' timestamp added by this method.
+            
+        Raises:
+            TokenExpiredError: If the refresh token has expired
+            AuthError: If the refresh fails for other reasons
+        """
+        token_url = f"{self.server_url}/realms/{realm}/protocol/openid-connect/token"
+
+        with Client(**self._client_config) as temp_client:
+            response = temp_client.get_niquests_client().post(
+                token_url,
+                data={
+                    "grant_type": "refresh_token",
+                    "refresh_token": refresh_token,
+                    "client_id": self._client_id,
+                    "client_secret": self._client_secret,
+                }
+            )
+
+            if response.status_code == 400:
+                error_data = response.json()
+                if error_data.get("error") == "invalid_grant":
+                    raise TokenExpiredError("Refresh token has expired or is invalid")
+            
+            if response.status_code != 200:
+                raise AuthError(f"Token refresh failed: {response.status_code} - {response.text}")
+
+            token = response.json()
+            token["issued_at"] = int(time.time())
+            return token
+
+    async def ajwt_refresh(self, realm: str, refresh_token: str) -> dict:
+        """Exchange a refresh token for new tokens (async).
+        
+        Args:
+            realm: The realm to authenticate against
+            refresh_token: The refresh token to exchange
+            
+        Returns:
+            New token dict with access_token, refresh_token, expires_in, etc.
+            Includes 'issued_at' timestamp added by this method.
+            
+        Raises:
+            TokenExpiredError: If the refresh token has expired
+            AuthError: If the refresh fails for other reasons
+        """
+        token_url = f"{self.server_url}/realms/{realm}/protocol/openid-connect/token"
+
+        async with Client(**self._client_config) as temp_client:
+            response = await temp_client.get_async_niquests_client().post(
+                token_url,
+                data={
+                    "grant_type": "refresh_token",
+                    "refresh_token": refresh_token,
+                    "client_id": self._client_id,
+                    "client_secret": self._client_secret,
+                }
+            )
+
+            if response.status_code == 400:
+                error_data = response.json()
+                if error_data.get("error") == "invalid_grant":
+                    raise TokenExpiredError("Refresh token has expired or is invalid")
+            
+            if response.status_code != 200:
+                raise AuthError(f"Token refresh failed: {response.status_code} - {response.text}")
+
+            token = response.json()
+            token["issued_at"] = int(time.time())
+            return token
+
+    @staticmethod
+    def jwt_needs_refresh(jwt: str, buffer_seconds: int = 60) -> bool:
+        """Check if a JWT token needs refreshing by decoding and checking expiry.
+        
+        Args:
+            jwt: The JWT string to check
+            buffer_seconds: Seconds before expiry to consider it "needs refresh" (default: 60)
+            
+        Returns:
+            True if the token expires within buffer_seconds, False otherwise
+            
+        Raises:
+            InvalidTokenError: If the JWT is malformed or cannot be decoded
+        """
+        try:
+            parts = jwt.split('.')
+            if len(parts) != 3:
+                raise InvalidTokenError("JWT must have 3 parts separated by dots")
+                
+            payload = parts[1]
+            payload += '=' * (-len(payload) % 4)
+            decoded = base64.urlsafe_b64decode(payload)
+            claims = json.loads(decoded)
+            
+            exp = claims.get('exp')
+            if exp is None:
+                raise InvalidTokenError("JWT missing 'exp' claim")
+                
+            current_time = time.time()
+            time_until_expiry = exp - current_time
+            
+            return time_until_expiry <= buffer_seconds
+        except (ValueError, json.JSONDecodeError) as e:
+            raise InvalidTokenError(f"Failed to decode JWT: {e}")
+        except Exception as e:
+            raise InvalidTokenError(f"JWT validation error: {e}")

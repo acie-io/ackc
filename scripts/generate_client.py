@@ -19,21 +19,17 @@ def generate_client():
     openapi_spec = root_dir / "keycloak-openapi.json"
     config_file = root_dir / "openapi-config.yaml"
 
-    # Ensure we have the OpenAPI spec
     if not openapi_spec.exists():
         print("ERROR: keycloak-openapi.json not found.")
         print("Download it from: https://www.keycloak.org/docs-api/latest/rest-api/openapi.json")
         sys.exit(1)
 
-    # Clean output directory
     if output_dir.exists():
         print(f"Cleaning existing generated files at {output_dir}")
         shutil.rmtree(output_dir)
 
-    # Create parent directories
     output_dir.parent.mkdir(parents=True, exist_ok=True)
 
-    # Generate the client
     print(f"Generating client from {openapi_spec}")
     cmd = [
         "openapi-python-client",
@@ -53,19 +49,15 @@ def generate_client():
 
     print(result.stdout)
 
-    # Move the generated client up one level
     generated_client = output_dir / "keycloak_admin_rest_api_client"
     if generated_client.exists():
         print(f"Moving generated client from {generated_client} to {output_dir}")
-        # Move all contents up one level
         for item in generated_client.iterdir():
             shutil.move(str(item), str(output_dir / item.name))
-        # Remove the now-empty directory
         generated_client.rmdir()
 
     print(f"✅ Client generated successfully at {output_dir}")
 
-    # Post-process: Add __init__.py to make it a proper package
     init_file = output_dir / "__init__.py"
     if not init_file.exists():
         init_file.write_text(

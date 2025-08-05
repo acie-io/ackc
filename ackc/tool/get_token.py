@@ -13,17 +13,18 @@ from ..exceptions import AuthError
 def main():
     parser = argparse.ArgumentParser(
         description="Get an access token from Keycloak",
-        epilog="Examples:\n"
-               "  %(prog)s                    # Client credentials\n"
-               "  %(prog)s -q                 # Just the token\n"
-               "  %(prog)s --decode           # Show JWT claims\n"
-               "  %(prog)s --device           # Device flow (browser)\n"
-               "  %(prog)s --password         # Password auth"
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""Examples:
+  %(prog)s                    # Client credentials
+  %(prog)s -q                 # Just the token
+  %(prog)s --decode           # Show JWT claims
+  %(prog)s --device           # Device flow (browser)
+  %(prog)s --password         # Password auth"""
     )
 
     parser.add_argument('--server-url',
                         default=os.getenv('KEYCLOAK_URL', 'https://id.acie.dev'),
-                        help='Keycloak server URL (default: $KEYCLOAK_URL)')
+                        help='Keycloak server URL (default: KEYCLOAK_URL)')
 
     parser.add_argument('--realm',
                         default='acie',
@@ -31,34 +32,40 @@ def main():
 
     parser.add_argument('--client-id',
                         default=os.getenv('KEYCLOAK_CLIENT_ID'),
-                        help='Client ID (default: $KEYCLOAK_CLIENT_ID)')
+                        help='Client ID (default: KEYCLOAK_CLIENT_ID)')
 
     parser.add_argument('--client-secret',
                         default=os.getenv('KEYCLOAK_CLIENT_SECRET'),
-                        help='Client secret (default: $KEYCLOAK_CLIENT_SECRET)')
+                        help='Client secret (default: KEYCLOAK_CLIENT_SECRET)')
 
-    parser.add_argument('--device', action='store_true',
+    auth_methods = parser.add_mutually_exclusive_group()
+    
+    auth_methods.add_argument('--device', action='store_true',
                         help='Use device authorization flow')
 
-    parser.add_argument('--password', action='store_true',
+    auth_methods.add_argument('--password', action='store_true',
                         help='Use password grant')
 
     parser.add_argument('--username',
                         help='Username for password grant')
 
-    parser.add_argument('-q', '--quiet',
+    print_options = parser.add_mutually_exclusive_group()
+
+    print_options.add_argument('-q', '--quiet',
                         action='store_true',
                         help='Output only the token value')
 
-    parser.add_argument('--decode',
+    print_options.add_argument('--decode',
                         action='store_true',
                         help='Decode and display JWT claims')
 
     args = parser.parse_args()
+    
+    if args.username and not args.password:
+        parser.error("--username can only be used with --password")
 
     try:
         if args.device:
-            # Device flow doesn't need client credentials
             client = KeycloakClient(
                 server_url=args.server_url,
                 client_id="dummy",
@@ -69,11 +76,10 @@ def main():
                 client_id=args.client_id or 'dev-cli'
             ))
         elif args.password:
-            # Password flow
             username = args.username
             if not username:
-                username = input("Username: ")
-            password = getpass(f"Password for {username}: ")
+                username = input("Username: " if not args.quiet else "")
+            password = getpass(f"Password for {username}: " if not args.quiet else "")
 
             client = KeycloakClient(
                 server_url=args.server_url,
@@ -87,7 +93,6 @@ def main():
                 client_id=args.client_id or 'admin-cli'
             )
         else:
-            # Client credentials flow
             if not args.client_id or not args.client_secret:
                 print("Error: Set KEYCLOAK_CLIENT_ID and KEYCLOAK_CLIENT_SECRET", file=sys.stderr)
                 sys.exit(1)
@@ -100,15 +105,13 @@ def main():
             token = client.get_token()
 
         if args.quiet:
-            print(token)
+            print(token.get('access_token', token))
         else:
-            output = {
-                'access_token': token,
-                'token_type': 'Bearer',
-            }
+            output = token.copy()
 
-            if args.decode:
-                parts = token.split('.')
+            if args.decode and 'access_token' in token:
+                access_token = token['access_token']
+                parts = access_token.split('.')
                 if len(parts) == 3:
                     payload = parts[1] + '=' * (4 - len(parts[1]) % 4)
                     decoded = base64.urlsafe_b64decode(payload)
@@ -122,9 +125,6 @@ def main():
     except KeyboardInterrupt:
         print("\nCancelled", file=sys.stderr)
         sys.exit(130)
-    # except Exception as e:
-    #     print(f"Error: {e}", file=sys.stderr)
-    #     sys.exit(1)
 
 
 if __name__ == '__main__':

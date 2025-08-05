@@ -80,26 +80,24 @@ class KeycloakClient(KeycloakClientMixin, BaseKeycloakClient):
         Returns:
             The complete URL with encoded query parameters
         """
-        # Build full URL using urljoin to handle paths properly
         full_url = urljoin(self.server_url, path.lstrip('/'))
 
-        # Filter out None values and add query parameters
         filtered_params = {k: v for k, v in params.items() if v is not None}
         if filtered_params:
             return f"{full_url}?{urlencode(filtered_params)}"
         return full_url
 
-    def get_login_url(self, realm: str, redirect_uri: str | None = None) -> str:
+    def get_login_url(self, realm: str, **params) -> str:
         """Get the login URL for a specific realm.
 
         Args:
             realm: The realm name
-            redirect_uri: Optional redirect URI after successful login
+            **params: Additional query parameters (e.g., client_id, response_type, scope, state)
 
         Returns:
             The login URL for the specified realm
         """
-        return self._build_url(f"realms/{realm}/protocol/openid-connect/auth", redirect_uri=redirect_uri)
+        return self._build_url(f"realms/{realm}/protocol/openid-connect/auth", **params)
 
     @property
     def login_url(self) -> str:
@@ -178,49 +176,38 @@ class KeycloakClient(KeycloakClientMixin, BaseKeycloakClient):
         """
         config = {}
 
-        # Get realm settings
         realm_data = self.realms.get(realm)
         if realm_data:
             config["realm"] = realm_data.to_dict() if hasattr(realm_data, 'to_dict') else realm_data
 
-        # Get all clients
         clients = self.clients.get_all(realm) or []
         config["clients"] = [c.to_dict() if hasattr(c, 'to_dict') else c for c in clients]
 
-        # Get all client scopes
         client_scopes = self.client_scopes.get_all(realm) or []
         config["clientScopes"] = [cs.to_dict() if hasattr(cs, 'to_dict') else cs for cs in client_scopes]
 
-        # Get identity providers
         idps = self.identity_providers.get_all(realm) or []
         config["identityProviders"] = [idp.to_dict() if hasattr(idp, 'to_dict') else idp for idp in idps]
 
-        # Get authentication flows
         flows = self.authentication.get_flows(realm) or []
         config["authenticationFlows"] = [f.to_dict() if hasattr(f, 'to_dict') else f for f in flows]
 
-        # Get required actions
         actions = self.authentication.get_required_actions(realm) or []
         config["requiredActions"] = [a.to_dict() if hasattr(a, 'to_dict') else a for a in actions]
 
-        # Get roles
         roles = self.roles.get_all(realm) or []
         config["roles"] = {"realm": [r.to_dict() if hasattr(r, 'to_dict') else r for r in roles]}
 
-        # Get groups
         groups = self.groups.get_all(realm) or []
         config["groups"] = groups
 
-        # Get components
         components = self.components.get_all(realm) or []
         config["components"] = [c.to_dict() if hasattr(c, 'to_dict') else c for c in components]
 
-        # Get events config
         events_config = self.events.get_events_config(realm)
         if events_config:
             config["eventsConfig"] = events_config.to_dict() if hasattr(events_config, 'to_dict') else events_config
 
-        # Optionally include users
         if include_users:
             users = self.users.get_all(realm) or []
             config["users"] = [u.to_dict() if hasattr(u, 'to_dict') else u for u in users]
