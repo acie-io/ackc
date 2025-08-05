@@ -1,6 +1,6 @@
 [project]
 name = "ackc"
-version = "0.3.2"
+version = "0.4.0"
 description = "Acie's API Client for Keycloak"
 readme = "readme.md"
 requires-python = ">=3.13"
@@ -26,7 +26,7 @@ dev = [
 ]
 
 [project.scripts]
-auth-get-token = "ackc.tool.get_token:main"
+auth-token = "ackc.tool.token:main"
 auth-mc = "ackc.tool.mc:main"
 auth-realm-export = "ackc.tool.export_realm:main"
 

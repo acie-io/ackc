@@ -358,7 +358,90 @@ class BaseKeycloakClient(BaseClientManager):
 
             return response.json()
 
-    async def aget_token_device(self, realm: str | None = None, client_id: str = "dev-cli") -> dict:
+    def get_token_device(self, realm: str | None = None, client_id: str = "dev-cli", callback=None) -> dict:
+        """Get token using device authorization flow (OAuth 2.1).
+        
+        This implements the OAuth 2.1 Device Authorization Grant flow, which allows
+        users to authenticate on a separate device (like their phone or computer).
+        
+        Args:
+            realm: The realm to authenticate against (defaults to instance realm)
+            client_id: The client ID requesting the token (default: "dev-cli")
+            callback: Optional callback function that receives device auth info dict
+            
+        Returns:
+            Full token response dict with access_token, refresh_token, etc.
+            
+        Raises:
+            AuthError: If device flow initiation or token exchange fails
+        """
+        device_url = f"{self.server_url}/realms/{realm or self.realm}/protocol/openid-connect/auth/device"
+        token_url = f"{self.server_url}/realms/{realm or self.realm}/protocol/openid-connect/token"
+        
+        with Client(multiplexed=False, **self._client_config) as temp_client:
+            response = temp_client.get_niquests_client().post(
+                device_url,
+                data={"client_id": client_id}
+            )
+            
+            if response.status_code != 200:
+                raise AuthError(f"Failed to start device flow: {response.status_code} - {response.text}")
+            
+            device_data = response.json()
+            verification_uri = device_data.get('verification_uri_complete', device_data.get('verification_uri'))
+            user_code = device_data.get('user_code')
+            device_code = device_data.get('device_code')
+            expires_in = device_data.get('expires_in', 600)
+            interval = device_data.get('interval', 5)
+            
+            if not all([verification_uri, user_code, device_code]):
+                raise AuthError("Invalid device authorization response - missing required fields")
+            
+            device_auth_info = {
+                'verification_uri': verification_uri,
+                'user_code': user_code,
+                'device_code': device_code,
+                'expires_in': expires_in,
+                'interval': interval
+            }
+            
+            if callback:
+                callback(device_auth_info)
+            
+            start_time = time.time()
+            while time.time() - start_time < expires_in:
+                time.sleep(interval)
+                
+                response = temp_client.get_niquests_client().post(
+                    token_url,
+                    data={
+                        'grant_type': 'urn:ietf:params:oauth:grant-type:device_code',
+                        'client_id': client_id,
+                        'device_code': device_code,
+                    }
+                )
+                
+                if response.status_code == 200:
+                    return response.json()
+                elif response.status_code == 400:
+                    error = response.json().get('error', 'unknown_error')
+                    if error == 'authorization_pending':
+                        continue
+                    elif error == 'slow_down':
+                        interval += 5
+                        continue
+                    elif error == 'access_denied':
+                        raise AuthError("User denied authorization")
+                    elif error == 'expired_token':
+                        raise AuthError("Device code expired")
+                    else:
+                        raise AuthError(f"Device flow error: {error}")
+                else:
+                    raise AuthError(f"Token polling failed: {response.status_code} - {response.text}")
+            
+            raise AuthError("Device authorization timed out")
+
+    async def aget_token_device(self, realm: str | None = None, client_id: str = "dev-cli", callback=None) -> dict:
         """Get token using device authorization flow (OAuth 2.1)."""
         device_url = f"{self.server_url}/realms/{realm or self.realm}/protocol/openid-connect/auth/device"
         token_url = f"{self.server_url}/realms/{realm or self.realm}/protocol/openid-connect/token"
@@ -373,19 +456,25 @@ class BaseKeycloakClient(BaseClientManager):
                 raise AuthError(f"Failed to start device flow: {response.status_code} - {response.text}")
 
             device_data = response.json()
-            verification_uri = device_data.get('verification_uri_complete', device_data['verification_uri'])
-            user_code = device_data['user_code']
-            device_code = device_data['device_code']
-            expires_in = device_data['expires_in']
+            verification_uri = device_data.get('verification_uri_complete', device_data.get('verification_uri'))
+            user_code = device_data.get('user_code')
+            device_code = device_data.get('device_code')
+            expires_in = device_data.get('expires_in', 600)
             interval = device_data.get('interval', 5)
 
-            print(f"Opening browser to: {verification_uri}", file=sys.stderr)
-            print(f"User code: {user_code}", file=sys.stderr)
+            if not all([verification_uri, user_code, device_code]):
+                raise AuthError("Invalid device authorization response - missing required fields")
 
-            try:
-                webbrowser.open(verification_uri)
-            except (OSError, webbrowser.Error) as e:
-                print(f"Failed to open browser: {e}", file=sys.stderr)
+            device_auth_info = {
+                'verification_uri': verification_uri,
+                'user_code': user_code,
+                'device_code': device_code,
+                'expires_in': expires_in,
+                'interval': interval
+            }
+            
+            if callback:
+                await callback(device_auth_info) if asyncio.iscoroutinefunction(callback) else callback(device_auth_info)
 
             start_time = asyncio.get_event_loop().time()
 
