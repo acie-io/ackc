@@ -99,11 +99,11 @@ def init_parser(parser=None):
                         help='Realm for client authentication (defaults to --realm value)')
 
     parser.add_argument('--client-id',
-                        default=env.KEYCLOAK_CLIENT_ID,
+                        default=None,
                         help='Client ID (default: KEYCLOAK_CLIENT_ID)')
 
     parser.add_argument('--client-secret',
-                        default=env.KEYCLOAK_CLIENT_SECRET,
+                        default=None,
                         help='Client secret (default: KEYCLOAK_CLIENT_SECRET)')
 
     auth_methods = parser.add_mutually_exclusive_group()
