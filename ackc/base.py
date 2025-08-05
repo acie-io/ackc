@@ -1,11 +1,9 @@
 import asyncio
 import base64
 import json
-import os
-import sys
 import time
-import webbrowser
 
+from . import env
 from .api import BaseClientManager, AuthenticatedClient, Client, AuthError
 from .exceptions import TokenExpiredError, InvalidTokenError
 
@@ -45,11 +43,11 @@ class BaseKeycloakClient(BaseClientManager):
         Initialize the Keycloak client.
 
         Args:
-            realm: API realm to use (defaults to master)
-            server_url: Keycloak server URL (defaults to KEYCLOAK_URL env var)
-            client_id: OAuth2 client ID (defaults to KEYCLOAK_CLIENT_ID env var)
-            client_secret: OAuth2 client secret (defaults to KEYCLOAK_CLIENT_SECRET env var)
-            auth_realm: Realm to authenticate against (default: master)
+            realm: API realm to use (default: KEYCLOAK_REALM or "master")
+            server_url: Keycloak server URL (default: KEYCLOAK_URL)
+            client_id: OAuth2 client ID (default: KEYCLOAK_CLIENT_ID)
+            client_secret: OAuth2 client secret (default: KEYCLOAK_CLIENT_SECRET)
+            auth_realm: Realm to authenticate against (default: KEYCLOAK_AUTH_REALM or realm)
             verify_ssl: Whether to verify SSL certificates (default: True)
             timeout: Request timeout in seconds (default: 30.0)
             headers: Custom headers to include in requests
@@ -58,12 +56,12 @@ class BaseKeycloakClient(BaseClientManager):
             refresh_buffer_seconds: Seconds before expiry to consider token needs refresh (default: 60)
             **kwds: Additional arguments for the underlying client
         """
-        super().__init__(realm=realm)
+        super().__init__(realm=realm or env.KEYCLOAK_REALM)
 
-        self._server_url = server_url or os.getenv("KEYCLOAK_URL")
-        self._client_id = client_id or os.getenv("KEYCLOAK_CLIENT_ID")
-        self._client_secret = client_secret or os.getenv("KEYCLOAK_CLIENT_SECRET")
-        self._auth_realm = auth_realm or "master"
+        self._server_url = server_url or env.KEYCLOAK_URL
+        self._client_id = client_id or env.KEYCLOAK_CLIENT_ID
+        self._client_secret = client_secret or env.KEYCLOAK_CLIENT_SECRET
+        self._auth_realm = auth_realm or env.KEYCLOAK_AUTH_REALM or self.realm
         self._refresh_buffer_seconds = refresh_buffer_seconds or 60
 
         if not self._client_id or not self._client_secret:
@@ -72,8 +70,8 @@ class BaseKeycloakClient(BaseClientManager):
                 "Set KEYCLOAK_CLIENT_ID and KEYCLOAK_CLIENT_SECRET env vars."
             )
 
-        cf_client_id = cf_client_id or os.getenv("CF_ACCESS_CLIENT_ID")
-        cf_client_secret = cf_client_secret or os.getenv("CF_ACCESS_CLIENT_SECRET")
+        cf_client_id = cf_client_id or env.CF_ACCESS_CLIENT_ID
+        cf_client_secret = cf_client_secret or env.CF_ACCESS_CLIENT_SECRET
 
         if cf_client_id and cf_client_secret:
             headers = (headers or {}) | {
@@ -119,7 +117,7 @@ class BaseKeycloakClient(BaseClientManager):
         Use `get_token()` or `aget_token()` to ensure token retrieval.
         """
         return self._token.get("access_token") if self._token else None
-    
+
     @property
     def _refresh_token(self) -> str | None:
         """Extract refresh token string from token property (does NOT trigger authentication).
@@ -137,17 +135,17 @@ class BaseKeycloakClient(BaseClientManager):
         """
         if not self._token:
             return True
-            
+
         issued_at = self._token.get("issued_at")
         expires_in = self._token.get("expires_in")
-        
+
         if issued_at is None or expires_in is None:
             return True
-            
+
         current_time = time.time()
         expiry_time = issued_at + expires_in
         time_until_expiry = expiry_time - current_time
-        
+
         return time_until_expiry <= self._refresh_buffer_seconds
 
     def _ensure_authenticated(self):
@@ -239,10 +237,10 @@ class BaseKeycloakClient(BaseClientManager):
                         if self._client:
                             self._client.token = self._access_token
                         return
-                
+
                 if response.status_code != 200:
                     raise AuthError(f"Token refresh failed: {response.status_code} - {response.text}")
-                
+
                 self._token = response.json()
                 if self._client:
                     self._client.token = self._access_token
@@ -272,10 +270,10 @@ class BaseKeycloakClient(BaseClientManager):
                         if self._client:
                             self._client.token = self._access_token
                         return
-                
+
                 if response.status_code != 200:
                     raise AuthError(f"Token refresh failed: {response.status_code} - {response.text}")
-                
+
                 self._token = response.json()
                 if self._client:
                     self._client.token = self._access_token
@@ -288,17 +286,20 @@ class BaseKeycloakClient(BaseClientManager):
             self,
             username: str,
             password: str,
+            *,
+            client_id: str | None = None,
+            client_secret: str | None = None,
             realm: str | None = None,
-            client_id: str = "admin-cli",
     ) -> dict:
         """Get token using password grant (legacy flow).
         
         Args:
             username: Username to authenticate
             password: Password for the user
-            realm: Realm to authenticate against (defaults to instance realm)
             client_id: Client ID to use for authentication
-            
+            client_secret: Client secret to use for authentication
+            realm: Realm to authenticate against (defaults to instance realm)
+
         Returns:
             Full token response dict with access_token, refresh_token, etc.
         """
@@ -309,10 +310,10 @@ class BaseKeycloakClient(BaseClientManager):
                 token_url,
                 data={
                     "grant_type": "password",
-                    "client_id": client_id,
+                    "client_id": client_id or self._client_id,
                     "username": username,
                     "password": password,
-                    "client_secret": self._client_secret if client_id == self.client_id else None,
+                    "client_secret": client_secret if client_secret is not None else (self._client_secret if client_id is None else None),
                 }
             )
 
@@ -325,17 +326,20 @@ class BaseKeycloakClient(BaseClientManager):
             self,
             username: str,
             password: str,
+            *,
+            client_id: str | None = None,
+            client_secret: str | None = None,
             realm: str | None = None,
-            client_id: str = "admin-cli",
     ) -> dict:
         """Get token using password grant (legacy flow) asynchronously.
         
         Args:
             username: Username to authenticate
             password: Password for the user
-            realm: Realm to authenticate against (defaults to instance realm)
             client_id: Client ID to use for authentication
-            
+            client_secret: Client secret to use for authentication
+            realm: Realm to authenticate against (defaults to instance realm)
+
         Returns:
             Full token response dict with access_token, refresh_token, etc.
         """
@@ -346,10 +350,10 @@ class BaseKeycloakClient(BaseClientManager):
                 token_url,
                 data={
                     "grant_type": "password",
-                    "client_id": client_id,
+                    "client_id": client_id or self._client_id,
                     "username": username,
                     "password": password,
-                    "client_secret": self._client_secret if client_id == self.client_id else None,
+                    "client_secret": client_secret if client_secret is not None else (self._client_secret if client_id is None else None),
                 }
             )
 
@@ -358,7 +362,7 @@ class BaseKeycloakClient(BaseClientManager):
 
             return response.json()
 
-    def get_token_device(self, realm: str | None = None, client_id: str = "dev-cli", callback=None) -> dict:
+    def get_token_device(self, realm: str | None = None, client_id: str | None = None, callback=None) -> dict:
         """Get token using device authorization flow (OAuth 2.1).
         
         This implements the OAuth 2.1 Device Authorization Grant flow, which allows
@@ -377,26 +381,26 @@ class BaseKeycloakClient(BaseClientManager):
         """
         device_url = f"{self.server_url}/realms/{realm or self.realm}/protocol/openid-connect/auth/device"
         token_url = f"{self.server_url}/realms/{realm or self.realm}/protocol/openid-connect/token"
-        
+
         with Client(multiplexed=False, **self._client_config) as temp_client:
             response = temp_client.get_niquests_client().post(
                 device_url,
-                data={"client_id": client_id}
+                data={"client_id": client_id or self._client_id}
             )
-            
+
             if response.status_code != 200:
                 raise AuthError(f"Failed to start device flow: {response.status_code} - {response.text}")
-            
+
             device_data = response.json()
             verification_uri = device_data.get('verification_uri_complete', device_data.get('verification_uri'))
             user_code = device_data.get('user_code')
             device_code = device_data.get('device_code')
             expires_in = device_data.get('expires_in', 600)
             interval = device_data.get('interval', 5)
-            
+
             if not all([verification_uri, user_code, device_code]):
                 raise AuthError("Invalid device authorization response - missing required fields")
-            
+
             device_auth_info = {
                 'verification_uri': verification_uri,
                 'user_code': user_code,
@@ -404,23 +408,23 @@ class BaseKeycloakClient(BaseClientManager):
                 'expires_in': expires_in,
                 'interval': interval
             }
-            
+
             if callback:
                 callback(device_auth_info)
-            
+
             start_time = time.time()
             while time.time() - start_time < expires_in:
                 time.sleep(interval)
-                
+
                 response = temp_client.get_niquests_client().post(
                     token_url,
                     data={
                         'grant_type': 'urn:ietf:params:oauth:grant-type:device_code',
-                        'client_id': client_id,
+                        'client_id': client_id or self._client_id,
                         'device_code': device_code,
                     }
                 )
-                
+
                 if response.status_code == 200:
                     return response.json()
                 elif response.status_code == 400:
@@ -438,10 +442,10 @@ class BaseKeycloakClient(BaseClientManager):
                         raise AuthError(f"Device flow error: {error}")
                 else:
                     raise AuthError(f"Token polling failed: {response.status_code} - {response.text}")
-            
+
             raise AuthError("Device authorization timed out")
 
-    async def aget_token_device(self, realm: str | None = None, client_id: str = "dev-cli", callback=None) -> dict:
+    async def aget_token_device(self, realm: str | None = None, client_id: str | None = None, callback=None) -> dict:
         """Get token using device authorization flow (OAuth 2.1)."""
         device_url = f"{self.server_url}/realms/{realm or self.realm}/protocol/openid-connect/auth/device"
         token_url = f"{self.server_url}/realms/{realm or self.realm}/protocol/openid-connect/token"
@@ -449,7 +453,7 @@ class BaseKeycloakClient(BaseClientManager):
         async with Client(multiplexed=False, **self._client_config) as temp_client:
             response = await temp_client.get_async_niquests_client().post(
                 device_url,
-                data={"client_id": client_id}
+                data={"client_id": client_id or self._client_id}
             )
 
             if response.status_code != 200:
@@ -472,7 +476,7 @@ class BaseKeycloakClient(BaseClientManager):
                 'expires_in': expires_in,
                 'interval': interval
             }
-            
+
             if callback:
                 await callback(device_auth_info) if asyncio.iscoroutinefunction(callback) else callback(device_auth_info)
 
@@ -485,7 +489,7 @@ class BaseKeycloakClient(BaseClientManager):
                     token_url,
                     data={
                         'grant_type': 'urn:ietf:params:oauth:grant-type:device_code',
-                        'client_id': client_id,
+                        'client_id': client_id or self._client_id,
                         'device_code': device_code,
                     }
                 )
@@ -578,16 +582,16 @@ class BaseKeycloakClient(BaseClientManager):
             token["issued_at"] = int(time.time())
             return token
 
-    def jwt_decode(self, jwt: str, realm: str | None = None) -> dict:
+    def jwt_userinfo(self, jwt: str, realm: str | None = None) -> dict:
         """Get user information from an access token using Keycloak's userinfo endpoint.
-        
+
         This method validates the token and returns user profile information. It's
         typically used when you need to know WHO a token belongs to.
-        
+
         Args:
             jwt: The JWT string (e.g. from Authorization header)
             realm: The realm the token was issued from (defaults to instance realm)
-            
+
         Returns:
             User profile dict with structure like:
             {
@@ -599,7 +603,7 @@ class BaseKeycloakClient(BaseClientManager):
                 "family_name": "Doe",
                 "email": "john.doe@example.com"
             }
-            
+
         Raises:
             TokenExpiredError: If the token has expired
             InvalidTokenError: If the token is invalid or malformed
@@ -623,16 +627,16 @@ class BaseKeycloakClient(BaseClientManager):
 
             return response.json()
 
-    async def ajwt_decode(self, jwt: str, realm: str | None = None) -> dict:
+    async def ajwt_userinfo(self, jwt: str, realm: str | None = None) -> dict:
         """Get user information from an access token using Keycloak's userinfo endpoint (async).
-        
+
         This method validates the token and returns user profile information. It's
         typically used when you need to know WHO a token belongs to.
-        
+
         Args:
             jwt: The JWT string (e.g. from Authorization header)
             realm: The realm the token was issued from (defaults to instance realm)
-            
+
         Returns:
             User profile dict with structure like:
             {
@@ -644,7 +648,7 @@ class BaseKeycloakClient(BaseClientManager):
                 "family_name": "Doe",
                 "email": "john.doe@example.com"
             }
-            
+
         Raises:
             TokenExpiredError: If the token has expired
             InvalidTokenError: If the token is invalid or malformed
@@ -670,14 +674,14 @@ class BaseKeycloakClient(BaseClientManager):
 
     def jwt_introspect(self, jwt: str, realm: str | None = None) -> dict:
         """Validate and get metadata about an access token.
-        
+
         This method checks if a token is valid and returns detailed metadata. It's
         typically used when you need to know IF a token is valid and its properties.
-        
+
         Args:
             jwt: The JWT string to validate
             realm: The realm the token was issued from (defaults to instance realm)
-            
+
         Returns:
             Token metadata dict with structure like:
             {
@@ -695,7 +699,7 @@ class BaseKeycloakClient(BaseClientManager):
                 "client_id": "my-client",
                 "token_type": "Bearer"
             }
-            
+
         Raises:
             AuthError: If introspection request fails (not for invalid tokens)
         """
@@ -718,14 +722,14 @@ class BaseKeycloakClient(BaseClientManager):
 
     async def ajwt_introspect(self, jwt: str, realm: str | None = None) -> dict:
         """Validate and get metadata about an access token (async).
-        
+
         This method checks if a token is valid and returns detailed metadata. It's
         typically used when you need to know IF a token is valid and its properties.
-        
+
         Args:
             jwt: The JWT string to validate
             realm: The realm the token was issued from (defaults to instance realm)
-            
+
         Returns:
             Token metadata dict with structure like:
             {
@@ -743,7 +747,7 @@ class BaseKeycloakClient(BaseClientManager):
                 "client_id": "my-client",
                 "token_type": "Bearer"
             }
-            
+
         Raises:
             AuthError: If introspection request fails (not for invalid tokens)
         """
@@ -766,15 +770,15 @@ class BaseKeycloakClient(BaseClientManager):
 
     def jwt_refresh(self, refresh_token: str, realm: str | None = None) -> dict:
         """Exchange a refresh token for new tokens.
-        
+
         Args:
             refresh_token: The refresh token to exchange
             realm: The realm to authenticate against (defaults to instance realm)
-            
+
         Returns:
             New token dict with access_token, refresh_token, expires_in, etc.
             Includes 'issued_at' timestamp added by this method.
-            
+
         Raises:
             TokenExpiredError: If the refresh token has expired
             AuthError: If the refresh fails for other reasons
@@ -796,7 +800,7 @@ class BaseKeycloakClient(BaseClientManager):
                 error_data = response.json()
                 if error_data.get("error") == "invalid_grant":
                     raise TokenExpiredError("Refresh token has expired or is invalid")
-            
+
             if response.status_code != 200:
                 raise AuthError(f"Token refresh failed: {response.status_code} - {response.text}")
 
@@ -806,15 +810,15 @@ class BaseKeycloakClient(BaseClientManager):
 
     async def ajwt_refresh(self, refresh_token: str, realm: str | None = None) -> dict:
         """Exchange a refresh token for new tokens (async).
-        
+
         Args:
             refresh_token: The refresh token to exchange
             realm: The realm to authenticate against (defaults to instance realm)
-            
+
         Returns:
             New token dict with access_token, refresh_token, expires_in, etc.
             Includes 'issued_at' timestamp added by this method.
-            
+
         Raises:
             TokenExpiredError: If the refresh token has expired
             AuthError: If the refresh fails for other reasons
@@ -836,7 +840,7 @@ class BaseKeycloakClient(BaseClientManager):
                 error_data = response.json()
                 if error_data.get("error") == "invalid_grant":
                     raise TokenExpiredError("Refresh token has expired or is invalid")
-            
+
             if response.status_code != 200:
                 raise AuthError(f"Token refresh failed: {response.status_code} - {response.text}")
 
@@ -844,8 +848,40 @@ class BaseKeycloakClient(BaseClientManager):
             token["issued_at"] = int(time.time())
             return token
 
-    @staticmethod
-    def jwt_needs_refresh(jwt: str, buffer_seconds: int = 60) -> bool:
+    @classmethod
+    def jwt_decode(cls, jwt: str) -> dict:
+        """Decode JWT and return claims without validation.
+
+        This method performs client-side JWT decoding to extract claims.
+        It does NOT validate the token signature or check if it's still valid.
+        For server-side validation, use jwt_userinfo() or jwt_introspect().
+
+        Args:
+            jwt: The JWT string to decode
+
+        Returns:
+            Decoded JWT claims as a dict
+
+        Raises:
+            InvalidTokenError: If the JWT is malformed or cannot be decoded
+        """
+        try:
+            parts = jwt.split('.')
+            if len(parts) != 3:
+                raise InvalidTokenError("JWT must have 3 parts separated by dots")
+
+            payload = parts[1]
+            payload += '=' * (-len(payload) % 4)
+            decoded = base64.urlsafe_b64decode(payload)
+            return json.loads(decoded)
+
+        except (ValueError, json.JSONDecodeError) as e:
+            raise InvalidTokenError(f"Failed to decode JWT: {e}")
+        except Exception as e:
+            raise InvalidTokenError(f"JWT decoding error: {e}")
+
+    @classmethod
+    def jwt_needs_refresh(cls, jwt: str, buffer_seconds: int = 60) -> bool:
         """Check if a JWT token needs refreshing by decoding and checking expiry.
         
         Args:
@@ -859,24 +895,17 @@ class BaseKeycloakClient(BaseClientManager):
             InvalidTokenError: If the JWT is malformed or cannot be decoded
         """
         try:
-            parts = jwt.split('.')
-            if len(parts) != 3:
-                raise InvalidTokenError("JWT must have 3 parts separated by dots")
-                
-            payload = parts[1]
-            payload += '=' * (-len(payload) % 4)
-            decoded = base64.urlsafe_b64decode(payload)
-            claims = json.loads(decoded)
-            
+            claims = cls.jwt_decode(jwt)
+
             exp = claims.get('exp')
             if exp is None:
                 raise InvalidTokenError("JWT missing 'exp' claim")
-                
+
             current_time = time.time()
             time_until_expiry = exp - current_time
-            
+
             return time_until_expiry <= buffer_seconds
-        except (ValueError, json.JSONDecodeError) as e:
-            raise InvalidTokenError(f"Failed to decode JWT: {e}")
+        except InvalidTokenError:
+            raise
         except Exception as e:
             raise InvalidTokenError(f"JWT validation error: {e}")

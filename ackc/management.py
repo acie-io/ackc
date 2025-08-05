@@ -12,6 +12,7 @@ import attrs
 from niquests import Response
 
 from .api import AuthenticatedClient, Client
+from . import env
 
 __all__ = [
     "KeycloakManagementClient",
@@ -89,14 +90,14 @@ class KeycloakManagementClient:
         Initialize the management client.
         
         Args:
-            url: Management interface URL (defaults to KEYCLOAK_MANAGEMENT_URL env var)
+            url: Management interface URL (defaults to KEYCLOAK_MANAGEMENT_URL)
                  Example: http://localhost:9000 or http://localhost:9000/management
             verify_ssl: Whether to verify SSL certificates
             timeout: Request timeout in seconds
             headers: Additional headers to include in requests
             client: Optional pre-configured client (Client or AuthenticatedClient)
         """
-        self.url = url or os.environ.get("KEYCLOAK_MANAGEMENT_URL")
+        self.url = url or env.KEYCLOAK_MANAGEMENT_URL
         if not self.url:
             raise ValueError(
                 "Management URL required. Set KEYCLOAK_MANAGEMENT_URL env var or pass url parameter."

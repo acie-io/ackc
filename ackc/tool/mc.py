@@ -4,9 +4,9 @@ Maps the KeycloakManagementClient to a command-line interface for easy access to
 """
 import argparse
 import json
-import os
 import sys
 
+from .. import env
 from ..management import KeycloakManagementClient
 
 
@@ -53,8 +53,8 @@ def main():
     
     parser.add_argument(
         "--url",
-        help="Management interface URL (defaults to KEYCLOAK_MANAGEMENT_URL env var)",
-        default=os.environ.get("KEYCLOAK_MANAGEMENT_URL")
+        help="Management interface URL (defaults to KEYCLOAK_MANAGEMENT_URL)",
+        default=env.KEYCLOAK_MANAGEMENT_URL
     )
     
     parser.add_argument(
@@ -64,17 +64,14 @@ def main():
     )
     
     subparsers = parser.add_subparsers(dest="command", help="Available commands", required=True)
-    
-    # Health command with subcommands
+
     health_parser = subparsers.add_parser("health", help="Check health status")
     health_subparsers = health_parser.add_subparsers(dest="health_type", help="Health check type")
-    
-    # Health subcommands
+
     health_subparsers.add_parser("live", help="Check liveness probe")
     health_subparsers.add_parser("ready", help="Check readiness probe")
     health_subparsers.add_parser("started", help="Check started probe")
-    
-    # Metrics command
+
     subparsers.add_parser("metrics", help="Get Prometheus metrics")
     
     args = parser.parse_args()

@@ -1,10 +1,10 @@
 import argparse
 import json
-import os
 import sys
 
-from ..keycloak import KeycloakClient
+from .. import env
 from ..exceptions import AuthError
+from ..keycloak import KeycloakClient
 
 
 def main():
@@ -13,16 +13,16 @@ def main():
     parser.add_argument('realm', help='Realm name to export')
 
     parser.add_argument('--server-url',
-                        default=os.getenv('KEYCLOAK_URL', 'https://id.acie.dev'),
-                        help='Keycloak server URL (default: $KEYCLOAK_URL)')
+                        default=env.KEYCLOAK_URL,
+                        help='Keycloak server URL (default: KEYCLOAK_URL)')
 
     parser.add_argument('--client-id',
-                        default=os.getenv('KEYCLOAK_CLIENT_ID'),
-                        help='Client ID (default: $KEYCLOAK_CLIENT_ID)')
+                        default=env.KEYCLOAK_CLIENT_ID,
+                        help='Client ID (default: KEYCLOAK_CLIENT_ID)')
 
     parser.add_argument('--client-secret',
-                        default=os.getenv('KEYCLOAK_CLIENT_SECRET'),
-                        help='Client secret (default: $KEYCLOAK_CLIENT_SECRET)')
+                        default=env.KEYCLOAK_CLIENT_SECRET,
+                        help='Client secret (default: KEYCLOAK_CLIENT_SECRET)')
 
     parser.add_argument('--include-users',
                         action='store_true',

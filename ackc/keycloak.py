@@ -36,40 +36,6 @@ class KeycloakClient(KeycloakClientMixin, BaseKeycloakClient):
     """
     realm: str = "acie"
 
-    def __init__(
-            self,
-            realm: str | None = None, *,
-            server_url: str | None = None,
-            client_id: str | None = None,
-            client_secret: str | None = None,
-            auth_realm: str = "master",
-            verify_ssl: bool = True,
-            timeout: float = 30.0,
-            **kwds
-    ):
-        """
-        Initialize the Keycloak client.
-        
-        Args:
-            server_url: Keycloak server URL (defaults to KEYCLOAK_URL env var)
-            client_id: OAuth2 client ID (defaults to KEYCLOAK_CLIENT_ID env var)
-            client_secret: OAuth2 client secret (defaults to KEYCLOAK_CLIENT_SECRET env var)
-            auth_realm: Realm to authenticate against (default: master)
-            verify_ssl: Whether to verify SSL certificates
-            timeout: Request timeout in seconds
-            **kwds: Additional arguments for the underlying client
-        """
-        super().__init__(
-            realm=realm,
-            server_url=server_url,
-            client_id=client_id,
-            client_secret=client_secret,
-            auth_realm=auth_realm,
-            verify_ssl=verify_ssl,
-            timeout=timeout,
-            **kwds
-        )
-
     def _build_url(self, path: str, **params) -> str:
         """Build a complete URL with server, path, and optional query parameters.
         
