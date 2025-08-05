@@ -1,6 +1,6 @@
 [project]
 name = "ackc"
-version = "0.3.1"
+version = "0.3.2"
 description = "Acie's API Client for Keycloak"
 readme = "readme.md"
 requires-python = ">=3.13"

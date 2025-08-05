@@ -139,10 +139,10 @@ class UsersAPI(BaseAPI):
             username=username,
         )
     
-    def create(self, realm: str, user_data: dict | UserRepresentation) -> str:
+    def create(self, realm: str | None = None, *, user_data: dict | UserRepresentation) -> str:
         """Create a user (sync). Returns user ID."""
         user_obj = user_data if isinstance(user_data, UserRepresentation) else UserRepresentation.from_dict(user_data)
-        response = self._sync_detailed(post_admin_realms_realm_users.sync_detailed, realm=realm, body=user_obj)
+        response = self._sync_detailed(post_admin_realms_realm_users.sync_detailed, realm=realm or self.realm, body=user_obj)
 
         if response.status_code != 201:
             raise AuthError(f"Failed to create user: {response.status_code}")
@@ -150,10 +150,10 @@ class UsersAPI(BaseAPI):
         location = response.headers.get("Location", "")
         return location.split("/")[-1] if location else ""
     
-    async def acreate(self, realm: str, user_data: dict | UserRepresentation) -> str:
+    async def acreate(self, realm: str | None = None, *, user_data: dict | UserRepresentation) -> str:
         """Create a user (async). Returns user ID."""
         user_obj = user_data if isinstance(user_data, UserRepresentation) else UserRepresentation.from_dict(user_data)
-        response = await self._async_detailed(post_admin_realms_realm_users.asyncio_detailed, realm=realm, body=user_obj)
+        response = await self._async_detailed(post_admin_realms_realm_users.asyncio_detailed, realm=realm or self.realm, body=user_obj)
 
         if response.status_code != 201:
             raise AuthError(f"Failed to create user: {response.status_code}")
@@ -161,28 +161,28 @@ class UsersAPI(BaseAPI):
         location = response.headers.get("Location", "")
         return location.split("/")[-1] if location else ""
     
-    def get(self, realm: str, user_id: str) -> UserRepresentation | None:
+    def get(self, realm: str | None = None, *, user_id: str) -> UserRepresentation | None:
         """Get a user by ID (sync)."""
-        return self._sync(get_admin_realms_realm_users_user_id.sync, realm=realm, user_id=user_id)
+        return self._sync(get_admin_realms_realm_users_user_id.sync, realm=realm or self.realm, user_id=user_id)
     
-    async def aget(self, realm: str, user_id: str) -> UserRepresentation | None:
+    async def aget(self, realm: str | None = None, *, user_id: str) -> UserRepresentation | None:
         """Get a user by ID (async)."""
-        return await self._async(get_admin_realms_realm_users_user_id.asyncio, realm=realm, user_id=user_id)
+        return await self._async(get_admin_realms_realm_users_user_id.asyncio, realm=realm or self.realm, user_id=user_id)
 
-    def update(self, realm: str, user_id: str, user_data: dict | UserRepresentation) -> None:
+    def update(self, realm: str | None = None, *, user_id: str, user_data: dict | UserRepresentation) -> None:
         """Update a user (sync)."""
         user_obj = user_data if isinstance(user_data, UserRepresentation) else UserRepresentation.from_dict(user_data)
-        response = self._sync_detailed(put_admin_realms_realm_users_user_id.sync_detailed, realm=realm, user_id=user_id, body=user_obj)
+        response = self._sync_detailed(put_admin_realms_realm_users_user_id.sync_detailed, realm=realm or self.realm, user_id=user_id, body=user_obj)
 
         if response.status_code not in (200, 204):
             raise AuthError(f"Failed to update user: {response.status_code}")
     
-    async def aupdate(self, realm: str, user_id: str, user_data: dict | UserRepresentation) -> None:
+    async def aupdate(self, realm: str | None = None, *, user_id: str, user_data: dict | UserRepresentation) -> None:
         """Update a user (async)."""
         user_obj = user_data if isinstance(user_data, UserRepresentation) else UserRepresentation.from_dict(user_data)
         response = await self._async_detailed(
             put_admin_realms_realm_users_user_id.asyncio_detailed,
-            realm=realm,
+            realm=realm or self.realm,
             user_id=user_id,
             body=user_obj
         )
@@ -190,22 +190,22 @@ class UsersAPI(BaseAPI):
         if response.status_code not in (200, 204):
             raise AuthError(f"Failed to update user: {response.status_code}")
 
-    def delete(self, realm: str, user_id: str) -> None:
+    def delete(self, realm: str | None = None, *, user_id: str) -> None:
         """Delete a user (sync)."""
         response = self._sync_detailed(
             delete_admin_realms_realm_users_user_id.sync_detailed,
-            realm=realm,
+            realm=realm or self.realm,
             user_id=user_id
         )
 
         if response.status_code not in (200, 204):
             raise AuthError(f"Failed to delete user: {response.status_code}")
 
-    async def adelete(self, realm: str, user_id: str) -> None:
+    async def adelete(self, realm: str | None = None, *, user_id: str) -> None:
         """Delete a user (async)."""
         response = await self._async_detailed(
             delete_admin_realms_realm_users_user_id.asyncio_detailed,
-            realm=realm,
+            realm=realm or self.realm,
             user_id=user_id
         )
 
