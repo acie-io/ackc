@@ -73,6 +73,7 @@ def get_token_password(
     *,
     username,
     password,
+    otp=None,
     server_url=None,
     realm=None,
     client_id=None,
@@ -84,10 +85,11 @@ def get_token_password(
     """Get token using password grant.
     
     Args:
-        server_url: Keycloak server URL
-        realm: Realm name
         username: Username
         password: Password
+        otp: Optional OTP/2FA code (will be concatenated with password)
+        server_url: Keycloak server URL
+        realm: Realm name
         client_id: Client ID
         client_secret: Client secret
         auth_realm: Authentication realm
@@ -112,6 +114,7 @@ def get_token_password(
     return client.get_token_password(
         username=username,
         password=password,
+        otp=otp,
         client_id=client_id,
         client_secret=client_secret,
         scopes=scopes

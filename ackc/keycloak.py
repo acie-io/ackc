@@ -46,7 +46,7 @@ class KeycloakClient(KeycloakClientMixin, BaseKeycloakClient):
         Returns:
             The complete URL with encoded query parameters
         """
-        full_url = urljoin(self.server_url, path.lstrip('/'))
+        full_url = urljoin(self.server_url, path.lstrip("/"))
 
         filtered_params = {k: v for k, v in params.items() if v is not None}
         if filtered_params:
@@ -79,7 +79,7 @@ class KeycloakClient(KeycloakClientMixin, BaseKeycloakClient):
         """Get the login URL for the authentication realm.
 
         Returns:
-            The login URL for the authentication realm (typically 'master')
+            The login URL for the authentication realm (typically "master")
         """
         return self.get_login_url(self.auth_realm)
 
@@ -93,7 +93,7 @@ class KeycloakClient(KeycloakClientMixin, BaseKeycloakClient):
             True if registration is enabled, False otherwise
         """
         realm_data = self.realms.get(realm or self.realm)
-        return bool(realm_data and getattr(realm_data, 'registration_allowed', False))
+        return bool(realm_data and getattr(realm_data, "registration_allowed", False))
 
     async def acheck_registration_enabled(self, realm: str | None = None) -> bool:
         """Check if registration is enabled for a specific realm (async).
@@ -105,7 +105,7 @@ class KeycloakClient(KeycloakClientMixin, BaseKeycloakClient):
             True if registration is enabled, False otherwise
         """
         realm_data = await self.realms.aget(realm or self.realm)
-        return bool(realm_data and getattr(realm_data, 'registration_allowed', False))
+        return bool(realm_data and getattr(realm_data, "registration_allowed", False))
 
     def get_registration_url(self, realm: str | None = None, *, redirect_uri: str | None = None) -> str:
         """Get the registration URL for a specific realm if registration is enabled.

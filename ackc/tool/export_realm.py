@@ -10,27 +10,27 @@ from ..keycloak import KeycloakClient
 def main():
     parser = argparse.ArgumentParser(description="Export Keycloak realm configuration")
 
-    parser.add_argument('realm', help='Realm name to export')
+    parser.add_argument("realm", help="Realm name to export")
 
-    parser.add_argument('--server-url',
+    parser.add_argument("--server-url",
                         default=env.KEYCLOAK_URL,
-                        help='Keycloak server URL (default: KEYCLOAK_URL)')
+                        help="Keycloak server URL (default: KEYCLOAK_URL)")
 
-    parser.add_argument('--client-id',
+    parser.add_argument("--client-id",
                         default=env.KEYCLOAK_CLIENT_ID,
-                        help='Client ID (default: KEYCLOAK_CLIENT_ID)')
+                        help="Client ID (default: KEYCLOAK_CLIENT_ID)")
 
-    parser.add_argument('--client-secret',
+    parser.add_argument("--client-secret",
                         default=env.KEYCLOAK_CLIENT_SECRET,
-                        help='Client secret (default: KEYCLOAK_CLIENT_SECRET)')
+                        help="Client secret (default: KEYCLOAK_CLIENT_SECRET)")
 
-    parser.add_argument('--include-users',
-                        action='store_true',
-                        help='Include users in export')
+    parser.add_argument("--include-users",
+                        action="store_true",
+                        help="Include users in export")
 
-    parser.add_argument('--pretty',
-                        action='store_true',
-                        help='Pretty-print JSON output')
+    parser.add_argument("--pretty",
+                        action="store_true",
+                        help="Pretty-print JSON output")
 
     args = parser.parse_args()
 
@@ -58,5 +58,5 @@ def main():
         sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

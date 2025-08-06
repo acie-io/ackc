@@ -36,7 +36,7 @@ class RealmsAPI(BaseAPI):
         else:
             realm_dict = realm_data
 
-        json_bytes = json.dumps(realm_dict).encode('utf-8')
+        json_bytes = json.dumps(realm_dict).encode("utf-8")
         file_obj = File(
             payload=BytesIO(json_bytes),
             file_name="realm.json",
@@ -54,7 +54,7 @@ class RealmsAPI(BaseAPI):
         else:
             realm_dict = realm_data
 
-        json_bytes = json.dumps(realm_dict).encode('utf-8')
+        json_bytes = json.dumps(realm_dict).encode("utf-8")
         file_obj = File(
             payload=BytesIO(json_bytes),
             file_name="realm.json",

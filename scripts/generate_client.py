@@ -61,9 +61,9 @@ def generate_client():
     init_file = output_dir / "__init__.py"
     if not init_file.exists():
         init_file.write_text(
-            '"""Auto-generated Keycloak client using niquests."""\n'
-            'from .client import Client, AuthenticatedClient\n'
-            '\n__all__ = "Client", "AuthenticatedClient"\n'
+            """"Auto-generated Keycloak client using niquests."""\n"
+            "from .client import Client, AuthenticatedClient\n"
+            "\n__all__ = \"Client\", \"AuthenticatedClient\"\n"
         )
 
     print("✅ Post-processing complete")

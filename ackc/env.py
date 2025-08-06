@@ -7,9 +7,9 @@ class EnvSettings:
     """Environment settings with optional prefix support via KEYCLOAK_ENV_PREFIX."""
 
     def __init__(self):
-        self._prefix = os.getenv('KEYCLOAK_ENV_PREFIX')
-        if self._prefix and not self._prefix.endswith('_'):
-            self._prefix = self._prefix + '_'
+        self._prefix = os.getenv("KEYCLOAK_ENV_PREFIX")
+        if self._prefix and not self._prefix.endswith("_"):
+            self._prefix = self._prefix + "_"
 
     def _setting(self, name: str, dflt: str | None = None) -> str | None:
         """Get setting with prefix support."""
@@ -24,35 +24,35 @@ class EnvSettings:
 
     @cached_property
     def KEYCLOAK_URL(self) -> str | None:
-        return self._setting('KEYCLOAK_URL')
+        return self._setting("KEYCLOAK_URL")
 
     @cached_property
     def KEYCLOAK_MANAGEMENT_URL(self) -> str | None:
-        return self._setting('KEYCLOAK_MANAGEMENT_URL')
+        return self._setting("KEYCLOAK_MANAGEMENT_URL")
 
     @cached_property
     def KEYCLOAK_REALM(self) -> str | None:
-        return self._setting('KEYCLOAK_REALM')
+        return self._setting("KEYCLOAK_REALM")
 
     @cached_property
     def KEYCLOAK_AUTH_REALM(self) -> str | None:
-        return self._setting('KEYCLOAK_AUTH_REALM', self.KEYCLOAK_REALM)
+        return self._setting("KEYCLOAK_AUTH_REALM", self.KEYCLOAK_REALM)
 
     @cached_property
     def KEYCLOAK_CLIENT_ID(self) -> str | None:
-        return self._setting('KEYCLOAK_CLIENT_ID')
+        return self._setting("KEYCLOAK_CLIENT_ID")
 
     @cached_property
     def KEYCLOAK_CLIENT_SECRET(self) -> str | None:
-        return self._setting('KEYCLOAK_CLIENT_SECRET')
+        return self._setting("KEYCLOAK_CLIENT_SECRET")
 
     @cached_property
     def CF_ACCESS_CLIENT_ID(self) -> str | None:
-        return self._setting('CF_ACCESS_CLIENT_ID')
+        return self._setting("CF_ACCESS_CLIENT_ID")
 
     @cached_property
     def CF_ACCESS_CLIENT_SECRET(self) -> str | None:
-        return self._setting('CF_ACCESS_CLIENT_SECRET')
+        return self._setting("CF_ACCESS_CLIENT_SECRET")
 
 
 env_settings = EnvSettings()

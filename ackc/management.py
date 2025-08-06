@@ -124,7 +124,7 @@ class KeycloakManagementClient:
     def _get(self, endpoint: str) -> Response:
         """Make a synchronous request to a management endpoint."""
         client = self.client
-        url = urljoin(self.url, endpoint.lstrip('/'))
+        url = urljoin(self.url, endpoint.lstrip("/"))
 
         with client:
             return client.get_niquests_client().get(url)
@@ -132,7 +132,7 @@ class KeycloakManagementClient:
     async def _aget(self, endpoint: str) -> Response:
         """Make an asynchronous request to a management endpoint."""
         client = self.client
-        url = urljoin(self.url, endpoint.lstrip('/'))
+        url = urljoin(self.url, endpoint.lstrip("/"))
 
         async with client:
             return await client.get_async_niquests_client().get(url)
@@ -220,38 +220,38 @@ class KeycloakManagementClient:
         metrics = {}
         current_metric = None
 
-        for line in metrics_text.strip().split('\n'):
+        for line in metrics_text.strip().split("\n"):
             line = line.strip()
 
-            if not line or line.startswith('#'):
-                if line.startswith('# HELP'):
-                    parts = line.split(' ', 3)
+            if not line or line.startswith("#"):
+                if line.startswith("# HELP"):
+                    parts = line.split(" ", 3)
                     if len(parts) >= 4:
                         metric_name = parts[2]
                         help_text = parts[3]
                         metrics[metric_name] = {"help": help_text, "values": []}
                         current_metric = metric_name
-                elif line.startswith('# TYPE'):
-                    parts = line.split(' ', 3)
+                elif line.startswith("# TYPE"):
+                    parts = line.split(" ", 3)
                     if len(parts) >= 4 and current_metric:
                         metrics[current_metric]["type"] = parts[3]
             else:
-                if ' ' in line:
-                    metric_with_labels, value = line.rsplit(' ', 1)
+                if " " in line:
+                    metric_with_labels, value = line.rsplit(" ", 1)
                     try:
                         value = float(value)
                     except ValueError:
                         continue
 
-                    if '{' in metric_with_labels:
-                        metric_name, labels_str = metric_with_labels.split('{', 1)
-                        labels_str = labels_str.rstrip('}')
+                    if "{" in metric_with_labels:
+                        metric_name, labels_str = metric_with_labels.split("{", 1)
+                        labels_str = labels_str.rstrip("}")
                         labels = {}
 
-                        for label_pair in labels_str.split(','):
-                            if '=' in label_pair:
-                                key, val = label_pair.split('=', 1)
-                                labels[key.strip()] = val.strip('"')
+                        for label_pair in labels_str.split(","):
+                            if "=" in label_pair:
+                                key, val = label_pair.split("=", 1)
+                                labels[key.strip()] = val.strip("\"")
                     else:
                         metric_name = metric_with_labels
                         labels = {}

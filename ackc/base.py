@@ -310,6 +310,7 @@ class BaseKeycloakClient(BaseClientManager):
         *,
         username: str,
         password: str,
+        otp: str | None = None,
         client_id: str | None = None,
         client_secret: str | None = None,
         realm: str | None = None,
@@ -320,11 +321,12 @@ class BaseKeycloakClient(BaseClientManager):
         Args:
             username: Username to authenticate
             password: Password for the user
+            otp: Optional OTP/2FA code (will be concatenated with password)
             client_id: Client ID to use for authentication
             client_secret: Client secret to use for authentication
             realm: Realm to authenticate against (defaults to instance realm)
             scopes: OAuth2 scopes to request. Can be a list or space-separated string.
-                   Common scopes: 'openid', 'profile', 'email', 'offline_access'
+                   Common scopes: "openid", "profile", "email", "offline_access"
 
         Returns:
             Full token response dict with access_token, refresh_token, etc.
@@ -339,6 +341,9 @@ class BaseKeycloakClient(BaseClientManager):
                 "password": password,
                 "client_secret": client_secret if client_secret is not None else (self._client_secret if client_id is None else None),
             }
+            
+            if otp:
+                data["totp"] = otp
             
             if scopes:
                 if isinstance(scopes, list):
@@ -361,6 +366,7 @@ class BaseKeycloakClient(BaseClientManager):
         *,
         username: str,
         password: str,
+        otp: str | None = None,
         client_id: str | None = None,
         client_secret: str | None = None,
         realm: str | None = None,
@@ -371,11 +377,12 @@ class BaseKeycloakClient(BaseClientManager):
         Args:
             username: Username to authenticate
             password: Password for the user
+            otp: Optional OTP/2FA code (will be concatenated with password)
             client_id: Client ID to use for authentication
             client_secret: Client secret to use for authentication
             realm: Realm to authenticate against (defaults to instance realm)
             scopes: OAuth2 scopes to request. Can be a list or space-separated string.
-                   Common scopes: 'openid', 'profile', 'email', 'offline_access'
+                   Common scopes: "openid", "profile", "email", "offline_access"
 
         Returns:
             Full token response dict with access_token, refresh_token, etc.
@@ -390,6 +397,9 @@ class BaseKeycloakClient(BaseClientManager):
                 "password": password,
                 "client_secret": client_secret if client_secret is not None else (self._client_secret if client_id is None else None),
             }
+            
+            if otp:
+                data["totp"] = otp
             
             if scopes:
                 if isinstance(scopes, list):
@@ -426,7 +436,7 @@ class BaseKeycloakClient(BaseClientManager):
             realm: The realm to authenticate against (defaults to instance realm)
             client_id: The client ID requesting the token (defaults to instance client_id)
             scopes: OAuth2 scopes to request. Can be a list or space-separated string.
-                   Common scopes: 'openid', 'profile', 'email', 'offline_access'
+                   Common scopes: "openid", "profile", "email", "offline_access"
 
         Returns:
             Full token response dict with access_token, refresh_token, etc.
@@ -455,11 +465,11 @@ class BaseKeycloakClient(BaseClientManager):
                 raise AuthError(f"Failed to start device flow: {response.status_code} - {response.text}")
 
             device_data = response.json()
-            verification_uri = device_data.get('verification_uri_complete', device_data.get('verification_uri'))
-            user_code = device_data.get('user_code')
-            device_code = device_data.get('device_code')
-            expires_in = device_data.get('expires_in', 600)
-            interval = device_data.get('interval', 5)
+            verification_uri = device_data.get("verification_uri_complete", device_data.get("verification_uri"))
+            user_code = device_data.get("user_code")
+            device_code = device_data.get("device_code")
+            expires_in = device_data.get("expires_in", 600)
+            interval = device_data.get("interval", 5)
 
             if not all([verification_uri, user_code, device_code]):
                 raise AuthError("Invalid device authorization response - missing required fields")
@@ -473,24 +483,24 @@ class BaseKeycloakClient(BaseClientManager):
                 response = temp_client.get_niquests_client().post(
                     token_url,
                     data={
-                        'grant_type': 'urn:ietf:params:oauth:grant-type:device_code',
-                        'client_id': client_id or self._client_id,
-                        'device_code': device_code,
+                        "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
+                        "client_id": client_id or self._client_id,
+                        "device_code": device_code,
                     }
                 )
 
                 if response.status_code == 200:
                     return response.json()
                 elif response.status_code == 400:
-                    error = response.json().get('error', 'unknown_error')
-                    if error == 'authorization_pending':
+                    error = response.json().get("error", "unknown_error")
+                    if error == "authorization_pending":
                         continue
-                    elif error == 'slow_down':
+                    elif error == "slow_down":
                         interval += 5
                         continue
-                    elif error == 'access_denied':
+                    elif error == "access_denied":
                         raise AuthError("User denied authorization")
-                    elif error == 'expired_token':
+                    elif error == "expired_token":
                         raise AuthError("Device code expired")
                     else:
                         raise AuthError(f"Device flow error: {error}")
@@ -516,7 +526,7 @@ class BaseKeycloakClient(BaseClientManager):
             realm: The realm to authenticate against (defaults to instance realm)
             client_id: The client ID requesting the token (defaults to instance client_id)
             scopes: OAuth2 scopes to request. Can be a list or space-separated string.
-                   Common scopes: 'openid', 'profile', 'email', 'offline_access'
+                   Common scopes: "openid", "profile", "email", "offline_access"
             callback: Callback function (sync or async) that receives keyword arguments:
                       verification_uri, user_code, expires_in (seconds)
             
@@ -547,11 +557,11 @@ class BaseKeycloakClient(BaseClientManager):
                 raise AuthError(f"Failed to start device flow: {response.status_code} - {response.text}")
 
             device_data = response.json()
-            verification_uri = device_data.get('verification_uri_complete', device_data.get('verification_uri'))
-            user_code = device_data.get('user_code')
-            device_code = device_data.get('device_code')
-            expires_in = device_data.get('expires_in', 600)
-            interval = device_data.get('interval', 5)
+            verification_uri = device_data.get("verification_uri_complete", device_data.get("verification_uri"))
+            user_code = device_data.get("user_code")
+            device_code = device_data.get("device_code")
+            expires_in = device_data.get("expires_in", 600)
+            interval = device_data.get("interval", 5)
 
             if not all([verification_uri, user_code, device_code]):
                 raise AuthError("Invalid device authorization response - missing required fields")
@@ -569,24 +579,24 @@ class BaseKeycloakClient(BaseClientManager):
                 response = await temp_client.get_async_niquests_client().post(
                     token_url,
                     data={
-                        'grant_type': 'urn:ietf:params:oauth:grant-type:device_code',
-                        'client_id': client_id or self._client_id,
-                        'device_code': device_code,
+                        "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
+                        "client_id": client_id or self._client_id,
+                        "device_code": device_code,
                     }
                 )
 
                 if response.status_code == 200:
                     return response.json()
                 elif response.status_code == 400:
-                    error = response.json().get('error', 'unknown_error')
-                    if error == 'authorization_pending':
+                    error = response.json().get("error", "unknown_error")
+                    if error == "authorization_pending":
                         continue
-                    elif error == 'slow_down':
+                    elif error == "slow_down":
                         interval += 5
                         continue
-                    elif error == 'access_denied':
+                    elif error == "access_denied":
                         raise AuthError("User denied authorization")
-                    elif error == 'expired_token':
+                    elif error == "expired_token":
                         raise AuthError("Device code expired")
                     else:
                         raise AuthError(f"Device flow error: {error}")
@@ -611,7 +621,7 @@ class BaseKeycloakClient(BaseClientManager):
             
         Returns:
             Token dict with access_token, refresh_token, id_token, expires_in, etc.
-            Includes 'issued_at' timestamp added by this method.
+            Includes "issued_at" timestamp added by this method.
             
         Raises:
             AuthError: If the code exchange fails
@@ -653,7 +663,7 @@ class BaseKeycloakClient(BaseClientManager):
             
         Returns:
             Token dict with access_token, refresh_token, id_token, expires_in, etc.
-            Includes 'issued_at' timestamp added by this method.
+            Includes "issued_at" timestamp added by this method.
             
         Raises:
             AuthError: If the code exchange fails
@@ -874,7 +884,7 @@ class BaseKeycloakClient(BaseClientManager):
 
         Returns:
             New token dict with access_token, refresh_token, expires_in, etc.
-            Includes 'issued_at' timestamp added by this method.
+            Includes "issued_at" timestamp added by this method.
 
         Raises:
             TokenExpiredError: If the refresh token has expired
@@ -914,7 +924,7 @@ class BaseKeycloakClient(BaseClientManager):
 
         Returns:
             New token dict with access_token, refresh_token, expires_in, etc.
-            Includes 'issued_at' timestamp added by this method.
+            Includes "issued_at" timestamp added by this method.
 
         Raises:
             TokenExpiredError: If the refresh token has expired
@@ -963,12 +973,12 @@ class BaseKeycloakClient(BaseClientManager):
             InvalidTokenError: If the JWT is malformed or cannot be decoded
         """
         try:
-            parts = jwt.split('.')
+            parts = jwt.split(".")
             if len(parts) != 3:
                 raise InvalidTokenError("JWT must have 3 parts separated by dots")
 
             payload = parts[1]
-            payload += '=' * (-len(payload) % 4)
+            payload += "=" * (-len(payload) % 4)
             decoded = base64.urlsafe_b64decode(payload)
             return json.loads(decoded)
 
@@ -994,9 +1004,9 @@ class BaseKeycloakClient(BaseClientManager):
         try:
             claims = cls.jwt_decode(jwt=jwt)
 
-            exp = claims.get('exp')
+            exp = claims.get("exp")
             if exp is None:
-                raise InvalidTokenError("JWT missing 'exp' claim")
+                raise InvalidTokenError("JWT missing \"exp\" claim")
 
             current_time = time.time()
             time_until_expiry = exp - current_time

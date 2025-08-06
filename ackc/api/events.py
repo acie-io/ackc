@@ -50,9 +50,9 @@ class EventsAPI(BaseAPI):
         Args:
             realm: The realm name
             client: Filter by client ID
-            date_from: From date in ISO format (e.g., '2023-01-01') or datetime object
+            date_from: From date in ISO format (e.g., "2023-01-01") or datetime object
             date_to: To date in ISO format or datetime object
-            direction: Sort direction ('ASC' or 'DESC')
+            direction: Sort direction ("ASC" or "DESC")
             first: Pagination offset
             ip_address: Filter by IP address
             max: Maximum results to return (default 100)
@@ -102,9 +102,9 @@ class EventsAPI(BaseAPI):
         Args:
             realm: The realm name
             client: Filter by client ID
-            date_from: From date in ISO format (e.g., '2023-01-01') or datetime object
+            date_from: From date in ISO format (e.g., "2023-01-01") or datetime object
             date_to: To date in ISO format or datetime object
-            direction: Sort direction ('ASC' or 'DESC')
+            direction: Sort direction ("ASC" or "DESC")
             first: Pagination offset
             ip_address: Filter by IP address
             max: Maximum results to return (default 100)
@@ -182,7 +182,7 @@ class EventsAPI(BaseAPI):
             auth_user: Filter by authenticated user ID
             date_from: From date in ISO format
             date_to: To date in ISO format
-            direction: Sort direction ('ASC' or 'DESC')
+            direction: Sort direction ("ASC" or "DESC")
             first: Pagination offset
             max: Maximum results to return
             operation_types: Operation type(s) to filter by - can be single string or list
@@ -247,7 +247,7 @@ class EventsAPI(BaseAPI):
             auth_user: Filter by authenticated user ID
             date_from: From date in ISO format
             date_to: To date in ISO format
-            direction: Sort direction ('ASC' or 'DESC')
+            direction: Sort direction ("ASC" or "DESC")
             first: Pagination offset
             max: Maximum results to return
             operation_types: Operation type(s) to filter by - can be single string or list

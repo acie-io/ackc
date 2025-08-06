@@ -20,15 +20,15 @@ Library Usage:
     from ackc.tool.token import run
     
     # With dict args (e.g., from Django)
-    token = run({'server_url': 'https://keycloak.example.com', 'command': 'device'})
+    token = run({"server_url": "https://keycloak.example.com", "command": "device"})
     
     # With custom client factory
     def my_factory(**kwds):
         return KeycloakClient(
-            server_url=kwds.get('server_url') or settings.KEYCLOAK_URL,
-            realm=kwds.get('realm') or settings.KEYCLOAK_REALM,
-            client_id=kwds.get('client_id') or settings.KEYCLOAK_CLIENT_ID,
-            client_secret=kwds.get('client_secret') or settings.KEYCLOAK_CLIENT_SECRET,
+            server_url=kwds.get("server_url") or settings.KEYCLOAK_URL,
+            realm=kwds.get("realm") or settings.KEYCLOAK_REALM,
+            client_id=kwds.get("client_id") or settings.KEYCLOAK_CLIENT_ID,
+            client_secret=kwds.get("client_secret") or settings.KEYCLOAK_CLIENT_SECRET,
         )
     
     token = run(args, client_factory=my_factory)
@@ -40,7 +40,7 @@ Django Management Command Example:
     from ackc import KeycloakClient
     
     class Command(BaseCommand):
-        help = 'Get Keycloak access token'
+        help = "Get Keycloak access token"
         
         def add_arguments(self, parser):
             init_parser(parser)
@@ -48,14 +48,14 @@ Django Management Command Example:
         def handle(self, *args, **options):
             def django_client_factory(**kwds):
                 return KeycloakClient(
-                    server_url=kwds.get('server_url') or settings.KEYCLOAK_URL,
-                    realm=kwds.get('realm') or settings.KEYCLOAK_REALM,
-                    client_id=kwds.get('client_id') or settings.KEYCLOAK_CLIENT_ID,
-                    client_secret=kwds.get('client_secret') or settings.KEYCLOAK_CLIENT_SECRET,
+                    server_url=kwds.get("server_url") or settings.KEYCLOAK_URL,
+                    realm=kwds.get("realm") or settings.KEYCLOAK_REALM,
+                    client_id=kwds.get("client_id") or settings.KEYCLOAK_CLIENT_ID,
+                    client_secret=kwds.get("client_secret") or settings.KEYCLOAK_CLIENT_SECRET,
                 )
 
             token = run(options, client_factory=django_client_factory)
-            output = format_output(token, options['quiet'], options['decode'])
+            output = format_output(token, options["quiet"], options["decode"])
             self.stdout.write(output)
 
 """
@@ -98,37 +98,42 @@ def init_parser(parser=None):
   %(prog)s refresh TOKEN             # Refresh a token"""
         )
 
-    parser.add_argument('--server-url', default=env.KEYCLOAK_URL, help='Keycloak server URL (default: KEYCLOAK_URL)')
+    parser.add_argument("--server-url", default=env.KEYCLOAK_URL, help="Keycloak server URL (default: KEYCLOAK_URL)")
 
     parser.add_argument(
-        '--realm',
+        "--realm",
         default=None,
-        help='Realm name (default: KEYCLOAK_REALM)'
+        help="Realm name (default: KEYCLOAK_REALM)"
     )
 
-    parser.add_argument('--auth-realm', default=None, help='Realm for client authentication (defaults to --realm value)')
-    parser.add_argument('--client-id', default=None, help='Client ID (default: KEYCLOAK_CLIENT_ID)')
-    parser.add_argument('--client-secret', default=None, help='Client secret (default: KEYCLOAK_CLIENT_SECRET)')
+    parser.add_argument("--auth-realm", default=None, help="Realm for client authentication (defaults to --realm value)")
+    parser.add_argument("--client-id", default=None, help="Client ID (default: KEYCLOAK_CLIENT_ID)")
+    parser.add_argument("--client-secret", default=None, help="Client secret (default: KEYCLOAK_CLIENT_SECRET)")
 
     print_options = parser.add_mutually_exclusive_group()
 
-    print_options.add_argument('-q', '--quiet', action='store_true', help='Output only the token value')
-    print_options.add_argument('--decode', action='store_true', help='Decode and display JWT claims')
+    print_options.add_argument("-q", "--quiet", action="store_true", help="Output only the token value")
+    print_options.add_argument("--decode", action="store_true", help="Decode and display JWT claims")
 
-    subparsers = parser.add_subparsers(dest='command', help='Authentication method')
+    subparsers = parser.add_subparsers(dest="command", help="Authentication method")
 
-    client_parser = subparsers.add_parser('client', help='Client credentials flow (machine-to-machine)')
-    client_parser.add_argument('--scopes', help='OAuth2 scopes (space-separated or comma-separated)')
+    client_parser = subparsers.add_parser("client", help="Client credentials flow (machine-to-machine)")
+    client_parser.add_argument("--scopes", help="OAuth2 scopes (space-separated or comma-separated)")
 
-    device_parser = subparsers.add_parser('device', help='Device authorization flow (browser-based)')
-    device_parser.add_argument('--scopes', help='OAuth2 scopes (space-separated or comma-separated)')
+    device_parser = subparsers.add_parser("device", help="Device authorization flow (browser-based)")
+    device_parser.add_argument("--scopes", help="OAuth2 scopes (space-separated or comma-separated)")
 
-    password_parser = subparsers.add_parser('password', help='Password grant flow (legacy)')
-    password_parser.add_argument('-u', '--username', help='Username to authenticate')
-    password_parser.add_argument('--scopes', help='OAuth2 scopes (space-separated or comma-separated)')
+    password_parser = subparsers.add_parser("password", help="Password grant flow (legacy)")
+    password_parser.add_argument("-u", "--username", help="Username to authenticate")
 
-    refresh_parser = subparsers.add_parser('refresh', help='Refresh an existing token')
-    refresh_parser.add_argument('token', help='The refresh token to exchange')
+    otp_group = password_parser.add_mutually_exclusive_group()
+    otp_group.add_argument("--otp", action="store_true", help="Prompt for OTP/2FA code")
+    otp_group.add_argument("--otp-code", help="Provide OTP/2FA code directly")
+
+    password_parser.add_argument("--scopes", help="OAuth2 scopes (space-separated or comma-separated)")
+
+    refresh_parser = subparsers.add_parser("refresh", help="Refresh an existing token")
+    refresh_parser.add_argument("token", help="The refresh token to exchange")
 
     return parser
 
@@ -149,24 +154,29 @@ def create_device_callback(quiet=False):
 def format_output(*, token, quiet=False, decode=False):
     """Format token output based on options."""
     if quiet:
-        return token.get('access_token', token)
+        return token.get("access_token", token)
 
     output = token.copy()
 
-    if decode and 'access_token' in token:
-        claims = KeycloakClient.jwt_decode(jwt=token['access_token'])
-        output['claims'] = claims
+    if decode and "access_token" in token:
+        claims = KeycloakClient.jwt_decode(jwt=token["access_token"])
+        output["claims"] = claims
 
     return json.dumps(output, indent=2)
 
 
-def get_credentials(args):
+def get_credentials(args, request_otp=False):
     """Get credentials for password auth, prompting if needed."""
     username = args.username
     if not username:
         username = input("Username: " if not args.quiet else "")
     password = getpass(f"Password for {username}: " if not args.quiet else "")
-    return username, password
+
+    otp = None
+    if request_otp:
+        otp = getpass("OTP code: " if not args.quiet else "")
+
+    return username, password, otp
 
 
 def run(args, *, client_factory=None):
@@ -183,13 +193,13 @@ def run(args, *, client_factory=None):
         args = argparse.Namespace(**args)
 
     scopes = None
-    if hasattr(args, 'scopes') and args.scopes:
-        if ',' in args.scopes:
-            scopes = [s.strip() for s in args.scopes.split(',') if s.strip()]
+    if hasattr(args, "scopes") and args.scopes:
+        if "," in args.scopes:
+            scopes = [s.strip() for s in args.scopes.split(",") if s.strip()]
         else:
             scopes = args.scopes
 
-    if args.command == 'device':
+    if args.command == "device":
         token = get_token_device(
             callback=create_device_callback(args.quiet),
             server_url=args.server_url,
@@ -199,11 +209,22 @@ def run(args, *, client_factory=None):
             scopes=scopes,
             client_factory=client_factory
         )
-    elif args.command == 'password':
-        username, password = get_credentials(args)
+
+    elif args.command == "password":
+        # Handle OTP based on arguments
+        otp_code = getattr(args, "otp_code", None)
+        request_otp = getattr(args, "otp", False) and not otp_code
+        
+        username, password, otp = get_credentials(args, request_otp=request_otp)
+        
+        # Use provided OTP code if available
+        if otp_code:
+            otp = otp_code
+        
         token = get_token_password(
             username=username,
             password=password,
+            otp=otp,
             server_url=args.server_url,
             realm=args.realm,
             client_id=args.client_id,
@@ -212,7 +233,8 @@ def run(args, *, client_factory=None):
             scopes=scopes,
             client_factory=client_factory
         )
-    elif args.command == 'refresh':
+
+    elif args.command == "refresh":
         token = get_token_refresh(
             refresh_token=args.token,
             server_url=args.server_url,
@@ -222,11 +244,8 @@ def run(args, *, client_factory=None):
             auth_realm=args.auth_realm,
             client_factory=client_factory
         )
-    else:
-        if not args.client_id or not args.client_secret:
-            print("Error: Set KEYCLOAK_CLIENT_ID and KEYCLOAK_CLIENT_SECRET", file=sys.stderr)
-            sys.exit(1)
 
+    else:
         token = get_token_client_credentials(
             server_url=args.server_url,
             realm=args.realm,
@@ -252,11 +271,11 @@ def main():
 
     except AuthError as e:
         print(f"Authentication error: {e}", file=sys.stderr)
-        sys.exit(1)
+        exit(1)
     except KeyboardInterrupt:
         print("\nCancelled", file=sys.stderr)
-        sys.exit(130)
+        exit(130)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

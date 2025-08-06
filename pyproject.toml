@@ -1,6 +1,6 @@
 [project]
 name = "ackc"
-version = "0.6.0"
+version = "0.7.0"
 description = "Acie's API Client for Keycloak"
 readme = "readme.md"
 requires-python = ">=3.13"
@@ -19,6 +19,13 @@ dependencies = [
     "attrs>=25.3.0",
     "niquests>=3.14.1",
 ]
+
+[project.urls]
+Homepage = "https://github.com/acie-io/ackc"
+Repository = "https://github.com/acie-io/ackc.git"
+Documentation = "https://github.com/acie-io/ackc#readme"
+Issues = "https://github.com/acie-io/ackc/issues"
+"Release Notes" = "https://github.com/acie-io/ackc/releases"
 
 [dependency-groups]
 dev = [
