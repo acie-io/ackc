@@ -8,5 +8,6 @@
 
 *.py[co]
 __pycache__/
+dist/
 
 CLAUDE*.md

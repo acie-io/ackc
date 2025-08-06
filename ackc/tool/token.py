@@ -3,26 +3,32 @@
 This module provides both a CLI tool and reusable functions for obtaining
 Keycloak tokens via various OAuth2 flows (client credentials, password, device).
 
+It was made with the idea that token acquisition ana management tools can build on it for
+more advanced use cases, such as Django management commands or orgnaization-specific CLI login
+management.
+
 CLI Usage:
-    python -m ackc.tool.get_token                    # Client credentials
-    python -m ackc.tool.get_token --device           # Device flow
-    python -m ackc.tool.get_token --password         # Password flow
-    python -m ackc.tool.get_token -q                 # Just the token
-    python -m ackc.tool.get_token --decode           # Show JWT claims
+    auth-token                      # Client credentials
+    auth-token client               # Client credentials (explicit)
+    auth-token device               # Device flow
+    auth-token password -u admin    # Password flow
+    auth-token refresh TOKEN        # Refresh a token
+    auth-token -q                   # Just the token
+    auth-token --decode             # Show JWT claims
 
 Library Usage:
-    from ackc.tool.get_token import run
+    from ackc.tool.token import run
     
     # With dict args (e.g., from Django)
-    token = run({'server_url': 'https://keycloak.example.com', 'device': True})
+    token = run({'server_url': 'https://keycloak.example.com', 'command': 'device'})
     
     # With custom client factory
-    def my_factory(**kwargs):
+    def my_factory(**kwds):
         return KeycloakClient(
-            server_url=kwargs.get('server_url') or settings.KEYCLOAK_URL,
-            realm=kwargs.get('realm') or settings.KEYCLOAK_REALM,
-            client_id=kwargs.get('client_id') or settings.KEYCLOAK_CLIENT_ID,
-            client_secret=kwargs.get('client_secret') or settings.KEYCLOAK_CLIENT_SECRET,
+            server_url=kwds.get('server_url') or settings.KEYCLOAK_URL,
+            realm=kwds.get('realm') or settings.KEYCLOAK_REALM,
+            client_id=kwds.get('client_id') or settings.KEYCLOAK_CLIENT_ID,
+            client_secret=kwds.get('client_secret') or settings.KEYCLOAK_CLIENT_SECRET,
         )
     
     token = run(args, client_factory=my_factory)
@@ -40,12 +46,12 @@ Django Management Command Example:
             init_parser(parser)
         
         def handle(self, *args, **options):
-            def django_client_factory(**kwargs):
+            def django_client_factory(**kwds):
                 return KeycloakClient(
-                    server_url=kwargs.get('server_url') or settings.KEYCLOAK_URL,
-                    realm=kwargs.get('realm') or settings.KEYCLOAK_REALM,
-                    client_id=kwargs.get('client_id') or settings.KEYCLOAK_CLIENT_ID,
-                    client_secret=kwargs.get('client_secret') or settings.KEYCLOAK_CLIENT_SECRET,
+                    server_url=kwds.get('server_url') or settings.KEYCLOAK_URL,
+                    realm=kwds.get('realm') or settings.KEYCLOAK_REALM,
+                    client_id=kwds.get('client_id') or settings.KEYCLOAK_CLIENT_ID,
+                    client_secret=kwds.get('client_secret') or settings.KEYCLOAK_CLIENT_SECRET,
                 )
 
             token = run(options, client_factory=django_client_factory)
@@ -62,6 +68,12 @@ from getpass import getpass
 from .. import env
 from ..exceptions import AuthError
 from ..keycloak import KeycloakClient
+from ..tokens import (
+    get_token_client_credentials,
+    get_token_device,
+    get_token_password,
+    get_token_refresh,
+)
 
 
 def init_parser(parser=None):
@@ -79,138 +91,59 @@ def init_parser(parser=None):
             description="Get an access token from Keycloak",
             formatter_class=argparse.RawDescriptionHelpFormatter,
             epilog="""Examples:
-  %(prog)s                    # Client credentials
-  %(prog)s -q                 # Just the token
-  %(prog)s --decode           # Show JWT claims
-  %(prog)s --device           # Device flow (browser)
-  %(prog)s --password         # Password auth"""
+  %(prog)s                           # Client credentials (default)
+  %(prog)s client                    # Client credentials (explicit)
+  %(prog)s device                    # Device flow (browser)
+  %(prog)s password -u admin         # Password auth
+  %(prog)s refresh TOKEN             # Refresh a token"""
         )
 
-    parser.add_argument('--server-url',
-                        default=env.KEYCLOAK_URL,
-                        help='Keycloak server URL (default: KEYCLOAK_URL)')
+    parser.add_argument('--server-url', default=env.KEYCLOAK_URL, help='Keycloak server URL (default: KEYCLOAK_URL)')
 
-    parser.add_argument('--realm',
-                        default=None,
-                        help='Realm name (default: KEYCLOAK_REALM)')
+    parser.add_argument(
+        '--realm',
+        default=None,
+        help='Realm name (default: KEYCLOAK_REALM)'
+    )
 
-    parser.add_argument('--auth-realm',
-                        default=None,
-                        help='Realm for client authentication (defaults to --realm value)')
-
-    parser.add_argument('--client-id',
-                        default=None,
-                        help='Client ID (default: KEYCLOAK_CLIENT_ID)')
-
-    parser.add_argument('--client-secret',
-                        default=None,
-                        help='Client secret (default: KEYCLOAK_CLIENT_SECRET)')
-
-    auth_methods = parser.add_mutually_exclusive_group()
-
-    auth_methods.add_argument('--device', action='store_true',
-                              help='Use device authorization flow')
-
-    auth_methods.add_argument('--password', action='store_true',
-                              help='Use password grant')
-
-    parser.add_argument('--username',
-                        help='Username for password grant')
+    parser.add_argument('--auth-realm', default=None, help='Realm for client authentication (defaults to --realm value)')
+    parser.add_argument('--client-id', default=None, help='Client ID (default: KEYCLOAK_CLIENT_ID)')
+    parser.add_argument('--client-secret', default=None, help='Client secret (default: KEYCLOAK_CLIENT_SECRET)')
 
     print_options = parser.add_mutually_exclusive_group()
 
-    print_options.add_argument('-q', '--quiet',
-                               action='store_true',
-                               help='Output only the token value')
+    print_options.add_argument('-q', '--quiet', action='store_true', help='Output only the token value')
+    print_options.add_argument('--decode', action='store_true', help='Decode and display JWT claims')
 
-    print_options.add_argument('--decode',
-                               action='store_true',
-                               help='Decode and display JWT claims')
+    subparsers = parser.add_subparsers(dest='command', help='Authentication method')
+
+    client_parser = subparsers.add_parser('client', help='Client credentials flow (machine-to-machine)')
+    client_parser.add_argument('--scopes', help='OAuth2 scopes (space-separated or comma-separated)')
+
+    device_parser = subparsers.add_parser('device', help='Device authorization flow (browser-based)')
+    device_parser.add_argument('--scopes', help='OAuth2 scopes (space-separated or comma-separated)')
+
+    password_parser = subparsers.add_parser('password', help='Password grant flow (legacy)')
+    password_parser.add_argument('-u', '--username', help='Username to authenticate')
+    password_parser.add_argument('--scopes', help='OAuth2 scopes (space-separated or comma-separated)')
+
+    refresh_parser = subparsers.add_parser('refresh', help='Refresh an existing token')
+    refresh_parser.add_argument('token', help='The refresh token to exchange')
 
     return parser
 
 
-def validate_args(args):
-    """Validate command line arguments."""
-    if args.username and not args.password:
-        raise ValueError("--username can only be used with --password")
+def create_device_callback(quiet=False):
+    """Create a device callback function for CLI usage."""
 
-
-def default_client_factory(*, server_url=None, realm=None, client_id=None, client_secret=None, auth_realm=None):
-    """Default factory for creating KeycloakClient instances from env vars.
-    
-    By default, auth_realm (where the client authenticates) matches realm (where users are).
-    This is the common case where your client is registered in the same realm as your users.
-    """
-    return KeycloakClient(
-        server_url=server_url or env.KEYCLOAK_URL,
-        realm=realm or env.KEYCLOAK_REALM,
-        auth_realm=auth_realm or env.KEYCLOAK_AUTH_REALM,
-        client_id=client_id or env.KEYCLOAK_CLIENT_ID,
-        client_secret=client_secret or env.KEYCLOAK_CLIENT_SECRET,
-    )
-
-
-def get_token_device(*, server_url=None, realm=None, client_id=None, auth_realm=None, client_factory=None, quiet=False):
-    """Get token using device authorization flow."""
-
-    def device_callback(info):
+    def device_callback(*, verification_uri, user_code, expires_in):
         if not quiet:
-            print(f"Open browser to: {info['verification_uri']}", file=sys.stderr)
-            print(f"User code: {info['user_code']}", file=sys.stderr)
-        webbrowser.open(info['verification_uri'])
+            print(f"Open browser to: {verification_uri}", file=sys.stderr)
+            print(f"User code: {user_code}", file=sys.stderr)
+            print(f"Expires in: {expires_in} seconds", file=sys.stderr)
+        webbrowser.open(verification_uri)
 
-    if client_factory is None:
-        client_factory = default_client_factory
-
-    client = client_factory(
-        server_url=server_url,
-        realm=realm,
-        auth_realm=auth_realm,
-        client_id=client_id,
-        client_secret=None,  # Device flow doesn't use client_secret (public client flow)
-    )
-
-    return client.get_token_device(callback=device_callback)
-
-
-def get_token_password(*, server_url=None, realm=None, username=None, password=None, client_id=None, client_secret=None, auth_realm=None, client_factory=None):
-    """Get token using password grant."""
-    if not username or not password:
-        raise ValueError("username and password required")
-
-    if client_factory is None:
-        client_factory = default_client_factory
-
-    client = client_factory(
-        server_url=server_url,
-        realm=realm,
-        auth_realm=auth_realm,
-        client_id=client_id,
-        client_secret=client_secret,
-    )
-
-    return client.get_token_password(
-        username=username,
-        password=password,
-        client_id=client_id,
-        client_secret=client_secret
-    )
-
-
-def get_token_client_credentials(*, server_url=None, realm=None, client_id=None, client_secret=None, auth_realm=None, client_factory=None):
-    """Get token using client credentials grant."""
-    if client_factory is None:
-        client_factory = default_client_factory
-
-    client = client_factory(
-        server_url=server_url,
-        realm=realm,
-        auth_realm=auth_realm,
-        client_id=client_id,
-        client_secret=client_secret,
-    )
-    return client.get_token()
+    return device_callback
 
 
 def format_output(*, token, quiet=False, decode=False):
@@ -221,7 +154,7 @@ def format_output(*, token, quiet=False, decode=False):
     output = token.copy()
 
     if decode and 'access_token' in token:
-        claims = KeycloakClient.jwt_decode(token['access_token'])
+        claims = KeycloakClient.jwt_decode(jwt=token['access_token'])
         output['claims'] = claims
 
     return json.dumps(output, indent=2)
@@ -249,23 +182,41 @@ def run(args, *, client_factory=None):
     if isinstance(args, dict):
         args = argparse.Namespace(**args)
 
-    validate_args(args)
-    if args.device:
+    scopes = None
+    if hasattr(args, 'scopes') and args.scopes:
+        if ',' in args.scopes:
+            scopes = [s.strip() for s in args.scopes.split(',') if s.strip()]
+        else:
+            scopes = args.scopes
+
+    if args.command == 'device':
         token = get_token_device(
+            callback=create_device_callback(args.quiet),
             server_url=args.server_url,
             realm=args.realm,
             client_id=args.client_id,
             auth_realm=args.auth_realm,
-            client_factory=client_factory,
-            quiet=args.quiet
+            scopes=scopes,
+            client_factory=client_factory
         )
-    elif args.password:
+    elif args.command == 'password':
         username, password = get_credentials(args)
         token = get_token_password(
-            server_url=args.server_url,
-            realm=args.realm,
             username=username,
             password=password,
+            server_url=args.server_url,
+            realm=args.realm,
+            client_id=args.client_id,
+            client_secret=args.client_secret,
+            auth_realm=args.auth_realm,
+            scopes=scopes,
+            client_factory=client_factory
+        )
+    elif args.command == 'refresh':
+        token = get_token_refresh(
+            refresh_token=args.token,
+            server_url=args.server_url,
+            realm=args.realm,
             client_id=args.client_id,
             client_secret=args.client_secret,
             auth_realm=args.auth_realm,
@@ -282,6 +233,7 @@ def run(args, *, client_factory=None):
             client_id=args.client_id,
             client_secret=args.client_secret,
             auth_realm=args.auth_realm,
+            scopes=scopes,
             client_factory=client_factory
         )
 

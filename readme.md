@@ -1,12 +1,12 @@
 # ACKC - Acie API Client for Keycloak
 
-TODO: Get hostnames attached to realms to configure the reverse proxy properly.
-
 A comprehensive Python client library for Keycloak Admin REST API, providing a clean and typed interface for managing Keycloak resources.
 
 ## Overview
 
-ACKC (ACIE Keycloak Client) is a fully-typed Python library that wraps Keycloak's Admin REST API. It provides both synchronous and asynchronous interfaces for all major Keycloak administrative operations, with a focus on developer experience and type safety.
+ACKC is a fully-typed Python library that wraps Keycloak's Admin REST API.
+
+It provides both synchronous and asynchronous interfaces for all major Keycloak administrative operations, with a focus on developer experience, type safety, and efficiency. The author of this package was also a little fed up with the usual daily slog of CLI login and token acquisition before getting to work, so this library aims to make that process as painless as possible.
 
 ## Features
 
@@ -20,13 +20,10 @@ ACKC (ACIE Keycloak Client) is a fully-typed Python library that wraps Keycloak'
 
 ## Installation
 
-```bash
-pip install ackc
-```
+`uv` is recommended, but you can also use other package managers like `pip`.
 
-For development with private package registry:
 ```bash
-uv pip install ackc --index-url https://pypi.acie.dev/simple/
+uv add ackc
 ```
 
 ## Quick Start
@@ -34,17 +31,22 @@ uv pip install ackc --index-url https://pypi.acie.dev/simple/
 ```python
 from ackc import KeycloakClient
 
-# Initialize client with client credentials
 client = KeycloakClient(
     server_url="https://keycloak.example.com",
     client_id="admin-cli",
     client_secret="your-secret",
-    realm="master"
+    realm="my-realm",  # Default realm for API calls
+    auth_realm="master",  # Default realm for client authentication
 )
 
 with client:
     users = client.users.get_all()
     realms = client.realms.get_all()
+
+async def main():
+    async with client:
+        await client.users.aget_all()
+        await client.realms.aget_all()
 ```
 
 ## API Modules
@@ -192,44 +194,74 @@ Manage organizations (Keycloak 25+).
 
 ACKC supports multiple authentication flows:
 
-### Client Credentials (Recommended for M2M)
+### Client Credentials (Default, Recommended for M2M)
 ```python
 client = KeycloakClient(
     server_url="https://keycloak.example.com",
     client_id="admin-cli", 
     client_secret="secret"
 )
+users = client.users.get_all()
 ```
 
-### Password Grant (Legacy)
+### Password Grant (Legacy Flow)
 ```python
 client = KeycloakClient(
     server_url="https://keycloak.example.com",
+    client_id="my-client",
+    client_secret="secret"
+)
+
+token = client.get_token_password(
     username="admin",
-    password="admin"
+    password="admin",
+    scopes=["openid", "profile", "email"]
 )
 ```
 
-### Device Code Flow (CLI Tools)
+### Device Code Flow (For CLI Tools)
 ```python
 client = KeycloakClient(
     server_url="https://keycloak.example.com",
-    client_id="cli-client",
-    use_device_code=True
+    client_id="cli-client"
+)
+
+def device_callback(*, verification_uri, user_code, expires_in):
+    print(f"Please visit: {verification_uri}")
+    print(f"User code: {user_code}")
+    print(f"You have {expires_in} seconds to authorize")
+
+token = client.get_token_device(
+    scopes=["openid", "offline_access"],
+    callback=device_callback
 )
 ```
 
-### Existing Token
+### Working with JWTs
+
+ACKC provides methods for validating and working with JWTs:
+
 ```python
-client = KeycloakClient(
-    server_url="https://keycloak.example.com",
-    token="existing-jwt-token"
-)
+claims = KeycloakClient.jwt_decode(jwt="your-jwt-token")
+print(f"User: {claims.get('preferred_username')}")
+print(f"Expires: {claims.get('exp')}")
+
+needs_refresh = KeycloakClient.jwt_needs_refresh(jwt="your-jwt-token", buffer_seconds=300)
+
+client = KeycloakClient(...)
+user_info = client.jwt_userinfo(jwt="your-jwt-token")
+
+token_info = client.jwt_introspect(jwt="your-jwt-token")
+
+if token_info.get("active"):
+    print(f"Token is valid for user: {token_info.get('username')}")
+
+new_token = client.jwt_refresh(refresh_token="your-refresh-token")
 ```
 
 ## Async Support
 
-All API methods have async equivalents:
+All API methods have async equivalents with the `a` prefix, allowing for non-blocking operations:
 
 ```python
 import asyncio
@@ -243,7 +275,6 @@ async def main():
     )
 
     async with client:
-        # Use async methods to interact with Keycloak
         users = await client.users.aget_all()
         realms = await client.realms.aget_all()
         roles = await client.roles.aget_all()

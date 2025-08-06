@@ -2,6 +2,7 @@ import asyncio
 import base64
 import json
 import time
+from typing import Awaitable, Callable
 
 from . import env
 from .api import BaseClientManager, AuthenticatedClient, Client, AuthError
@@ -148,10 +149,10 @@ class BaseKeycloakClient(BaseClientManager):
 
         return time_until_expiry <= self._refresh_buffer_seconds
 
-    def _ensure_authenticated(self):
+    def _ensure_authenticated(self, scopes: list[str] | str | None = None):
         """Ensure we have a valid token and client."""
         if self._token is None:
-            self._token = self._get_token()
+            self._token = self._get_token(scopes)
 
         if self._client is None:
             self._client = AuthenticatedClient(
@@ -159,10 +160,10 @@ class BaseKeycloakClient(BaseClientManager):
                 **self._client_config
             )
 
-    async def _ensure_authenticated_async(self):
+    async def _ensure_authenticated_async(self, scopes: list[str] | str | None = None):
         """Ensure we have a valid token and client (async)."""
         if self._token is None:
-            self._token = await self._get_token_async()
+            self._token = await self._get_token_async(scopes)
 
         if self._client is None:
             self._client = AuthenticatedClient(
@@ -170,54 +171,76 @@ class BaseKeycloakClient(BaseClientManager):
                 **self._client_config
             )
 
-    def _get_token(self) -> dict:
+    def _get_token(self, scopes: list[str] | str | None = None) -> dict:
         """Get token response synchronously."""
         with Client(**self._client_config) as temp_client:
             token_url = f"{self.server_url}/realms/{self.auth_realm}/protocol/openid-connect/token"
-            response = temp_client.get_niquests_client().post(
-                token_url,
-                data={
-                    "grant_type": "client_credentials",
-                    "client_id": self._client_id,
-                    "client_secret": self._client_secret,
-                }
-            )
+            data = {
+                "grant_type": "client_credentials",
+                "client_id": self._client_id,
+                "client_secret": self._client_secret,
+            }
+            if scopes:
+                if isinstance(scopes, list):
+                    data["scope"] = " ".join(scopes)
+                else:
+                    data["scope"] = scopes
+                    
+            response = temp_client.get_niquests_client().post(token_url, data=data)
 
             if response.status_code != 200:
                 raise AuthError(f"Authentication failed: {response.status_code} - {response.text}")
 
             return response.json()
 
-    async def _get_token_async(self) -> dict:
+    async def _get_token_async(self, scopes: list[str] | str | None = None) -> dict:
         """Get token response asynchronously."""
         async with Client(**self._client_config) as temp_client:
             token_url = f"{self.server_url}/realms/{self.auth_realm}/protocol/openid-connect/token"
-            response = await temp_client.get_async_niquests_client().post(
-                token_url,
-                data={
-                    "grant_type": "client_credentials",
-                    "client_id": self._client_id,
-                    "client_secret": self._client_secret,
-                }
-            )
+            data = {
+                "grant_type": "client_credentials",
+                "client_id": self._client_id,
+                "client_secret": self._client_secret,
+            }
+            if scopes:
+                if isinstance(scopes, list):
+                    data["scope"] = " ".join(scopes)
+                else:
+                    data["scope"] = scopes
+                    
+            response = await temp_client.get_async_niquests_client().post(token_url, data=data)
 
             if response.status_code != 200:
                 raise AuthError(f"Authentication failed: {response.status_code} - {response.text}")
 
             return response.json()
 
-    def get_token(self) -> dict:
-        """Get the current token dict, authenticating if necessary."""
-        self._ensure_authenticated()
+    def get_token(self, scopes: list[str] | str | None = None) -> dict:
+        """Get the current token dict for this client, authenticating if necessary.
+        
+        Args:
+            scopes: OAuth2 scopes to request
+            
+        Returns:
+            Token dict with access_token, refresh_token, etc.
+        """
+        self._ensure_authenticated(scopes)
         return self._token
 
-    async def aget_token(self) -> dict:
-        """Get the current token dict asynchronously, authenticating if necessary."""
-        await self._ensure_authenticated_async()
+    async def aget_token(self, scopes: list[str] | str | None = None) -> dict:
+        """Get the current token dict for this client asynchronously, authenticating if necessary.
+        
+        Args:
+            scopes: OAuth2 scopes to request
+            
+        Returns:
+            Token dict with access_token, refresh_token, etc.
+        """
+        await self._ensure_authenticated_async(scopes)
         return self._token
 
     def refresh_token(self):
-        """Refresh the internal token synchronously."""
+        """Refresh this client's internal token synchronously."""
         if self._token and self._refresh_token:
             token_url = f"{self.server_url}/realms/{self.auth_realm}/protocol/openid-connect/token"
             with Client(**self._client_config) as temp_client:
@@ -233,7 +256,7 @@ class BaseKeycloakClient(BaseClientManager):
                 if response.status_code == 400:
                     error_data = response.json()
                     if error_data.get("error") == "invalid_grant":
-                        self._token = self._get_token()
+                        self._token = self._get_token(None)
                         if self._client:
                             self._client.token = self._access_token
                         return
@@ -245,7 +268,7 @@ class BaseKeycloakClient(BaseClientManager):
                 if self._client:
                     self._client.token = self._access_token
         else:
-            self._token = self._get_token()
+            self._token = self._get_token(None)
             if self._client:
                 self._client.token = self._access_token
 
@@ -266,7 +289,7 @@ class BaseKeycloakClient(BaseClientManager):
                 if response.status_code == 400:
                     error_data = response.json()
                     if error_data.get("error") == "invalid_grant":
-                        self._token = await self._get_token_async()
+                        self._token = await self._get_token_async(None)
                         if self._client:
                             self._client.token = self._access_token
                         return
@@ -278,18 +301,19 @@ class BaseKeycloakClient(BaseClientManager):
                 if self._client:
                     self._client.token = self._access_token
         else:
-            self._token = await self._get_token_async()
+            self._token = await self._get_token_async(None)
             if self._client:
                 self._client.token = self._access_token
 
     def get_token_password(
-            self,
-            username: str,
-            password: str,
-            *,
-            client_id: str | None = None,
-            client_secret: str | None = None,
-            realm: str | None = None,
+        self,
+        *,
+        username: str,
+        password: str,
+        client_id: str | None = None,
+        client_secret: str | None = None,
+        realm: str | None = None,
+        scopes: list[str] | str | None = None,
     ) -> dict:
         """Get token using password grant (legacy flow).
         
@@ -299,6 +323,8 @@ class BaseKeycloakClient(BaseClientManager):
             client_id: Client ID to use for authentication
             client_secret: Client secret to use for authentication
             realm: Realm to authenticate against (defaults to instance realm)
+            scopes: OAuth2 scopes to request. Can be a list or space-separated string.
+                   Common scopes: 'openid', 'profile', 'email', 'offline_access'
 
         Returns:
             Full token response dict with access_token, refresh_token, etc.
@@ -306,15 +332,23 @@ class BaseKeycloakClient(BaseClientManager):
         token_url = f"{self.server_url}/realms/{realm or self.realm}/protocol/openid-connect/token"
 
         with Client(**self._client_config) as temp_client:
+            data = {
+                "grant_type": "password",
+                "client_id": client_id or self._client_id,
+                "username": username,
+                "password": password,
+                "client_secret": client_secret if client_secret is not None else (self._client_secret if client_id is None else None),
+            }
+            
+            if scopes:
+                if isinstance(scopes, list):
+                    data["scope"] = " ".join(scopes)
+                else:
+                    data["scope"] = scopes
+            
             response = temp_client.get_niquests_client().post(
                 token_url,
-                data={
-                    "grant_type": "password",
-                    "client_id": client_id or self._client_id,
-                    "username": username,
-                    "password": password,
-                    "client_secret": client_secret if client_secret is not None else (self._client_secret if client_id is None else None),
-                }
+                data=data
             )
 
             if response.status_code != 200:
@@ -323,13 +357,14 @@ class BaseKeycloakClient(BaseClientManager):
             return response.json()
 
     async def aget_token_password(
-            self,
-            username: str,
-            password: str,
-            *,
-            client_id: str | None = None,
-            client_secret: str | None = None,
-            realm: str | None = None,
+        self,
+        *,
+        username: str,
+        password: str,
+        client_id: str | None = None,
+        client_secret: str | None = None,
+        realm: str | None = None,
+        scopes: list[str] | str | None = None,
     ) -> dict:
         """Get token using password grant (legacy flow) asynchronously.
         
@@ -339,6 +374,8 @@ class BaseKeycloakClient(BaseClientManager):
             client_id: Client ID to use for authentication
             client_secret: Client secret to use for authentication
             realm: Realm to authenticate against (defaults to instance realm)
+            scopes: OAuth2 scopes to request. Can be a list or space-separated string.
+                   Common scopes: 'openid', 'profile', 'email', 'offline_access'
 
         Returns:
             Full token response dict with access_token, refresh_token, etc.
@@ -346,15 +383,23 @@ class BaseKeycloakClient(BaseClientManager):
         token_url = f"{self.server_url}/realms/{realm or self.realm}/protocol/openid-connect/token"
 
         async with Client(multiplexed=False, **self._client_config) as temp_client:
+            data = {
+                "grant_type": "password",
+                "client_id": client_id or self._client_id,
+                "username": username,
+                "password": password,
+                "client_secret": client_secret if client_secret is not None else (self._client_secret if client_id is None else None),
+            }
+            
+            if scopes:
+                if isinstance(scopes, list):
+                    data["scope"] = " ".join(scopes)
+                else:
+                    data["scope"] = scopes
+            
             response = await temp_client.get_async_niquests_client().post(
                 token_url,
-                data={
-                    "grant_type": "password",
-                    "client_id": client_id or self._client_id,
-                    "username": username,
-                    "password": password,
-                    "client_secret": client_secret if client_secret is not None else (self._client_secret if client_id is None else None),
-                }
+                data=data
             )
 
             if response.status_code != 200:
@@ -362,17 +407,27 @@ class BaseKeycloakClient(BaseClientManager):
 
             return response.json()
 
-    def get_token_device(self, realm: str | None = None, client_id: str | None = None, callback=None) -> dict:
+    def get_token_device(
+        self,
+        *,
+        callback: Callable[[str, str, int], None],
+        realm: str | None = None,
+        client_id: str | None = None,
+        scopes: list[str] | str | None = None,
+    ) -> dict:
         """Get token using device authorization flow (OAuth 2.1).
         
         This implements the OAuth 2.1 Device Authorization Grant flow, which allows
         users to authenticate on a separate device (like their phone or computer).
         
         Args:
+            callback: Callback function that receives keyword arguments:
+                      verification_uri, user_code, expires_in (seconds)
             realm: The realm to authenticate against (defaults to instance realm)
-            client_id: The client ID requesting the token (default: "dev-cli")
-            callback: Optional callback function that receives device auth info dict
-            
+            client_id: The client ID requesting the token (defaults to instance client_id)
+            scopes: OAuth2 scopes to request. Can be a list or space-separated string.
+                   Common scopes: 'openid', 'profile', 'email', 'offline_access'
+
         Returns:
             Full token response dict with access_token, refresh_token, etc.
             
@@ -383,9 +438,17 @@ class BaseKeycloakClient(BaseClientManager):
         token_url = f"{self.server_url}/realms/{realm or self.realm}/protocol/openid-connect/token"
 
         with Client(multiplexed=False, **self._client_config) as temp_client:
+            data = {"client_id": client_id or self._client_id}
+            
+            if scopes:
+                if isinstance(scopes, list):
+                    data["scope"] = " ".join(scopes)
+                else:
+                    data["scope"] = scopes
+            
             response = temp_client.get_niquests_client().post(
                 device_url,
-                data={"client_id": client_id or self._client_id}
+                data=data
             )
 
             if response.status_code != 200:
@@ -401,16 +464,7 @@ class BaseKeycloakClient(BaseClientManager):
             if not all([verification_uri, user_code, device_code]):
                 raise AuthError("Invalid device authorization response - missing required fields")
 
-            device_auth_info = {
-                'verification_uri': verification_uri,
-                'user_code': user_code,
-                'device_code': device_code,
-                'expires_in': expires_in,
-                'interval': interval
-            }
-
-            if callback:
-                callback(device_auth_info)
+            callback(verification_uri, user_code, expires_in)
 
             start_time = time.time()
             while time.time() - start_time < expires_in:
@@ -445,15 +499,48 @@ class BaseKeycloakClient(BaseClientManager):
 
             raise AuthError("Device authorization timed out")
 
-    async def aget_token_device(self, realm: str | None = None, client_id: str | None = None, callback=None) -> dict:
-        """Get token using device authorization flow (OAuth 2.1)."""
+    async def aget_token_device(
+        self,
+        *,
+        callback: Callable[[str, str, int], None] | Callable[[str, str, int], Awaitable[None]],
+        realm: str | None = None,
+        client_id: str | None = None,
+        scopes: list[str] | str | None = None,
+    ) -> dict:
+        """Get token using device authorization flow (OAuth 2.1) asynchronously.
+        
+        This implements the OAuth 2.1 Device Authorization Grant flow, which allows
+        users to authenticate on a separate device (like their phone or computer).
+        
+        Args:
+            realm: The realm to authenticate against (defaults to instance realm)
+            client_id: The client ID requesting the token (defaults to instance client_id)
+            scopes: OAuth2 scopes to request. Can be a list or space-separated string.
+                   Common scopes: 'openid', 'profile', 'email', 'offline_access'
+            callback: Callback function (sync or async) that receives keyword arguments:
+                      verification_uri, user_code, expires_in (seconds)
+            
+        Returns:
+            Full token response dict with access_token, refresh_token, etc.
+            
+        Raises:
+            AuthError: If device flow initiation or token exchange fails
+        """
         device_url = f"{self.server_url}/realms/{realm or self.realm}/protocol/openid-connect/auth/device"
         token_url = f"{self.server_url}/realms/{realm or self.realm}/protocol/openid-connect/token"
 
         async with Client(multiplexed=False, **self._client_config) as temp_client:
+            data = {"client_id": client_id or self._client_id}
+            
+            if scopes:
+                if isinstance(scopes, list):
+                    data["scope"] = " ".join(scopes)
+                else:
+                    data["scope"] = scopes
+            
             response = await temp_client.get_async_niquests_client().post(
                 device_url,
-                data={"client_id": client_id or self._client_id}
+                data=data
             )
 
             if response.status_code != 200:
@@ -469,16 +556,10 @@ class BaseKeycloakClient(BaseClientManager):
             if not all([verification_uri, user_code, device_code]):
                 raise AuthError("Invalid device authorization response - missing required fields")
 
-            device_auth_info = {
-                'verification_uri': verification_uri,
-                'user_code': user_code,
-                'device_code': device_code,
-                'expires_in': expires_in,
-                'interval': interval
-            }
-
-            if callback:
-                await callback(device_auth_info) if asyncio.iscoroutinefunction(callback) else callback(device_auth_info)
+            if asyncio.iscoroutinefunction(callback):
+                await callback(verification_uri, user_code, expires_in)
+            else:
+                callback(verification_uri, user_code, expires_in)
 
             start_time = asyncio.get_event_loop().time()
 
@@ -503,14 +584,24 @@ class BaseKeycloakClient(BaseClientManager):
                     elif error == 'slow_down':
                         interval += 5
                         continue
+                    elif error == 'access_denied':
+                        raise AuthError("User denied authorization")
+                    elif error == 'expired_token':
+                        raise AuthError("Device code expired")
                     else:
                         raise AuthError(f"Device flow error: {error}")
                 else:
-                    raise AuthError(f"Token request failed: {response.status_code}")
+                    raise AuthError(f"Token polling failed: {response.status_code} - {response.text}")
 
-            raise AuthError("Device authorization expired")
+            raise AuthError("Device authorization timed out")
 
-    def exchange_authorization_code(self, realm: str | None = None, *, code: str, redirect_uri: str) -> dict:
+    def exchange_authorization_code(
+        self,
+        *,
+        code: str,
+        redirect_uri: str,
+        realm: str | None = None,
+    ) -> dict:
         """Exchange an authorization code for tokens.
         
         Args:
@@ -546,7 +637,13 @@ class BaseKeycloakClient(BaseClientManager):
             token["issued_at"] = int(time.time())
             return token
 
-    async def aexchange_authorization_code(self, realm: str | None = None, *, code: str, redirect_uri: str) -> dict:
+    async def aexchange_authorization_code(
+        self,
+        *,
+        code: str,
+        redirect_uri: str,
+        realm: str | None = None,
+    ) -> dict:
         """Exchange an authorization code for tokens (async).
         
         Args:
@@ -582,7 +679,7 @@ class BaseKeycloakClient(BaseClientManager):
             token["issued_at"] = int(time.time())
             return token
 
-    def jwt_userinfo(self, jwt: str, realm: str | None = None) -> dict:
+    def jwt_userinfo(self, *, jwt: str, realm: str | None = None) -> dict:
         """Get user information from an access token using Keycloak's userinfo endpoint.
 
         This method validates the token and returns user profile information. It's
@@ -627,7 +724,7 @@ class BaseKeycloakClient(BaseClientManager):
 
             return response.json()
 
-    async def ajwt_userinfo(self, jwt: str, realm: str | None = None) -> dict:
+    async def ajwt_userinfo(self, *, jwt: str, realm: str | None = None) -> dict:
         """Get user information from an access token using Keycloak's userinfo endpoint (async).
 
         This method validates the token and returns user profile information. It's
@@ -672,7 +769,7 @@ class BaseKeycloakClient(BaseClientManager):
 
             return response.json()
 
-    def jwt_introspect(self, jwt: str, realm: str | None = None) -> dict:
+    def jwt_introspect(self, *, jwt: str, realm: str | None = None) -> dict:
         """Validate and get metadata about an access token.
 
         This method checks if a token is valid and returns detailed metadata. It's
@@ -720,7 +817,7 @@ class BaseKeycloakClient(BaseClientManager):
 
             return response.json()
 
-    async def ajwt_introspect(self, jwt: str, realm: str | None = None) -> dict:
+    async def ajwt_introspect(self, *, jwt: str, realm: str | None = None) -> dict:
         """Validate and get metadata about an access token (async).
 
         This method checks if a token is valid and returns detailed metadata. It's
@@ -768,7 +865,7 @@ class BaseKeycloakClient(BaseClientManager):
 
             return response.json()
 
-    def jwt_refresh(self, refresh_token: str, realm: str | None = None) -> dict:
+    def jwt_refresh(self, *, refresh_token: str, realm: str | None = None) -> dict:
         """Exchange a refresh token for new tokens.
 
         Args:
@@ -808,7 +905,7 @@ class BaseKeycloakClient(BaseClientManager):
             token["issued_at"] = int(time.time())
             return token
 
-    async def ajwt_refresh(self, refresh_token: str, realm: str | None = None) -> dict:
+    async def ajwt_refresh(self, *, refresh_token: str, realm: str | None = None) -> dict:
         """Exchange a refresh token for new tokens (async).
 
         Args:
@@ -849,7 +946,7 @@ class BaseKeycloakClient(BaseClientManager):
             return token
 
     @classmethod
-    def jwt_decode(cls, jwt: str) -> dict:
+    def jwt_decode(cls, *, jwt: str) -> dict:
         """Decode JWT and return claims without validation.
 
         This method performs client-side JWT decoding to extract claims.
@@ -881,7 +978,7 @@ class BaseKeycloakClient(BaseClientManager):
             raise InvalidTokenError(f"JWT decoding error: {e}")
 
     @classmethod
-    def jwt_needs_refresh(cls, jwt: str, buffer_seconds: int = 60) -> bool:
+    def jwt_needs_refresh(cls, *, jwt: str, buffer_seconds: int = 60) -> bool:
         """Check if a JWT token needs refreshing by decoding and checking expiry.
         
         Args:
@@ -895,7 +992,7 @@ class BaseKeycloakClient(BaseClientManager):
             InvalidTokenError: If the JWT is malformed or cannot be decoded
         """
         try:
-            claims = cls.jwt_decode(jwt)
+            claims = cls.jwt_decode(jwt=jwt)
 
             exp = claims.get('exp')
             if exp is None:
