@@ -1,28 +1,30 @@
-"""
-Generate Keycloak client with niquests HTTP backend.
+"""Generate Keycloak client with niquests HTTP backend.
 
 This script automates the generation of a high-performance Keycloak client
 using openapi-python-client with custom templates that use niquests instead
 of httpx for better performance and HTTP/2 support.
 """
+import argparse
 import shutil
 import subprocess
-import sys
 from pathlib import Path
 
+from download_openapi import download_openapi_spec
 
-def generate_client():
+
+def generate_client(download=False):
     """Generate the Keycloak client with niquests backend."""
     root_dir = Path(__file__).parent.parent
-    templates_dir = root_dir / "scripts" / "templates"
+    templates_dir = root_dir / "gen" / "templates"
+    openapi_spec = root_dir / "gen" / "keycloak-openapi.json"
+    config_file = root_dir / "gen" / "openapi-config.yaml"
     output_dir = root_dir / "ackc" / "generated"
-    openapi_spec = root_dir / "keycloak-openapi.json"
-    config_file = root_dir / "openapi-config.yaml"
 
-    if not openapi_spec.exists():
-        print("ERROR: keycloak-openapi.json not found.")
-        print("Download it from: https://www.keycloak.org/docs-api/latest/rest-api/openapi.json")
-        sys.exit(1)
+    if download or not openapi_spec.exists():
+        download_openapi_spec()
+        if not openapi_spec.exists():
+            print("ERROR: Failed to download OpenAPI specification.")
+            exit(1)
 
     if output_dir.exists():
         print(f"Cleaning existing generated files at {output_dir}")
@@ -40,14 +42,13 @@ def generate_client():
         "--config", str(config_file)
     ]
 
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
     if result.returncode != 0:
-        print("ERROR: Generation failed")
         print(result.stderr)
-        sys.exit(1)
+        exit(1)
 
-    print(result.stdout)
+    print(result.stdout.strip())
 
     generated_client = output_dir / "keycloak_admin_rest_api_client"
     if generated_client.exists():
@@ -56,18 +57,18 @@ def generate_client():
             shutil.move(str(item), str(output_dir / item.name))
         generated_client.rmdir()
 
+    (output_dir / "pyproject.toml").unlink(missing_ok=True)
+    (output_dir / "README.md").unlink(missing_ok=True)
+
     print(f"✅ Client generated successfully at {output_dir}")
-
-    init_file = output_dir / "__init__.py"
-    if not init_file.exists():
-        init_file.write_text(
-            """"Auto-generated Keycloak client using niquests."""\n"
-            "from .client import Client, AuthenticatedClient\n"
-            "\n__all__ = \"Client\", \"AuthenticatedClient\"\n"
-        )
-
-    print("✅ Post-processing complete")
 
 
 if __name__ == "__main__":
-    generate_client()
+    parser = argparse.ArgumentParser(description="Generate Keycloak client from OpenAPI spec")
+    parser.add_argument(
+        "-d", "--download",
+        action="store_true",
+        help="Download the latest OpenAPI specification before generating"
+    )
+    args = parser.parse_args()
+    generate_client(download=args.download)

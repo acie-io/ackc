@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union, cast
+from typing import Any, Union, cast
 
 import niquests
 
@@ -37,7 +37,7 @@ def _get_kwargs(
     return _kwargs
 
 
-def _parse_response(*, client: Union[AuthenticatedClient, Client], response: niquests.Response) -> Optional[ClientInitialAccessCreatePresentation]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: niquests.Response) -> ClientInitialAccessCreatePresentation | None:
     if response.status_code == 201:
         response_201 = ClientInitialAccessCreatePresentation.from_dict(response.json())
 
@@ -50,7 +50,7 @@ def _parse_response(*, client: Union[AuthenticatedClient, Client], response: niq
         return None
 
 
-def _build_response(*, client: Union[AuthenticatedClient, Client], response: niquests.Response) -> Response[ClientInitialAccessCreatePresentation]:
+def _build_response(*, client: AuthenticatedClient | Client, response: niquests.Response) -> Response[ClientInitialAccessCreatePresentation]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -99,7 +99,7 @@ def sync(
     client: Union[AuthenticatedClient, Client],
     body: ClientInitialAccessCreatePresentation,
 
-) -> Optional[ClientInitialAccessCreatePresentation]:
+) -> ClientInitialAccessCreatePresentation | None:
     """ Create a new initial access token.
 
     Args:
@@ -162,7 +162,7 @@ async def asyncio(
     client: Union[AuthenticatedClient, Client],
     body: ClientInitialAccessCreatePresentation,
 
-) -> Optional[ClientInitialAccessCreatePresentation]:
+) -> ClientInitialAccessCreatePresentation | None:
     """ Create a new initial access token.
 
     Args:

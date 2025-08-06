@@ -12,35 +12,35 @@ from typing import cast
 from typing import Union
 
 if TYPE_CHECKING:
-  from ..models.authentication_flow_representation import AuthenticationFlowRepresentation
-  from ..models.realm_representation_browser_security_headers import RealmRepresentationBrowserSecurityHeaders
-  from ..models.identity_provider_representation import IdentityProviderRepresentation
-  from ..models.group_representation import GroupRepresentation
-  from ..models.user_federation_mapper_representation import UserFederationMapperRepresentation
-  from ..models.required_action_provider_representation import RequiredActionProviderRepresentation
-  from ..models.application_representation import ApplicationRepresentation
-  from ..models.o_auth_client_representation import OAuthClientRepresentation
-  from ..models.client_profiles_representation import ClientProfilesRepresentation
-  from ..models.user_federation_provider_representation import UserFederationProviderRepresentation
-  from ..models.scope_mapping_representation import ScopeMappingRepresentation
-  from ..models.role_representation import RoleRepresentation
-  from ..models.realm_representation_attributes import RealmRepresentationAttributes
-  from ..models.realm_representation_client_scope_mappings import RealmRepresentationClientScopeMappings
-  from ..models.multivalued_hash_map_string_component_export_representation import MultivaluedHashMapStringComponentExportRepresentation
-  from ..models.protocol_mapper_representation import ProtocolMapperRepresentation
-  from ..models.client_policies_representation import ClientPoliciesRepresentation
-  from ..models.client_scope_representation import ClientScopeRepresentation
-  from ..models.realm_representation_social_providers import RealmRepresentationSocialProviders
-  from ..models.roles_representation import RolesRepresentation
-  from ..models.realm_representation_smtp_server import RealmRepresentationSmtpServer
-  from ..models.client_template_representation import ClientTemplateRepresentation
-  from ..models.user_representation import UserRepresentation
-  from ..models.organization_representation import OrganizationRepresentation
-  from ..models.realm_representation_application_scope_mappings import RealmRepresentationApplicationScopeMappings
-  from ..models.identity_provider_mapper_representation import IdentityProviderMapperRepresentation
   from ..models.realm_representation_localization_texts import RealmRepresentationLocalizationTexts
-  from ..models.authenticator_config_representation import AuthenticatorConfigRepresentation
+  from ..models.roles_representation import RolesRepresentation
+  from ..models.group_representation import GroupRepresentation
+  from ..models.identity_provider_representation import IdentityProviderRepresentation
+  from ..models.realm_representation_attributes import RealmRepresentationAttributes
+  from ..models.client_scope_representation import ClientScopeRepresentation
+  from ..models.o_auth_client_representation import OAuthClientRepresentation
+  from ..models.multivalued_hash_map_string_component_export_representation import MultivaluedHashMapStringComponentExportRepresentation
+  from ..models.realm_representation_smtp_server import RealmRepresentationSmtpServer
+  from ..models.user_federation_provider_representation import UserFederationProviderRepresentation
+  from ..models.required_action_provider_representation import RequiredActionProviderRepresentation
+  from ..models.role_representation import RoleRepresentation
+  from ..models.user_federation_mapper_representation import UserFederationMapperRepresentation
+  from ..models.realm_representation_client_scope_mappings import RealmRepresentationClientScopeMappings
+  from ..models.realm_representation_browser_security_headers import RealmRepresentationBrowserSecurityHeaders
+  from ..models.identity_provider_mapper_representation import IdentityProviderMapperRepresentation
   from ..models.client_representation import ClientRepresentation
+  from ..models.realm_representation_application_scope_mappings import RealmRepresentationApplicationScopeMappings
+  from ..models.scope_mapping_representation import ScopeMappingRepresentation
+  from ..models.client_policies_representation import ClientPoliciesRepresentation
+  from ..models.realm_representation_social_providers import RealmRepresentationSocialProviders
+  from ..models.protocol_mapper_representation import ProtocolMapperRepresentation
+  from ..models.client_profiles_representation import ClientProfilesRepresentation
+  from ..models.authenticator_config_representation import AuthenticatorConfigRepresentation
+  from ..models.organization_representation import OrganizationRepresentation
+  from ..models.client_template_representation import ClientTemplateRepresentation
+  from ..models.application_representation import ApplicationRepresentation
+  from ..models.authentication_flow_representation import AuthenticationFlowRepresentation
+  from ..models.user_representation import UserRepresentation
 
 
 
@@ -367,35 +367,35 @@ class RealmRepresentation:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.authentication_flow_representation import AuthenticationFlowRepresentation
-        from ..models.realm_representation_browser_security_headers import RealmRepresentationBrowserSecurityHeaders
-        from ..models.identity_provider_representation import IdentityProviderRepresentation
-        from ..models.group_representation import GroupRepresentation
-        from ..models.user_federation_mapper_representation import UserFederationMapperRepresentation
-        from ..models.required_action_provider_representation import RequiredActionProviderRepresentation
-        from ..models.application_representation import ApplicationRepresentation
-        from ..models.o_auth_client_representation import OAuthClientRepresentation
-        from ..models.client_profiles_representation import ClientProfilesRepresentation
-        from ..models.user_federation_provider_representation import UserFederationProviderRepresentation
-        from ..models.scope_mapping_representation import ScopeMappingRepresentation
-        from ..models.role_representation import RoleRepresentation
-        from ..models.realm_representation_attributes import RealmRepresentationAttributes
-        from ..models.realm_representation_client_scope_mappings import RealmRepresentationClientScopeMappings
-        from ..models.multivalued_hash_map_string_component_export_representation import MultivaluedHashMapStringComponentExportRepresentation
-        from ..models.protocol_mapper_representation import ProtocolMapperRepresentation
-        from ..models.client_policies_representation import ClientPoliciesRepresentation
-        from ..models.client_scope_representation import ClientScopeRepresentation
-        from ..models.realm_representation_social_providers import RealmRepresentationSocialProviders
-        from ..models.roles_representation import RolesRepresentation
-        from ..models.realm_representation_smtp_server import RealmRepresentationSmtpServer
-        from ..models.client_template_representation import ClientTemplateRepresentation
-        from ..models.user_representation import UserRepresentation
-        from ..models.organization_representation import OrganizationRepresentation
-        from ..models.realm_representation_application_scope_mappings import RealmRepresentationApplicationScopeMappings
-        from ..models.identity_provider_mapper_representation import IdentityProviderMapperRepresentation
         from ..models.realm_representation_localization_texts import RealmRepresentationLocalizationTexts
-        from ..models.authenticator_config_representation import AuthenticatorConfigRepresentation
+        from ..models.roles_representation import RolesRepresentation
+        from ..models.group_representation import GroupRepresentation
+        from ..models.identity_provider_representation import IdentityProviderRepresentation
+        from ..models.realm_representation_attributes import RealmRepresentationAttributes
+        from ..models.client_scope_representation import ClientScopeRepresentation
+        from ..models.o_auth_client_representation import OAuthClientRepresentation
+        from ..models.multivalued_hash_map_string_component_export_representation import MultivaluedHashMapStringComponentExportRepresentation
+        from ..models.realm_representation_smtp_server import RealmRepresentationSmtpServer
+        from ..models.user_federation_provider_representation import UserFederationProviderRepresentation
+        from ..models.required_action_provider_representation import RequiredActionProviderRepresentation
+        from ..models.role_representation import RoleRepresentation
+        from ..models.user_federation_mapper_representation import UserFederationMapperRepresentation
+        from ..models.realm_representation_client_scope_mappings import RealmRepresentationClientScopeMappings
+        from ..models.realm_representation_browser_security_headers import RealmRepresentationBrowserSecurityHeaders
+        from ..models.identity_provider_mapper_representation import IdentityProviderMapperRepresentation
         from ..models.client_representation import ClientRepresentation
+        from ..models.realm_representation_application_scope_mappings import RealmRepresentationApplicationScopeMappings
+        from ..models.scope_mapping_representation import ScopeMappingRepresentation
+        from ..models.client_policies_representation import ClientPoliciesRepresentation
+        from ..models.realm_representation_social_providers import RealmRepresentationSocialProviders
+        from ..models.protocol_mapper_representation import ProtocolMapperRepresentation
+        from ..models.client_profiles_representation import ClientProfilesRepresentation
+        from ..models.authenticator_config_representation import AuthenticatorConfigRepresentation
+        from ..models.organization_representation import OrganizationRepresentation
+        from ..models.client_template_representation import ClientTemplateRepresentation
+        from ..models.application_representation import ApplicationRepresentation
+        from ..models.authentication_flow_representation import AuthenticationFlowRepresentation
+        from ..models.user_representation import UserRepresentation
         id = self.id
 
         realm = self.realm
@@ -1231,35 +1231,35 @@ class RealmRepresentation:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.authentication_flow_representation import AuthenticationFlowRepresentation
-        from ..models.realm_representation_browser_security_headers import RealmRepresentationBrowserSecurityHeaders
-        from ..models.identity_provider_representation import IdentityProviderRepresentation
-        from ..models.group_representation import GroupRepresentation
-        from ..models.user_federation_mapper_representation import UserFederationMapperRepresentation
-        from ..models.required_action_provider_representation import RequiredActionProviderRepresentation
-        from ..models.application_representation import ApplicationRepresentation
-        from ..models.o_auth_client_representation import OAuthClientRepresentation
-        from ..models.client_profiles_representation import ClientProfilesRepresentation
-        from ..models.user_federation_provider_representation import UserFederationProviderRepresentation
-        from ..models.scope_mapping_representation import ScopeMappingRepresentation
-        from ..models.role_representation import RoleRepresentation
-        from ..models.realm_representation_attributes import RealmRepresentationAttributes
-        from ..models.realm_representation_client_scope_mappings import RealmRepresentationClientScopeMappings
-        from ..models.multivalued_hash_map_string_component_export_representation import MultivaluedHashMapStringComponentExportRepresentation
-        from ..models.protocol_mapper_representation import ProtocolMapperRepresentation
-        from ..models.client_policies_representation import ClientPoliciesRepresentation
-        from ..models.client_scope_representation import ClientScopeRepresentation
-        from ..models.realm_representation_social_providers import RealmRepresentationSocialProviders
-        from ..models.roles_representation import RolesRepresentation
-        from ..models.realm_representation_smtp_server import RealmRepresentationSmtpServer
-        from ..models.client_template_representation import ClientTemplateRepresentation
-        from ..models.user_representation import UserRepresentation
-        from ..models.organization_representation import OrganizationRepresentation
-        from ..models.realm_representation_application_scope_mappings import RealmRepresentationApplicationScopeMappings
-        from ..models.identity_provider_mapper_representation import IdentityProviderMapperRepresentation
         from ..models.realm_representation_localization_texts import RealmRepresentationLocalizationTexts
-        from ..models.authenticator_config_representation import AuthenticatorConfigRepresentation
+        from ..models.roles_representation import RolesRepresentation
+        from ..models.group_representation import GroupRepresentation
+        from ..models.identity_provider_representation import IdentityProviderRepresentation
+        from ..models.realm_representation_attributes import RealmRepresentationAttributes
+        from ..models.client_scope_representation import ClientScopeRepresentation
+        from ..models.o_auth_client_representation import OAuthClientRepresentation
+        from ..models.multivalued_hash_map_string_component_export_representation import MultivaluedHashMapStringComponentExportRepresentation
+        from ..models.realm_representation_smtp_server import RealmRepresentationSmtpServer
+        from ..models.user_federation_provider_representation import UserFederationProviderRepresentation
+        from ..models.required_action_provider_representation import RequiredActionProviderRepresentation
+        from ..models.role_representation import RoleRepresentation
+        from ..models.user_federation_mapper_representation import UserFederationMapperRepresentation
+        from ..models.realm_representation_client_scope_mappings import RealmRepresentationClientScopeMappings
+        from ..models.realm_representation_browser_security_headers import RealmRepresentationBrowserSecurityHeaders
+        from ..models.identity_provider_mapper_representation import IdentityProviderMapperRepresentation
         from ..models.client_representation import ClientRepresentation
+        from ..models.realm_representation_application_scope_mappings import RealmRepresentationApplicationScopeMappings
+        from ..models.scope_mapping_representation import ScopeMappingRepresentation
+        from ..models.client_policies_representation import ClientPoliciesRepresentation
+        from ..models.realm_representation_social_providers import RealmRepresentationSocialProviders
+        from ..models.protocol_mapper_representation import ProtocolMapperRepresentation
+        from ..models.client_profiles_representation import ClientProfilesRepresentation
+        from ..models.authenticator_config_representation import AuthenticatorConfigRepresentation
+        from ..models.organization_representation import OrganizationRepresentation
+        from ..models.client_template_representation import ClientTemplateRepresentation
+        from ..models.application_representation import ApplicationRepresentation
+        from ..models.authentication_flow_representation import AuthenticationFlowRepresentation
+        from ..models.user_representation import UserRepresentation
         d = dict(src_dict)
         id = d.pop("id", UNSET)
 

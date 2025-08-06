@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union, cast
+from typing import Any, Union, cast
 
 import niquests
 
@@ -31,7 +31,7 @@ def _get_kwargs(
     return _kwargs
 
 
-def _parse_response(*, client: Union[AuthenticatedClient, Client], response: niquests.Response) -> Optional[ClientTypesRepresentation]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: niquests.Response) -> ClientTypesRepresentation | None:
     if response.status_code == 200:
         response_200 = ClientTypesRepresentation.from_dict(response.json())
 
@@ -44,7 +44,7 @@ def _parse_response(*, client: Union[AuthenticatedClient, Client], response: niq
         return None
 
 
-def _build_response(*, client: Union[AuthenticatedClient, Client], response: niquests.Response) -> Response[ClientTypesRepresentation]:
+def _build_response(*, client: AuthenticatedClient | Client, response: niquests.Response) -> Response[ClientTypesRepresentation]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -91,7 +91,7 @@ def sync(
     *,
     client: Union[AuthenticatedClient, Client],
 
-) -> Optional[ClientTypesRepresentation]:
+) -> ClientTypesRepresentation | None:
     """ List all client types available in the current realm
 
      This endpoint returns a list of both global and realm level client types and the attributes they set
@@ -152,7 +152,7 @@ async def asyncio(
     *,
     client: Union[AuthenticatedClient, Client],
 
-) -> Optional[ClientTypesRepresentation]:
+) -> ClientTypesRepresentation | None:
     """ List all client types available in the current realm
 
      This endpoint returns a list of both global and realm level client types and the attributes they set

@@ -11,10 +11,10 @@ from typing import cast
 from typing import Union
 
 if TYPE_CHECKING:
-  from ..models.identity_provider_representation import IdentityProviderRepresentation
   from ..models.organization_domain_representation import OrganizationDomainRepresentation
-  from ..models.organization_representation_attributes import OrganizationRepresentationAttributes
   from ..models.member_representation import MemberRepresentation
+  from ..models.identity_provider_representation import IdentityProviderRepresentation
+  from ..models.organization_representation_attributes import OrganizationRepresentationAttributes
 
 
 
@@ -57,10 +57,10 @@ class OrganizationRepresentation:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.identity_provider_representation import IdentityProviderRepresentation
         from ..models.organization_domain_representation import OrganizationDomainRepresentation
-        from ..models.organization_representation_attributes import OrganizationRepresentationAttributes
         from ..models.member_representation import MemberRepresentation
+        from ..models.identity_provider_representation import IdentityProviderRepresentation
+        from ..models.organization_representation_attributes import OrganizationRepresentationAttributes
         id = self.id
 
         name = self.name
@@ -136,10 +136,10 @@ class OrganizationRepresentation:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.identity_provider_representation import IdentityProviderRepresentation
         from ..models.organization_domain_representation import OrganizationDomainRepresentation
-        from ..models.organization_representation_attributes import OrganizationRepresentationAttributes
         from ..models.member_representation import MemberRepresentation
+        from ..models.identity_provider_representation import IdentityProviderRepresentation
+        from ..models.organization_representation_attributes import OrganizationRepresentationAttributes
         d = dict(src_dict)
         id = d.pop("id", UNSET)
 

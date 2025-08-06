@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union, cast
+from typing import Any, Union, cast
 
 import niquests
 
@@ -48,7 +48,7 @@ def _get_kwargs(
     return _kwargs
 
 
-def _parse_response(*, client: Union[AuthenticatedClient, Client], response: niquests.Response) -> Optional[list['ComponentRepresentation']]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: niquests.Response) -> list['ComponentRepresentation'] | None:
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
@@ -66,7 +66,7 @@ def _parse_response(*, client: Union[AuthenticatedClient, Client], response: niq
         return None
 
 
-def _build_response(*, client: Union[AuthenticatedClient, Client], response: niquests.Response) -> Response[list['ComponentRepresentation']]:
+def _build_response(*, client: AuthenticatedClient | Client, response: niquests.Response) -> Response[list['ComponentRepresentation']]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -122,7 +122,7 @@ def sync(
     parent: Union[Unset, str] = UNSET,
     type_: Union[Unset, str] = UNSET,
 
-) -> Optional[list['ComponentRepresentation']]:
+) -> list['ComponentRepresentation'] | None:
     """ 
     Args:
         realm (str):
@@ -195,7 +195,7 @@ async def asyncio(
     parent: Union[Unset, str] = UNSET,
     type_: Union[Unset, str] = UNSET,
 
-) -> Optional[list['ComponentRepresentation']]:
+) -> list['ComponentRepresentation'] | None:
     """ 
     Args:
         realm (str):

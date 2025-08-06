@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union, cast
+from typing import Any, Union, cast
 
 import niquests
 
@@ -46,7 +46,7 @@ def _get_kwargs(
     return _kwargs
 
 
-def _parse_response(*, client: Union[AuthenticatedClient, Client], response: niquests.Response) -> Optional[list['UserSessionRepresentation']]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: niquests.Response) -> list['UserSessionRepresentation'] | None:
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
@@ -64,7 +64,7 @@ def _parse_response(*, client: Union[AuthenticatedClient, Client], response: niq
         return None
 
 
-def _build_response(*, client: Union[AuthenticatedClient, Client], response: niquests.Response) -> Response[list['UserSessionRepresentation']]:
+def _build_response(*, client: AuthenticatedClient | Client, response: niquests.Response) -> Response[list['UserSessionRepresentation']]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -121,7 +121,7 @@ def sync(
     first: Union[Unset, int] = UNSET,
     max_: Union[Unset, int] = UNSET,
 
-) -> Optional[list['UserSessionRepresentation']]:
+) -> list['UserSessionRepresentation'] | None:
     """ Get user sessions for client Returns a list of user sessions associated with this client
 
     Args:
@@ -196,7 +196,7 @@ async def asyncio(
     first: Union[Unset, int] = UNSET,
     max_: Union[Unset, int] = UNSET,
 
-) -> Optional[list['UserSessionRepresentation']]:
+) -> list['UserSessionRepresentation'] | None:
     """ Get user sessions for client Returns a list of user sessions associated with this client
 
     Args:

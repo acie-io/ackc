@@ -11,11 +11,11 @@ from typing import cast
 from typing import Union
 
 if TYPE_CHECKING:
-  from ..models.address_claim_set import AddressClaimSet
-  from ..models.access import Access
-  from ..models.access_token_resource_access import AccessTokenResourceAccess
   from ..models.authorization import Authorization
+  from ..models.access_token_resource_access import AccessTokenResourceAccess
   from ..models.access_token_other_claims import AccessTokenOtherClaims
+  from ..models.access import Access
+  from ..models.address_claim_set import AddressClaimSet
   from ..models.confirmation import Confirmation
 
 
@@ -125,11 +125,11 @@ class AccessToken:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.address_claim_set import AddressClaimSet
-        from ..models.access import Access
-        from ..models.access_token_resource_access import AccessTokenResourceAccess
         from ..models.authorization import Authorization
+        from ..models.access_token_resource_access import AccessTokenResourceAccess
         from ..models.access_token_other_claims import AccessTokenOtherClaims
+        from ..models.access import Access
+        from ..models.address_claim_set import AddressClaimSet
         from ..models.confirmation import Confirmation
         jti = self.jti
 
@@ -335,11 +335,11 @@ class AccessToken:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.address_claim_set import AddressClaimSet
-        from ..models.access import Access
-        from ..models.access_token_resource_access import AccessTokenResourceAccess
         from ..models.authorization import Authorization
+        from ..models.access_token_resource_access import AccessTokenResourceAccess
         from ..models.access_token_other_claims import AccessTokenOtherClaims
+        from ..models.access import Access
+        from ..models.address_claim_set import AddressClaimSet
         from ..models.confirmation import Confirmation
         d = dict(src_dict)
         jti = d.pop("jti", UNSET)

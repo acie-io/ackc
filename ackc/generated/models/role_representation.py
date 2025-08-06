@@ -11,8 +11,8 @@ from typing import cast
 from typing import Union
 
 if TYPE_CHECKING:
-  from ..models.role_representation_attributes import RoleRepresentationAttributes
   from ..models.composites import Composites
+  from ..models.role_representation_attributes import RoleRepresentationAttributes
 
 
 
@@ -53,8 +53,8 @@ class RoleRepresentation:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.role_representation_attributes import RoleRepresentationAttributes
         from ..models.composites import Composites
+        from ..models.role_representation_attributes import RoleRepresentationAttributes
         id = self.id
 
         name = self.name
@@ -107,8 +107,8 @@ class RoleRepresentation:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.role_representation_attributes import RoleRepresentationAttributes
         from ..models.composites import Composites
+        from ..models.role_representation_attributes import RoleRepresentationAttributes
         d = dict(src_dict)
         id = d.pop("id", UNSET)
 

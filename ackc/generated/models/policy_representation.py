@@ -13,9 +13,9 @@ from typing import cast
 from typing import Union
 
 if TYPE_CHECKING:
+  from ..models.scope_representation import ScopeRepresentation
   from ..models.resource_representation import ResourceRepresentation
   from ..models.policy_representation_config import PolicyRepresentationConfig
-  from ..models.scope_representation import ScopeRepresentation
 
 
 
@@ -66,9 +66,9 @@ class PolicyRepresentation:
 
 
     def to_dict(self) -> dict[str, Any]:
+        from ..models.scope_representation import ScopeRepresentation
         from ..models.resource_representation import ResourceRepresentation
         from ..models.policy_representation_config import PolicyRepresentationConfig
-        from ..models.scope_representation import ScopeRepresentation
         id = self.id
 
         name = self.name
@@ -171,9 +171,9 @@ class PolicyRepresentation:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.scope_representation import ScopeRepresentation
         from ..models.resource_representation import ResourceRepresentation
         from ..models.policy_representation_config import PolicyRepresentationConfig
-        from ..models.scope_representation import ScopeRepresentation
         d = dict(src_dict)
         id = d.pop("id", UNSET)
 

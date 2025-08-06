@@ -11,9 +11,9 @@ from typing import cast
 from typing import Union
 
 if TYPE_CHECKING:
-  from ..models.group_representation_access import GroupRepresentationAccess
   from ..models.group_representation_attributes import GroupRepresentationAttributes
   from ..models.group_representation_client_roles import GroupRepresentationClientRoles
+  from ..models.group_representation_access import GroupRepresentationAccess
 
 
 
@@ -58,9 +58,9 @@ class GroupRepresentation:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.group_representation_access import GroupRepresentationAccess
         from ..models.group_representation_attributes import GroupRepresentationAttributes
         from ..models.group_representation_client_roles import GroupRepresentationClientRoles
+        from ..models.group_representation_access import GroupRepresentationAccess
         id = self.id
 
         name = self.name
@@ -134,9 +134,9 @@ class GroupRepresentation:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.group_representation_access import GroupRepresentationAccess
         from ..models.group_representation_attributes import GroupRepresentationAttributes
         from ..models.group_representation_client_roles import GroupRepresentationClientRoles
+        from ..models.group_representation_access import GroupRepresentationAccess
         d = dict(src_dict)
         id = d.pop("id", UNSET)
 

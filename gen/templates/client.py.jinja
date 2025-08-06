@@ -1,5 +1,5 @@
 import ssl
-from typing import Any, Union, Optional
+from typing import Any
 
 from attrs import define, field, evolve
 import niquests
@@ -71,15 +71,15 @@ class Client:
     _base_url: str = field(alias="base_url")
     _cookies: dict[str, str] = field(factory=dict, kw_only=True, alias="cookies")
     _headers: dict[str, str] = field(factory=dict, kw_only=True, alias="headers")
-    _timeout: Optional[float] = field(default=None, kw_only=True, alias="timeout")
-    _verify_ssl: Union[str, bool, ssl.SSLContext] = field(default=True, kw_only=True, alias="verify_ssl")
+    _timeout: float | None = field(default=None, kw_only=True, alias="timeout")
+    _verify_ssl: str | bool | ssl.SSLContext = field(default=True, kw_only=True, alias="verify_ssl")
     _follow_redirects: bool = field(default=False, kw_only=True, alias="follow_redirects")
     _multiplexed: bool = field(default=True, kw_only=True, alias="multiplexed")
     _pool_connections: int = field(default=20, kw_only=True, alias="pool_connections")
     _pool_maxsize: int = field(default=100, kw_only=True, alias="pool_maxsize")
     _niquests_args: dict[str, Any] = field(factory=dict, kw_only=True, alias="niquests_args")
-    _client: Optional[niquests.Session] = field(default=None, init=False)
-    _async_client: Optional[niquests.AsyncSession] = field(default=None, init=False)
+    _client: niquests.Session | None = field(default=None, init=False)
+    _async_client: niquests.AsyncSession | None = field(default=None, init=False)
 {% endmacro %}{{ attributes() }}
 {% macro builders(self) %}
     def with_headers(self, headers: dict[str, str]) -> "{{ self }}":
@@ -141,9 +141,9 @@ class Client:
         self.get_niquests_client().__enter__()
         return self
 
-    def __exit__(self, *args: Any, **kwargs: Any) -> None:
+    def __exit__(self, *args: Any, **kwds: Any) -> None:
         """Exit a context manager for internal niquests.Session"""
-        self.get_niquests_client().__exit__(*args, **kwargs)
+        self.get_niquests_client().__exit__(*args, **kwds)
 
     def set_async_niquests_client(self, async_client: niquests.AsyncSession) -> "{{ name }}":
         """Manually set the underlying niquests.AsyncSession
@@ -179,9 +179,9 @@ class Client:
         await self.get_async_niquests_client().__aenter__()
         return self
 
-    async def __aexit__(self, *args: Any, **kwargs: Any) -> None:
+    async def __aexit__(self, *args: Any, **kwds: Any) -> None:
         """Exit a context manager for underlying niquests.AsyncSession"""
-        await self.get_async_niquests_client().__aexit__(*args, **kwargs)
+        await self.get_async_niquests_client().__aexit__(*args, **kwds)
 
     # Compatibility methods for code expecting httpx interface
     def get_httpx_client(self) -> niquests.Session:

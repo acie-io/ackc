@@ -11,9 +11,9 @@ from typing import cast
 from typing import Union
 
 if TYPE_CHECKING:
-  from ..models.resource_owner_representation import ResourceOwnerRepresentation
-  from ..models.resource_representation_attributes import ResourceRepresentationAttributes
   from ..models.scope_representation import ScopeRepresentation
+  from ..models.resource_representation_attributes import ResourceRepresentationAttributes
+  from ..models.resource_owner_representation import ResourceOwnerRepresentation
 
 
 
@@ -60,9 +60,9 @@ class ResourceRepresentation:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.resource_owner_representation import ResourceOwnerRepresentation
-        from ..models.resource_representation_attributes import ResourceRepresentationAttributes
         from ..models.scope_representation import ScopeRepresentation
+        from ..models.resource_representation_attributes import ResourceRepresentationAttributes
+        from ..models.resource_owner_representation import ResourceOwnerRepresentation
         field_id = self.field_id
 
         name = self.name
@@ -145,9 +145,9 @@ class ResourceRepresentation:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.resource_owner_representation import ResourceOwnerRepresentation
-        from ..models.resource_representation_attributes import ResourceRepresentationAttributes
         from ..models.scope_representation import ScopeRepresentation
+        from ..models.resource_representation_attributes import ResourceRepresentationAttributes
+        from ..models.resource_owner_representation import ResourceOwnerRepresentation
         d = dict(src_dict)
         field_id = d.pop("_id", UNSET)
 

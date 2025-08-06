@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union, cast
+from typing import Any, Union, cast
 
 import niquests
 
@@ -33,7 +33,7 @@ def _get_kwargs(
     return _kwargs
 
 
-def _parse_response(*, client: Union[AuthenticatedClient, Client], response: niquests.Response) -> Optional[IdentityProviderMapperRepresentation]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: niquests.Response) -> IdentityProviderMapperRepresentation | None:
     if response.status_code == 200:
         response_200 = IdentityProviderMapperRepresentation.from_dict(response.json())
 
@@ -46,7 +46,7 @@ def _parse_response(*, client: Union[AuthenticatedClient, Client], response: niq
         return None
 
 
-def _build_response(*, client: Union[AuthenticatedClient, Client], response: niquests.Response) -> Response[IdentityProviderMapperRepresentation]:
+def _build_response(*, client: AuthenticatedClient | Client, response: niquests.Response) -> Response[IdentityProviderMapperRepresentation]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -99,7 +99,7 @@ def sync(
     *,
     client: Union[AuthenticatedClient, Client],
 
-) -> Optional[IdentityProviderMapperRepresentation]:
+) -> IdentityProviderMapperRepresentation | None:
     """ Get mapper by id for the identity provider
 
     Args:
@@ -168,7 +168,7 @@ async def asyncio(
     *,
     client: Union[AuthenticatedClient, Client],
 
-) -> Optional[IdentityProviderMapperRepresentation]:
+) -> IdentityProviderMapperRepresentation | None:
     """ Get mapper by id for the identity provider
 
     Args:

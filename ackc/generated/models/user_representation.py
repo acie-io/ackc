@@ -11,15 +11,15 @@ from typing import cast
 from typing import Union
 
 if TYPE_CHECKING:
-  from ..models.social_link_representation import SocialLinkRepresentation
-  from ..models.credential_representation import CredentialRepresentation
-  from ..models.user_representation_attributes import UserRepresentationAttributes
-  from ..models.user_representation_access import UserRepresentationAccess
-  from ..models.user_representation_client_roles import UserRepresentationClientRoles
-  from ..models.user_consent_representation import UserConsentRepresentation
-  from ..models.federated_identity_representation import FederatedIdentityRepresentation
   from ..models.user_representation_application_roles import UserRepresentationApplicationRoles
+  from ..models.user_representation_client_roles import UserRepresentationClientRoles
   from ..models.user_profile_metadata import UserProfileMetadata
+  from ..models.user_representation_attributes import UserRepresentationAttributes
+  from ..models.federated_identity_representation import FederatedIdentityRepresentation
+  from ..models.user_representation_access import UserRepresentationAccess
+  from ..models.credential_representation import CredentialRepresentation
+  from ..models.user_consent_representation import UserConsentRepresentation
+  from ..models.social_link_representation import SocialLinkRepresentation
 
 
 
@@ -96,15 +96,15 @@ class UserRepresentation:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.social_link_representation import SocialLinkRepresentation
-        from ..models.credential_representation import CredentialRepresentation
-        from ..models.user_representation_attributes import UserRepresentationAttributes
-        from ..models.user_representation_access import UserRepresentationAccess
-        from ..models.user_representation_client_roles import UserRepresentationClientRoles
-        from ..models.user_consent_representation import UserConsentRepresentation
-        from ..models.federated_identity_representation import FederatedIdentityRepresentation
         from ..models.user_representation_application_roles import UserRepresentationApplicationRoles
+        from ..models.user_representation_client_roles import UserRepresentationClientRoles
         from ..models.user_profile_metadata import UserProfileMetadata
+        from ..models.user_representation_attributes import UserRepresentationAttributes
+        from ..models.federated_identity_representation import FederatedIdentityRepresentation
+        from ..models.user_representation_access import UserRepresentationAccess
+        from ..models.credential_representation import CredentialRepresentation
+        from ..models.user_consent_representation import UserConsentRepresentation
+        from ..models.social_link_representation import SocialLinkRepresentation
         id = self.id
 
         username = self.username
@@ -279,15 +279,15 @@ class UserRepresentation:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.social_link_representation import SocialLinkRepresentation
-        from ..models.credential_representation import CredentialRepresentation
-        from ..models.user_representation_attributes import UserRepresentationAttributes
-        from ..models.user_representation_access import UserRepresentationAccess
-        from ..models.user_representation_client_roles import UserRepresentationClientRoles
-        from ..models.user_consent_representation import UserConsentRepresentation
-        from ..models.federated_identity_representation import FederatedIdentityRepresentation
         from ..models.user_representation_application_roles import UserRepresentationApplicationRoles
+        from ..models.user_representation_client_roles import UserRepresentationClientRoles
         from ..models.user_profile_metadata import UserProfileMetadata
+        from ..models.user_representation_attributes import UserRepresentationAttributes
+        from ..models.federated_identity_representation import FederatedIdentityRepresentation
+        from ..models.user_representation_access import UserRepresentationAccess
+        from ..models.credential_representation import CredentialRepresentation
+        from ..models.user_consent_representation import UserConsentRepresentation
+        from ..models.social_link_representation import SocialLinkRepresentation
         d = dict(src_dict)
         id = d.pop("id", UNSET)
 

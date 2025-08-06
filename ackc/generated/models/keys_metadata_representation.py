@@ -11,8 +11,8 @@ from typing import cast
 from typing import Union
 
 if TYPE_CHECKING:
-  from ..models.key_metadata_representation import KeyMetadataRepresentation
   from ..models.keys_metadata_representation_active import KeysMetadataRepresentationActive
+  from ..models.key_metadata_representation import KeyMetadataRepresentation
 
 
 
@@ -39,8 +39,8 @@ class KeysMetadataRepresentation:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.key_metadata_representation import KeyMetadataRepresentation
         from ..models.keys_metadata_representation_active import KeysMetadataRepresentationActive
+        from ..models.key_metadata_representation import KeyMetadataRepresentation
         active: Union[Unset, dict[str, Any]] = UNSET
         if not isinstance(self.active, Unset):
             active = self.active.to_dict()
@@ -70,8 +70,8 @@ class KeysMetadataRepresentation:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.key_metadata_representation import KeyMetadataRepresentation
         from ..models.keys_metadata_representation_active import KeysMetadataRepresentationActive
+        from ..models.key_metadata_representation import KeyMetadataRepresentation
         d = dict(src_dict)
         _active = d.pop("active", UNSET)
         active: Union[Unset, KeysMetadataRepresentationActive]

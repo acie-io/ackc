@@ -11,8 +11,8 @@ from typing import cast
 from typing import Union
 
 if TYPE_CHECKING:
-  from ..models.multivalued_hash_map_string_string import MultivaluedHashMapStringString
   from ..models.multivalued_hash_map_string_component_export_representation import MultivaluedHashMapStringComponentExportRepresentation
+  from ..models.multivalued_hash_map_string_string import MultivaluedHashMapStringString
 
 
 
@@ -47,8 +47,8 @@ class ComponentExportRepresentation:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.multivalued_hash_map_string_string import MultivaluedHashMapStringString
         from ..models.multivalued_hash_map_string_component_export_representation import MultivaluedHashMapStringComponentExportRepresentation
+        from ..models.multivalued_hash_map_string_string import MultivaluedHashMapStringString
         id = self.id
 
         name = self.name
@@ -89,8 +89,8 @@ class ComponentExportRepresentation:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.multivalued_hash_map_string_string import MultivaluedHashMapStringString
         from ..models.multivalued_hash_map_string_component_export_representation import MultivaluedHashMapStringComponentExportRepresentation
+        from ..models.multivalued_hash_map_string_string import MultivaluedHashMapStringString
         d = dict(src_dict)
         id = d.pop("id", UNSET)
 

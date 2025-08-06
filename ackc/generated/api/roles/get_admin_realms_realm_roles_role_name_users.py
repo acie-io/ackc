@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union, cast
+from typing import Any, Union, cast
 
 import niquests
 
@@ -49,7 +49,7 @@ def _get_kwargs(
     return _kwargs
 
 
-def _parse_response(*, client: Union[AuthenticatedClient, Client], response: niquests.Response) -> Optional[Union[Any, list['UserRepresentation']]]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: niquests.Response) -> Union[Any, list['UserRepresentation']] | None:
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
@@ -73,7 +73,7 @@ def _parse_response(*, client: Union[AuthenticatedClient, Client], response: niq
         return None
 
 
-def _build_response(*, client: Union[AuthenticatedClient, Client], response: niquests.Response) -> Response[Union[Any, list['UserRepresentation']]]:
+def _build_response(*, client: AuthenticatedClient | Client, response: niquests.Response) -> Response[Union[Any, list['UserRepresentation']]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -134,7 +134,7 @@ def sync(
     first: Union[Unset, int] = UNSET,
     max_: Union[Unset, int] = UNSET,
 
-) -> Optional[Union[Any, list['UserRepresentation']]]:
+) -> Union[Any, list['UserRepresentation']] | None:
     """ Returns a stream of users that have the specified role name.
 
     Args:
@@ -215,7 +215,7 @@ async def asyncio(
     first: Union[Unset, int] = UNSET,
     max_: Union[Unset, int] = UNSET,
 
-) -> Optional[Union[Any, list['UserRepresentation']]]:
+) -> Union[Any, list['UserRepresentation']] | None:
     """ Returns a stream of users that have the specified role name.
 
     Args:

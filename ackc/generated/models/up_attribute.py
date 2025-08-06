@@ -11,11 +11,11 @@ from typing import cast
 from typing import Union
 
 if TYPE_CHECKING:
-  from ..models.up_attribute_selector import UPAttributeSelector
-  from ..models.up_attribute_required import UPAttributeRequired
   from ..models.up_attribute_permissions import UPAttributePermissions
-  from ..models.up_attribute_annotations import UPAttributeAnnotations
+  from ..models.up_attribute_selector import UPAttributeSelector
   from ..models.up_attribute_validations import UPAttributeValidations
+  from ..models.up_attribute_required import UPAttributeRequired
+  from ..models.up_attribute_annotations import UPAttributeAnnotations
 
 
 
@@ -56,11 +56,11 @@ class UPAttribute:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.up_attribute_selector import UPAttributeSelector
-        from ..models.up_attribute_required import UPAttributeRequired
         from ..models.up_attribute_permissions import UPAttributePermissions
-        from ..models.up_attribute_annotations import UPAttributeAnnotations
+        from ..models.up_attribute_selector import UPAttributeSelector
         from ..models.up_attribute_validations import UPAttributeValidations
+        from ..models.up_attribute_required import UPAttributeRequired
+        from ..models.up_attribute_annotations import UPAttributeAnnotations
         name = self.name
 
         display_name = self.display_name
@@ -119,11 +119,11 @@ class UPAttribute:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.up_attribute_selector import UPAttributeSelector
-        from ..models.up_attribute_required import UPAttributeRequired
         from ..models.up_attribute_permissions import UPAttributePermissions
-        from ..models.up_attribute_annotations import UPAttributeAnnotations
+        from ..models.up_attribute_selector import UPAttributeSelector
         from ..models.up_attribute_validations import UPAttributeValidations
+        from ..models.up_attribute_required import UPAttributeRequired
+        from ..models.up_attribute_annotations import UPAttributeAnnotations
         d = dict(src_dict)
         name = d.pop("name", UNSET)
 

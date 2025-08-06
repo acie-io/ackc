@@ -11,13 +11,13 @@ from typing import cast
 from typing import Union
 
 if TYPE_CHECKING:
-  from ..models.claim_representation import ClaimRepresentation
-  from ..models.application_representation_access import ApplicationRepresentationAccess
-  from ..models.protocol_mapper_representation import ProtocolMapperRepresentation
   from ..models.resource_server_representation import ResourceServerRepresentation
-  from ..models.application_representation_registered_nodes import ApplicationRepresentationRegisteredNodes
+  from ..models.protocol_mapper_representation import ProtocolMapperRepresentation
   from ..models.application_representation_attributes import ApplicationRepresentationAttributes
+  from ..models.application_representation_access import ApplicationRepresentationAccess
+  from ..models.application_representation_registered_nodes import ApplicationRepresentationRegisteredNodes
   from ..models.application_representation_authentication_flow_binding_overrides import ApplicationRepresentationAuthenticationFlowBindingOverrides
+  from ..models.claim_representation import ClaimRepresentation
 
 
 
@@ -131,13 +131,13 @@ class ApplicationRepresentation:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.claim_representation import ClaimRepresentation
-        from ..models.application_representation_access import ApplicationRepresentationAccess
-        from ..models.protocol_mapper_representation import ProtocolMapperRepresentation
         from ..models.resource_server_representation import ResourceServerRepresentation
-        from ..models.application_representation_registered_nodes import ApplicationRepresentationRegisteredNodes
+        from ..models.protocol_mapper_representation import ProtocolMapperRepresentation
         from ..models.application_representation_attributes import ApplicationRepresentationAttributes
+        from ..models.application_representation_access import ApplicationRepresentationAccess
+        from ..models.application_representation_registered_nodes import ApplicationRepresentationRegisteredNodes
         from ..models.application_representation_authentication_flow_binding_overrides import ApplicationRepresentationAuthenticationFlowBindingOverrides
+        from ..models.claim_representation import ClaimRepresentation
         id = self.id
 
         client_id = self.client_id
@@ -369,13 +369,13 @@ class ApplicationRepresentation:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.claim_representation import ClaimRepresentation
-        from ..models.application_representation_access import ApplicationRepresentationAccess
-        from ..models.protocol_mapper_representation import ProtocolMapperRepresentation
         from ..models.resource_server_representation import ResourceServerRepresentation
-        from ..models.application_representation_registered_nodes import ApplicationRepresentationRegisteredNodes
+        from ..models.protocol_mapper_representation import ProtocolMapperRepresentation
         from ..models.application_representation_attributes import ApplicationRepresentationAttributes
+        from ..models.application_representation_access import ApplicationRepresentationAccess
+        from ..models.application_representation_registered_nodes import ApplicationRepresentationRegisteredNodes
         from ..models.application_representation_authentication_flow_binding_overrides import ApplicationRepresentationAuthenticationFlowBindingOverrides
+        from ..models.claim_representation import ClaimRepresentation
         d = dict(src_dict)
         id = d.pop("id", UNSET)
 

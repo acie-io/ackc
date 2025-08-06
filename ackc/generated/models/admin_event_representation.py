@@ -11,8 +11,8 @@ from typing import cast
 from typing import Union
 
 if TYPE_CHECKING:
-  from ..models.admin_event_representation_details import AdminEventRepresentationDetails
   from ..models.auth_details_representation import AuthDetailsRepresentation
+  from ..models.admin_event_representation_details import AdminEventRepresentationDetails
 
 
 
@@ -55,8 +55,8 @@ class AdminEventRepresentation:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.admin_event_representation_details import AdminEventRepresentationDetails
         from ..models.auth_details_representation import AuthDetailsRepresentation
+        from ..models.admin_event_representation_details import AdminEventRepresentationDetails
         id = self.id
 
         time = self.time
@@ -113,8 +113,8 @@ class AdminEventRepresentation:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.admin_event_representation_details import AdminEventRepresentationDetails
         from ..models.auth_details_representation import AuthDetailsRepresentation
+        from ..models.admin_event_representation_details import AdminEventRepresentationDetails
         d = dict(src_dict)
         id = d.pop("id", UNSET)
 

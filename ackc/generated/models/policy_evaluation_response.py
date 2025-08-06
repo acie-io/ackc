@@ -12,8 +12,8 @@ from typing import cast
 from typing import Union
 
 if TYPE_CHECKING:
-  from ..models.evaluation_result_representation import EvaluationResultRepresentation
   from ..models.access_token import AccessToken
+  from ..models.evaluation_result_representation import EvaluationResultRepresentation
 
 
 
@@ -44,8 +44,8 @@ class PolicyEvaluationResponse:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.evaluation_result_representation import EvaluationResultRepresentation
         from ..models.access_token import AccessToken
+        from ..models.evaluation_result_representation import EvaluationResultRepresentation
         results: Union[Unset, list[dict[str, Any]]] = UNSET
         if not isinstance(self.results, Unset):
             results = []
@@ -86,8 +86,8 @@ class PolicyEvaluationResponse:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.evaluation_result_representation import EvaluationResultRepresentation
         from ..models.access_token import AccessToken
+        from ..models.evaluation_result_representation import EvaluationResultRepresentation
         d = dict(src_dict)
         results = []
         _results = d.pop("results", UNSET)

@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union, cast
+from typing import Any, Union, cast
 
 import niquests
 
@@ -46,7 +46,7 @@ def _get_kwargs(
     return _kwargs
 
 
-def _parse_response(*, client: Union[AuthenticatedClient, Client], response: niquests.Response) -> Optional[Union[AbstractPolicyRepresentation, Any]]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: niquests.Response) -> Union[AbstractPolicyRepresentation, Any] | None:
     if response.status_code == 200:
         response_200 = AbstractPolicyRepresentation.from_dict(response.json())
 
@@ -65,7 +65,7 @@ def _parse_response(*, client: Union[AuthenticatedClient, Client], response: niq
         return None
 
 
-def _build_response(*, client: Union[AuthenticatedClient, Client], response: niquests.Response) -> Response[Union[AbstractPolicyRepresentation, Any]]:
+def _build_response(*, client: AuthenticatedClient | Client, response: niquests.Response) -> Response[Union[AbstractPolicyRepresentation, Any]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -121,7 +121,7 @@ def sync(
     fields: Union[Unset, str] = UNSET,
     name: Union[Unset, str] = UNSET,
 
-) -> Optional[Union[AbstractPolicyRepresentation, Any]]:
+) -> Union[AbstractPolicyRepresentation, Any] | None:
     """ 
     Args:
         realm (str):
@@ -194,7 +194,7 @@ async def asyncio(
     fields: Union[Unset, str] = UNSET,
     name: Union[Unset, str] = UNSET,
 
-) -> Optional[Union[AbstractPolicyRepresentation, Any]]:
+) -> Union[AbstractPolicyRepresentation, Any] | None:
     """ 
     Args:
         realm (str):

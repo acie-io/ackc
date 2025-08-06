@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union, cast
+from typing import Any, Union, cast
 
 import niquests
 
@@ -57,7 +57,7 @@ def _get_kwargs(
     return _kwargs
 
 
-def _parse_response(*, client: Union[AuthenticatedClient, Client], response: niquests.Response) -> Optional[list['ClientRepresentation']]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: niquests.Response) -> list['ClientRepresentation'] | None:
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
@@ -75,7 +75,7 @@ def _parse_response(*, client: Union[AuthenticatedClient, Client], response: niq
         return None
 
 
-def _build_response(*, client: Union[AuthenticatedClient, Client], response: niquests.Response) -> Response[list['ClientRepresentation']]:
+def _build_response(*, client: AuthenticatedClient | Client, response: niquests.Response) -> Response[list['ClientRepresentation']]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -148,7 +148,7 @@ def sync(
     search: Union[Unset, bool] = False,
     viewable_only: Union[Unset, bool] = False,
 
-) -> Optional[list['ClientRepresentation']]:
+) -> list['ClientRepresentation'] | None:
     """ Get clients belonging to the realm.
 
      If a client can’t be retrieved from the storage due to a problem with the underlying storage, it is
@@ -249,7 +249,7 @@ async def asyncio(
     search: Union[Unset, bool] = False,
     viewable_only: Union[Unset, bool] = False,
 
-) -> Optional[list['ClientRepresentation']]:
+) -> list['ClientRepresentation'] | None:
     """ Get clients belonging to the realm.
 
      If a client can’t be retrieved from the storage due to a problem with the underlying storage, it is

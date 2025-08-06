@@ -13,8 +13,8 @@ from typing import cast
 from typing import Union
 
 if TYPE_CHECKING:
-  from ..models.resource_representation import ResourceRepresentation
   from ..models.scope_representation import ScopeRepresentation
+  from ..models.resource_representation import ResourceRepresentation
 
 
 
@@ -63,8 +63,8 @@ class AbstractPolicyRepresentation:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.resource_representation import ResourceRepresentation
         from ..models.scope_representation import ScopeRepresentation
+        from ..models.resource_representation import ResourceRepresentation
         id = self.id
 
         name = self.name
@@ -161,8 +161,8 @@ class AbstractPolicyRepresentation:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.resource_representation import ResourceRepresentation
         from ..models.scope_representation import ScopeRepresentation
+        from ..models.resource_representation import ResourceRepresentation
         d = dict(src_dict)
         id = d.pop("id", UNSET)
 

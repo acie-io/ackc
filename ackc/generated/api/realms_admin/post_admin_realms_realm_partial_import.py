@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union, cast
+from typing import Any, Union, cast
 
 import niquests
 
@@ -40,7 +40,7 @@ def _get_kwargs(
     return _kwargs
 
 
-def _parse_response(*, client: Union[AuthenticatedClient, Client], response: niquests.Response) -> Optional[Union[Any, PostAdminRealmsRealmPartialImportResponse200]]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: niquests.Response) -> Union[Any, PostAdminRealmsRealmPartialImportResponse200] | None:
     if response.status_code == 200:
         response_200 = PostAdminRealmsRealmPartialImportResponse200.from_dict(response.json())
 
@@ -59,7 +59,7 @@ def _parse_response(*, client: Union[AuthenticatedClient, Client], response: niq
         return None
 
 
-def _build_response(*, client: Union[AuthenticatedClient, Client], response: niquests.Response) -> Response[Union[Any, PostAdminRealmsRealmPartialImportResponse200]]:
+def _build_response(*, client: AuthenticatedClient | Client, response: niquests.Response) -> Response[Union[Any, PostAdminRealmsRealmPartialImportResponse200]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -108,7 +108,7 @@ def sync(
     client: Union[AuthenticatedClient, Client],
     body: File,
 
-) -> Optional[Union[Any, PostAdminRealmsRealmPartialImportResponse200]]:
+) -> Union[Any, PostAdminRealmsRealmPartialImportResponse200] | None:
     """ Partial import from a JSON file to an existing realm.
 
     Args:
@@ -171,7 +171,7 @@ async def asyncio(
     client: Union[AuthenticatedClient, Client],
     body: File,
 
-) -> Optional[Union[Any, PostAdminRealmsRealmPartialImportResponse200]]:
+) -> Union[Any, PostAdminRealmsRealmPartialImportResponse200] | None:
     """ Partial import from a JSON file to an existing realm.
 
     Args:

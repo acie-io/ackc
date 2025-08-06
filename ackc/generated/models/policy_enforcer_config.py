@@ -12,11 +12,11 @@ from typing import cast
 from typing import Union
 
 if TYPE_CHECKING:
-  from ..models.policy_enforcer_config_credentials import PolicyEnforcerConfigCredentials
-  from ..models.user_managed_access_config import UserManagedAccessConfig
-  from ..models.path_cache_config import PathCacheConfig
-  from ..models.path_config import PathConfig
   from ..models.policy_enforcer_config_claim_information_point import PolicyEnforcerConfigClaimInformationPoint
+  from ..models.user_managed_access_config import UserManagedAccessConfig
+  from ..models.path_config import PathConfig
+  from ..models.policy_enforcer_config_credentials import PolicyEnforcerConfigCredentials
+  from ..models.path_cache_config import PathCacheConfig
 
 
 
@@ -63,11 +63,11 @@ class PolicyEnforcerConfig:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.policy_enforcer_config_credentials import PolicyEnforcerConfigCredentials
-        from ..models.user_managed_access_config import UserManagedAccessConfig
-        from ..models.path_cache_config import PathCacheConfig
-        from ..models.path_config import PathConfig
         from ..models.policy_enforcer_config_claim_information_point import PolicyEnforcerConfigClaimInformationPoint
+        from ..models.user_managed_access_config import UserManagedAccessConfig
+        from ..models.path_config import PathConfig
+        from ..models.policy_enforcer_config_credentials import PolicyEnforcerConfigCredentials
+        from ..models.path_cache_config import PathCacheConfig
         enforcement_mode: Union[Unset, str] = UNSET
         if not isinstance(self.enforcement_mode, Unset):
             enforcement_mode = self.enforcement_mode.value
@@ -146,11 +146,11 @@ class PolicyEnforcerConfig:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.policy_enforcer_config_credentials import PolicyEnforcerConfigCredentials
-        from ..models.user_managed_access_config import UserManagedAccessConfig
-        from ..models.path_cache_config import PathCacheConfig
-        from ..models.path_config import PathConfig
         from ..models.policy_enforcer_config_claim_information_point import PolicyEnforcerConfigClaimInformationPoint
+        from ..models.user_managed_access_config import UserManagedAccessConfig
+        from ..models.path_config import PathConfig
+        from ..models.policy_enforcer_config_credentials import PolicyEnforcerConfigCredentials
+        from ..models.path_cache_config import PathCacheConfig
         d = dict(src_dict)
         _enforcement_mode = d.pop("enforcement-mode", UNSET)
         enforcement_mode: Union[Unset, EnforcementMode]

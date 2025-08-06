@@ -11,8 +11,8 @@ from typing import cast
 from typing import Union
 
 if TYPE_CHECKING:
-  from ..models.address_claim_set import AddressClaimSet
   from ..models.id_token_other_claims import IDTokenOtherClaims
+  from ..models.address_claim_set import AddressClaimSet
 
 
 
@@ -107,8 +107,8 @@ class IDToken:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.address_claim_set import AddressClaimSet
         from ..models.id_token_other_claims import IDTokenOtherClaims
+        from ..models.address_claim_set import AddressClaimSet
         jti = self.jti
 
         exp = self.exp
@@ -269,8 +269,8 @@ class IDToken:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.address_claim_set import AddressClaimSet
         from ..models.id_token_other_claims import IDTokenOtherClaims
+        from ..models.address_claim_set import AddressClaimSet
         d = dict(src_dict)
         jti = d.pop("jti", UNSET)
 

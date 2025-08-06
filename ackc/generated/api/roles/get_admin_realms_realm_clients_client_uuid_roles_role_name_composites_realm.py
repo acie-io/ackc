@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union, cast
+from typing import Any, Union, cast
 
 import niquests
 
@@ -33,7 +33,7 @@ def _get_kwargs(
     return _kwargs
 
 
-def _parse_response(*, client: Union[AuthenticatedClient, Client], response: niquests.Response) -> Optional[Union[Any, list['RoleRepresentation']]]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: niquests.Response) -> Union[Any, list['RoleRepresentation']] | None:
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
@@ -57,7 +57,7 @@ def _parse_response(*, client: Union[AuthenticatedClient, Client], response: niq
         return None
 
 
-def _build_response(*, client: Union[AuthenticatedClient, Client], response: niquests.Response) -> Response[Union[Any, list['RoleRepresentation']]]:
+def _build_response(*, client: AuthenticatedClient | Client, response: niquests.Response) -> Response[Union[Any, list['RoleRepresentation']]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -110,7 +110,7 @@ def sync(
     *,
     client: Union[AuthenticatedClient, Client],
 
-) -> Optional[Union[Any, list['RoleRepresentation']]]:
+) -> Union[Any, list['RoleRepresentation']] | None:
     """ Get realm-level roles of the role's composite
 
     Args:
@@ -179,7 +179,7 @@ async def asyncio(
     *,
     client: Union[AuthenticatedClient, Client],
 
-) -> Optional[Union[Any, list['RoleRepresentation']]]:
+) -> Union[Any, list['RoleRepresentation']] | None:
     """ Get realm-level roles of the role's composite
 
     Args:

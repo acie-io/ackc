@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union, cast
+from typing import Any, Union, cast
 
 import niquests
 
@@ -71,7 +71,7 @@ def _get_kwargs(
     return _kwargs
 
 
-def _parse_response(*, client: Union[AuthenticatedClient, Client], response: niquests.Response) -> Optional[Union[Any, list['EventRepresentation']]]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: niquests.Response) -> Union[Any, list['EventRepresentation']] | None:
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
@@ -95,7 +95,7 @@ def _parse_response(*, client: Union[AuthenticatedClient, Client], response: niq
         return None
 
 
-def _build_response(*, client: Union[AuthenticatedClient, Client], response: niquests.Response) -> Response[Union[Any, list['EventRepresentation']]]:
+def _build_response(*, client: AuthenticatedClient | Client, response: niquests.Response) -> Response[Union[Any, list['EventRepresentation']]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -176,7 +176,7 @@ def sync(
     type_: Union[Unset, list[str]] = UNSET,
     user: Union[Unset, str] = UNSET,
 
-) -> Optional[Union[Any, list['EventRepresentation']]]:
+) -> Union[Any, list['EventRepresentation']] | None:
     """ Get events Returns all events, or filters them based on URL query parameters listed here
 
     Args:
@@ -287,7 +287,7 @@ async def asyncio(
     type_: Union[Unset, list[str]] = UNSET,
     user: Union[Unset, str] = UNSET,
 
-) -> Optional[Union[Any, list['EventRepresentation']]]:
+) -> Union[Any, list['EventRepresentation']] | None:
     """ Get events Returns all events, or filters them based on URL query parameters listed here
 
     Args:

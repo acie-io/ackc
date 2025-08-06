@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union, cast
+from typing import Any, Union, cast
 
 import niquests
 
@@ -33,7 +33,7 @@ def _get_kwargs(
     return _kwargs
 
 
-def _parse_response(*, client: Union[AuthenticatedClient, Client], response: niquests.Response) -> Optional[Union[Any, MemberRepresentation]]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: niquests.Response) -> Union[Any, MemberRepresentation] | None:
     if response.status_code == 200:
         response_200 = MemberRepresentation.from_dict(response.json())
 
@@ -49,7 +49,7 @@ def _parse_response(*, client: Union[AuthenticatedClient, Client], response: niq
         return None
 
 
-def _build_response(*, client: Union[AuthenticatedClient, Client], response: niquests.Response) -> Response[Union[Any, MemberRepresentation]]:
+def _build_response(*, client: AuthenticatedClient | Client, response: niquests.Response) -> Response[Union[Any, MemberRepresentation]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -105,7 +105,7 @@ def sync(
     *,
     client: Union[AuthenticatedClient, Client],
 
-) -> Optional[Union[Any, MemberRepresentation]]:
+) -> Union[Any, MemberRepresentation] | None:
     """ Returns the member of the organization with the specified id
 
      Searches for auser with the given id. If one is found, and is currently a member of the
@@ -180,7 +180,7 @@ async def asyncio(
     *,
     client: Union[AuthenticatedClient, Client],
 
-) -> Optional[Union[Any, MemberRepresentation]]:
+) -> Union[Any, MemberRepresentation] | None:
     """ Returns the member of the organization with the specified id
 
      Searches for auser with the given id. If one is found, and is currently a member of the

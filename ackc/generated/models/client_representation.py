@@ -11,10 +11,10 @@ from typing import cast
 from typing import Union
 
 if TYPE_CHECKING:
-  from ..models.client_representation_authentication_flow_binding_overrides import ClientRepresentationAuthenticationFlowBindingOverrides
   from ..models.client_representation_registered_nodes import ClientRepresentationRegisteredNodes
   from ..models.resource_server_representation import ResourceServerRepresentation
   from ..models.protocol_mapper_representation import ProtocolMapperRepresentation
+  from ..models.client_representation_authentication_flow_binding_overrides import ClientRepresentationAuthenticationFlowBindingOverrides
   from ..models.client_representation_attributes import ClientRepresentationAttributes
   from ..models.client_representation_access import ClientRepresentationAccess
 
@@ -127,10 +127,10 @@ class ClientRepresentation:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.client_representation_authentication_flow_binding_overrides import ClientRepresentationAuthenticationFlowBindingOverrides
         from ..models.client_representation_registered_nodes import ClientRepresentationRegisteredNodes
         from ..models.resource_server_representation import ResourceServerRepresentation
         from ..models.protocol_mapper_representation import ProtocolMapperRepresentation
+        from ..models.client_representation_authentication_flow_binding_overrides import ClientRepresentationAuthenticationFlowBindingOverrides
         from ..models.client_representation_attributes import ClientRepresentationAttributes
         from ..models.client_representation_access import ClientRepresentationAccess
         id = self.id
@@ -358,10 +358,10 @@ class ClientRepresentation:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.client_representation_authentication_flow_binding_overrides import ClientRepresentationAuthenticationFlowBindingOverrides
         from ..models.client_representation_registered_nodes import ClientRepresentationRegisteredNodes
         from ..models.resource_server_representation import ResourceServerRepresentation
         from ..models.protocol_mapper_representation import ProtocolMapperRepresentation
+        from ..models.client_representation_authentication_flow_binding_overrides import ClientRepresentationAuthenticationFlowBindingOverrides
         from ..models.client_representation_attributes import ClientRepresentationAttributes
         from ..models.client_representation_access import ClientRepresentationAccess
         d = dict(src_dict)

@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union, cast
+from typing import Any, Union, cast
 
 import niquests
 
@@ -49,7 +49,7 @@ def _get_kwargs(
     return _kwargs
 
 
-def _parse_response(*, client: Union[AuthenticatedClient, Client], response: niquests.Response) -> Optional[Union[AccessToken, Any]]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: niquests.Response) -> Union[AccessToken, Any] | None:
     if response.status_code == 200:
         response_200 = AccessToken.from_dict(response.json())
 
@@ -68,7 +68,7 @@ def _parse_response(*, client: Union[AuthenticatedClient, Client], response: niq
         return None
 
 
-def _build_response(*, client: Union[AuthenticatedClient, Client], response: niquests.Response) -> Response[Union[AccessToken, Any]]:
+def _build_response(*, client: AuthenticatedClient | Client, response: niquests.Response) -> Response[Union[AccessToken, Any]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -129,7 +129,7 @@ def sync(
     scope: Union[Unset, str] = UNSET,
     user_id: Union[Unset, str] = UNSET,
 
-) -> Optional[Union[AccessToken, Any]]:
+) -> Union[AccessToken, Any] | None:
     """ Create JSON with payload of example access token
 
     Args:
@@ -210,7 +210,7 @@ async def asyncio(
     scope: Union[Unset, str] = UNSET,
     user_id: Union[Unset, str] = UNSET,
 
-) -> Optional[Union[AccessToken, Any]]:
+) -> Union[AccessToken, Any] | None:
     """ Create JSON with payload of example access token
 
     Args:

@@ -1,6 +1,6 @@
 [project]
 name = "ackc"
-version = "0.7.0"
+version = "0.7.1"
 description = "Acie's API Client for Keycloak"
 readme = "readme.md"
 requires-python = ">=3.13"
@@ -11,8 +11,7 @@ authors = [
 
 packages = [
     { include = "ackc" },
-    { include = "scripts", format = "sdist" },  # NOTE: uv_build doesn't include these as expected
-    { include = "examples", format = "sdist" }, #   <- ^
+    { include = "gen", format = "sdist" },  # NOTE: uv_build doesn't include this as expected
 ]
 
 dependencies = [

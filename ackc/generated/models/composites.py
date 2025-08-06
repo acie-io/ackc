@@ -11,8 +11,8 @@ from typing import cast
 from typing import Union
 
 if TYPE_CHECKING:
-  from ..models.composites_application import CompositesApplication
   from ..models.composites_client import CompositesClient
+  from ..models.composites_application import CompositesApplication
 
 
 
@@ -41,8 +41,8 @@ class Composites:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.composites_application import CompositesApplication
         from ..models.composites_client import CompositesClient
+        from ..models.composites_application import CompositesApplication
         realm: Union[Unset, list[str]] = UNSET
         if not isinstance(self.realm, Unset):
             realm = self.realm
@@ -75,8 +75,8 @@ class Composites:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.composites_application import CompositesApplication
         from ..models.composites_client import CompositesClient
+        from ..models.composites_application import CompositesApplication
         d = dict(src_dict)
         realm = cast(list[str], d.pop("realm", UNSET))
 

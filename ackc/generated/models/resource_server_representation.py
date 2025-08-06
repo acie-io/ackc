@@ -13,10 +13,10 @@ from typing import cast
 from typing import Union
 
 if TYPE_CHECKING:
-  from ..models.resource_representation import ResourceRepresentation
-  from ..models.authorization_schema import AuthorizationSchema
-  from ..models.policy_representation import PolicyRepresentation
   from ..models.scope_representation import ScopeRepresentation
+  from ..models.resource_representation import ResourceRepresentation
+  from ..models.policy_representation import PolicyRepresentation
+  from ..models.authorization_schema import AuthorizationSchema
 
 
 
@@ -59,10 +59,10 @@ class ResourceServerRepresentation:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.resource_representation import ResourceRepresentation
-        from ..models.authorization_schema import AuthorizationSchema
-        from ..models.policy_representation import PolicyRepresentation
         from ..models.scope_representation import ScopeRepresentation
+        from ..models.resource_representation import ResourceRepresentation
+        from ..models.policy_representation import PolicyRepresentation
+        from ..models.authorization_schema import AuthorizationSchema
         id = self.id
 
         client_id = self.client_id
@@ -144,10 +144,10 @@ class ResourceServerRepresentation:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.resource_representation import ResourceRepresentation
-        from ..models.authorization_schema import AuthorizationSchema
-        from ..models.policy_representation import PolicyRepresentation
         from ..models.scope_representation import ScopeRepresentation
+        from ..models.resource_representation import ResourceRepresentation
+        from ..models.policy_representation import PolicyRepresentation
+        from ..models.authorization_schema import AuthorizationSchema
         d = dict(src_dict)
         id = d.pop("id", UNSET)
 
