@@ -12,7 +12,12 @@ from ..generated.api.client_attribute_certificate import (
 )
 from ..generated.models import CertificateRepresentation, KeyStoreConfig
 
-__all__ = "ClientAttributeCertificateAPI", "ClientAttributeCertificateClientMixin"
+__all__ = (
+    "ClientAttributeCertificateAPI",
+    "ClientAttributeCertificateClientMixin",
+    "CertificateRepresentation",
+    "KeyStoreConfig",
+)
 
 
 class ClientAttributeCertificateAPI(BaseAPI):
@@ -31,7 +36,7 @@ class ClientAttributeCertificateAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_clients_client_uuid_certificates_attr.sync,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
             attr=attr
         )
@@ -49,7 +54,7 @@ class ClientAttributeCertificateAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_clients_client_uuid_certificates_attr.asyncio,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
             attr=attr
         )
@@ -66,14 +71,15 @@ class ClientAttributeCertificateAPI(BaseAPI):
         Returns:
             Certificate and private key as bytes (e.g., JKS or PKCS12 format)
         """
-        config_obj = config if isinstance(config, KeyStoreConfig) else KeyStoreConfig.from_dict(config)
-        return self._sync(
-            post_admin_realms_realm_clients_client_uuid_certificates_attr_download.sync,
-            realm or self.realm,
+        response = self._sync_detailed_model(
+            post_admin_realms_realm_clients_client_uuid_certificates_attr_download.sync_detailed,
+            realm,
+            config,
+            KeyStoreConfig,
             client_uuid=client_uuid,
-            attr=attr,
-            body=config_obj
+            attr=attr
         )
+        return response.parsed
 
     async def adownload_certificate(self, realm: str | None = None, *, client_uuid: str, attr: str, config: dict | KeyStoreConfig) -> bytes | None:
         """Download a client certificate and private key (async).
@@ -87,14 +93,15 @@ class ClientAttributeCertificateAPI(BaseAPI):
         Returns:
             Certificate and private key as bytes (e.g., JKS or PKCS12 format)
         """
-        config_obj = config if isinstance(config, KeyStoreConfig) else KeyStoreConfig.from_dict(config)
-        return await self._async(
-            post_admin_realms_realm_clients_client_uuid_certificates_attr_download.asyncio,
-            realm or self.realm,
+        response = await self._async_detailed_model(
+            post_admin_realms_realm_clients_client_uuid_certificates_attr_download.asyncio_detailed,
+            realm,
+            config,
+            KeyStoreConfig,
             client_uuid=client_uuid,
-            attr=attr,
-            body=config_obj
+            attr=attr
         )
+        return response.parsed
 
     def generate_certificate(self, realm: str | None = None, *, client_uuid: str, attr: str) -> CertificateRepresentation | None:
         """Generate a new certificate with new key pair (sync).
@@ -109,7 +116,7 @@ class ClientAttributeCertificateAPI(BaseAPI):
         """
         return self._sync(
             post_admin_realms_realm_clients_client_uuid_certificates_attr_generate.sync,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
             attr=attr
         )
@@ -127,7 +134,7 @@ class ClientAttributeCertificateAPI(BaseAPI):
         """
         return await self._async(
             post_admin_realms_realm_clients_client_uuid_certificates_attr_generate.asyncio,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
             attr=attr
         )
@@ -144,14 +151,15 @@ class ClientAttributeCertificateAPI(BaseAPI):
         Returns:
             Generated certificate and private key as bytes
         """
-        config_obj = config if isinstance(config, KeyStoreConfig) else KeyStoreConfig.from_dict(config)
-        return self._sync(
-            post_admin_realms_realm_clients_client_uuid_certificates_attr_generate_and_download.sync,
-            realm or self.realm,
+        response = self._sync_detailed_model(
+            post_admin_realms_realm_clients_client_uuid_certificates_attr_generate_and_download.sync_detailed,
+            realm,
+            config,
+            KeyStoreConfig,
             client_uuid=client_uuid,
-            attr=attr,
-            body=config_obj
+            attr=attr
         )
+        return response.parsed
 
     async def agenerate_and_download_certificate(self, realm: str | None = None, *, client_uuid: str, attr: str, config: dict | KeyStoreConfig) -> bytes | None:
         """Generate a new certificate and download it (async).
@@ -165,93 +173,110 @@ class ClientAttributeCertificateAPI(BaseAPI):
         Returns:
             Generated certificate and private key as bytes
         """
-        config_obj = config if isinstance(config, KeyStoreConfig) else KeyStoreConfig.from_dict(config)
-        return await self._async(
-            post_admin_realms_realm_clients_client_uuid_certificates_attr_generate_and_download.asyncio,
-            realm or self.realm,
+        response = await self._async_detailed_model(
+            post_admin_realms_realm_clients_client_uuid_certificates_attr_generate_and_download.asyncio_detailed,
+            realm,
+            config,
+            KeyStoreConfig,
             client_uuid=client_uuid,
-            attr=attr,
-            body=config_obj
+            attr=attr
         )
+        return response.parsed
 
     def upload_certificate(self, realm: str | None = None, *, client_uuid: str, attr: str, file: bytes) -> CertificateRepresentation | None:
         """Upload a certificate and optionally private key (sync).
+        
+        NOTE: This function may not work correctly due to OpenAPI spec limitations.
+        The Keycloak endpoint expects multipart/form-data with a 'file' field,
+        but the OpenAPI spec doesn't document this, so the generated code doesn't support it.
+        TODO: Report OpenAPI spec missing parameter multipart_data
         
         Args:
             realm: The realm name
             client_uuid: Client UUID
             attr: Certificate attribute name
-            file: Certificate file content as bytes (JKS or PKCS12)
+            file: Certificate file content as bytes (JKS or PKCS12) - CURRENTLY IGNORED
             
         Returns:
             Uploaded certificate representation
         """
         return self._sync(
             post_admin_realms_realm_clients_client_uuid_certificates_attr_upload.sync,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
-            attr=attr,
-            multipart_data={"file": file}
+            attr=attr
         )
 
     async def aupload_certificate(self, realm: str | None = None, *, client_uuid: str, attr: str, file: bytes) -> CertificateRepresentation | None:
         """Upload a certificate and optionally private key (async).
         
+        NOTE: This function may not work correctly due to OpenAPI spec limitations.
+        The Keycloak endpoint expects multipart/form-data with a 'file' field,
+        but the OpenAPI spec doesn't document this, so the generated code doesn't support it.
+        TODO: Report OpenAPI spec missing parameter multipart_data
+        
         Args:
             realm: The realm name
             client_uuid: Client UUID
             attr: Certificate attribute name
-            file: Certificate file content as bytes (JKS or PKCS12)
+            file: Certificate file content as bytes (JKS or PKCS12) - CURRENTLY IGNORED
             
         Returns:
             Uploaded certificate representation
         """
         return await self._async(
             post_admin_realms_realm_clients_client_uuid_certificates_attr_upload.asyncio,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
-            attr=attr,
-            multipart_data={"file": file}
+            attr=attr
         )
 
     def upload_certificate_only(self, realm: str | None = None, *, client_uuid: str, attr: str, file: bytes) -> CertificateRepresentation | None:
         """Upload only certificate, no private key (sync).
         
+        NOTE: This function may not work correctly due to OpenAPI spec limitations.
+        The Keycloak endpoint expects multipart/form-data with a 'file' field,
+        but the OpenAPI spec doesn't document this, so the generated code doesn't support it.
+        TODO: Report OpenAPI spec missing parameter multipart_data
+        
         Args:
             realm: The realm name
             client_uuid: Client UUID
             attr: Certificate attribute name
-            file: Certificate file content as bytes (PEM or DER format)
+            file: Certificate file content as bytes (PEM or DER format) - CURRENTLY IGNORED
             
         Returns:
             Uploaded certificate representation
         """
         return self._sync(
             post_admin_realms_realm_clients_client_uuid_certificates_attr_upload_certificate.sync,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
-            attr=attr,
-            multipart_data={"file": file}
+            attr=attr
         )
 
     async def aupload_certificate_only(self, realm: str | None = None, *, client_uuid: str, attr: str, file: bytes) -> CertificateRepresentation | None:
         """Upload only certificate, no private key (async).
         
+        NOTE: This function may not work correctly due to OpenAPI spec limitations.
+        The Keycloak endpoint expects multipart/form-data with a 'file' field,
+        but the OpenAPI spec doesn't document this, so the generated code doesn't support it.
+        TODO: Report OpenAPI spec missing parameter multipart_data
+        
         Args:
             realm: The realm name
             client_uuid: Client UUID
             attr: Certificate attribute name
-            file: Certificate file content as bytes (PEM or DER format)
+            file: Certificate file content as bytes (PEM or DER format) - CURRENTLY IGNORED
             
         Returns:
             Uploaded certificate representation
         """
         return await self._async(
             post_admin_realms_realm_clients_client_uuid_certificates_attr_upload_certificate.asyncio,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
-            attr=attr,
-            multipart_data={"file": file}
+            attr=attr
         )
 
 

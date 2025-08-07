@@ -1,5 +1,6 @@
 """Authentication management API methods."""
 from functools import cached_property
+from typing import Any
 
 from .base import BaseAPI
 from ..generated.api.authentication_management import (
@@ -50,10 +51,18 @@ from ..generated.api.authentication_management import (
     get_admin_realms_realm_authentication_per_client_config_description,
 )
 from ..generated.models import (
+    AuthenticationExecutionRepresentation,
     AuthenticationFlowRepresentation,
     AuthenticationExecutionInfoRepresentation,
+    AuthenticatorConfigInfoRepresentation,
     AuthenticatorConfigRepresentation,
+    RequiredActionConfigRepresentation,
+    RequiredActionConfigInfoRepresentation,
     RequiredActionProviderRepresentation,
+    PostAdminRealmsRealmAuthenticationFlowsFlowAliasExecutionsFlowBody,
+    PostAdminRealmsRealmAuthenticationFlowsFlowAliasExecutionsExecutionBody,
+    PostAdminRealmsRealmAuthenticationFlowsFlowAliasCopyBody,
+    PostAdminRealmsRealmAuthenticationRegisterRequiredActionBody,
 )
 from ..exceptions import APIError
 
@@ -61,6 +70,7 @@ __all__ = (
     "AuthenticationAPI", 
     "AuthenticationClientMixin",
     "AuthenticationFlowRepresentation",
+    "AuthenticationExecutionRepresentation",
     "AuthenticationExecutionInfoRepresentation",
     "AuthenticatorConfigRepresentation",
     "RequiredActionProviderRepresentation",
@@ -97,7 +107,7 @@ class AuthenticationAPI(BaseAPI):
         """
         return await self._async(get_admin_realms_realm_authentication_flows.asyncio, realm)
 
-    def create_flow(self, realm: str | None = None, flow_data: dict | AuthenticationFlowRepresentation = None) -> None:
+    def create_flow(self, realm: str | None = None, *, flow_data: dict | AuthenticationFlowRepresentation) -> None:
         """Create an authentication flow (sync).
         
         Args:
@@ -107,16 +117,16 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If flow creation fails
         """
-        flow_obj = flow_data if isinstance(flow_data, AuthenticationFlowRepresentation) else AuthenticationFlowRepresentation.from_dict(flow_data)
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             post_admin_realms_realm_authentication_flows.sync_detailed,
-            realm=realm,
-            body=flow_obj
+            realm,
+            flow_data,
+            AuthenticationFlowRepresentation
         )
         if response.status_code != 201:
             raise APIError(f"Failed to create flow: {response.status_code}")
 
-    async def acreate_flow(self, realm: str | None = None, flow_data: dict | AuthenticationFlowRepresentation = None) -> None:
+    async def acreate_flow(self, realm: str | None = None, *, flow_data: dict | AuthenticationFlowRepresentation) -> None:
         """Create an authentication flow (async).
         
         Args:
@@ -126,16 +136,16 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If flow creation fails
         """
-        flow_obj = flow_data if isinstance(flow_data, AuthenticationFlowRepresentation) else AuthenticationFlowRepresentation.from_dict(flow_data)
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             post_admin_realms_realm_authentication_flows.asyncio_detailed,
-            realm=realm,
-            body=flow_obj
+            realm,
+            flow_data,
+            AuthenticationFlowRepresentation
         )
         if response.status_code != 201:
             raise APIError(f"Failed to create flow: {response.status_code}")
 
-    def get_flow(self, realm: str | None = None, flow_id: str = None) -> AuthenticationFlowRepresentation | None:
+    def get_flow(self, realm: str | None = None, *, flow_id: str) -> AuthenticationFlowRepresentation | None:
         """Get an authentication flow by ID (sync).
         
         Args:
@@ -147,11 +157,11 @@ class AuthenticationAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_authentication_flows_id.sync,
-            realm=realm,
+            realm,
             id=flow_id
         )
 
-    async def aget_flow(self, realm: str | None = None, flow_id: str = None) -> AuthenticationFlowRepresentation | None:
+    async def aget_flow(self, realm: str | None = None, *, flow_id: str) -> AuthenticationFlowRepresentation | None:
         """Get an authentication flow by ID (async).
         
         Args:
@@ -163,11 +173,11 @@ class AuthenticationAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_authentication_flows_id.asyncio,
-            realm=realm,
+            realm,
             id=flow_id
         )
 
-    def update_flow(self, realm: str | None = None, flow_id: str = None, flow_data: dict | AuthenticationFlowRepresentation = None) -> None:
+    def update_flow(self, realm: str | None = None, *, flow_id: str, flow_data: dict | AuthenticationFlowRepresentation) -> None:
         """Update an authentication flow (sync).
         
         Args:
@@ -178,17 +188,17 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If flow update fails
         """
-        flow_obj = flow_data if isinstance(flow_data, AuthenticationFlowRepresentation) else AuthenticationFlowRepresentation.from_dict(flow_data)
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             put_admin_realms_realm_authentication_flows_id.sync_detailed,
-            realm=realm,
-            id=flow_id,
-            body=flow_obj
+            realm,
+            flow_data,
+            AuthenticationFlowRepresentation,
+            id=flow_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update flow: {response.status_code}")
 
-    async def aupdate_flow(self, realm: str | None = None, flow_id: str = None, flow_data: dict | AuthenticationFlowRepresentation = None) -> None:
+    async def aupdate_flow(self, realm: str | None = None, *, flow_id: str, flow_data: dict | AuthenticationFlowRepresentation) -> None:
         """Update an authentication flow (async).
         
         Args:
@@ -199,17 +209,17 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If flow update fails
         """
-        flow_obj = flow_data if isinstance(flow_data, AuthenticationFlowRepresentation) else AuthenticationFlowRepresentation.from_dict(flow_data)
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             put_admin_realms_realm_authentication_flows_id.asyncio_detailed,
-            realm=realm,
-            id=flow_id,
-            body=flow_obj
+            realm,
+            flow_data,
+            AuthenticationFlowRepresentation,
+            id=flow_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update flow: {response.status_code}")
 
-    def delete_flow(self, realm: str | None = None, flow_id: str = None) -> None:
+    def delete_flow(self, realm: str | None = None, *, flow_id: str) -> None:
         """Delete an authentication flow (sync).
         
         Args:
@@ -219,15 +229,15 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If flow deletion fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             delete_admin_realms_realm_authentication_flows_id.sync_detailed,
-            realm=realm,
+            realm,
             id=flow_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to delete flow: {response.status_code}")
 
-    async def adelete_flow(self, realm: str | None = None, flow_id: str = None) -> None:
+    async def adelete_flow(self, realm: str | None = None, *, flow_id: str) -> None:
         """Delete an authentication flow (async).
         
         Args:
@@ -237,15 +247,15 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If flow deletion fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             delete_admin_realms_realm_authentication_flows_id.asyncio_detailed,
-            realm=realm,
+            realm,
             id=flow_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to delete flow: {response.status_code}")
 
-    def copy_flow(self, realm: str | None = None, flow_alias: str = None, new_name: str = None) -> None:
+    def copy_flow(self, realm: str | None = None, *, flow_alias: str, new_name: str) -> None:
         """Copy an authentication flow (sync).
         
         Args:
@@ -256,16 +266,17 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If flow copy fails
         """
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             post_admin_realms_realm_authentication_flows_flow_alias_copy.sync_detailed,
-            realm=realm,
-            flow_alias=flow_alias,
-            body={"newName": new_name}
+            realm,
+            {"newName": new_name},
+            PostAdminRealmsRealmAuthenticationFlowsFlowAliasCopyBody,
+            flow_alias=flow_alias
         )
         if response.status_code != 201:
             raise APIError(f"Failed to copy flow: {response.status_code}")
 
-    async def acopy_flow(self, realm: str | None = None, flow_alias: str = None, new_name: str = None) -> None:
+    async def acopy_flow(self, realm: str | None = None, *, flow_alias: str, new_name: str) -> None:
         """Copy an authentication flow (async).
         
         Args:
@@ -276,17 +287,18 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If flow copy fails
         """
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             post_admin_realms_realm_authentication_flows_flow_alias_copy.asyncio_detailed,
-            realm=realm,
-            flow_alias=flow_alias,
-            body={"newName": new_name}
+            realm,
+            {"newName": new_name},
+            PostAdminRealmsRealmAuthenticationFlowsFlowAliasCopyBody,
+            flow_alias=flow_alias
         )
         if response.status_code != 201:
             raise APIError(f"Failed to copy flow: {response.status_code}")
 
     # Flow Executions
-    def get_executions(self, realm: str | None = None, flow_alias: str = None) -> list[AuthenticationExecutionInfoRepresentation] | None:
+    def get_executions(self, realm: str | None = None, *, flow_alias: str) -> list[AuthenticationExecutionInfoRepresentation] | None:
         """Get executions for a flow (sync).
         
         Args:
@@ -298,11 +310,11 @@ class AuthenticationAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_authentication_flows_flow_alias_executions.sync,
-            realm=realm,
+            realm,
             flow_alias=flow_alias
         )
 
-    async def aget_executions(self, realm: str | None = None, flow_alias: str = None) -> list[AuthenticationExecutionInfoRepresentation] | None:
+    async def aget_executions(self, realm: str | None = None, *, flow_alias: str) -> list[AuthenticationExecutionInfoRepresentation] | None:
         """Get executions for a flow (async).
         
         Args:
@@ -314,11 +326,11 @@ class AuthenticationAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_authentication_flows_flow_alias_executions.asyncio,
-            realm=realm,
+            realm,
             flow_alias=flow_alias
         )
 
-    def update_executions(self, realm: str | None = None, flow_alias: str = None, execution_data: AuthenticationExecutionInfoRepresentation = None) -> None:
+    def update_executions(self, realm: str | None = None, *, flow_alias: str, execution_data: dict | AuthenticationExecutionInfoRepresentation) -> None:
         """Update executions for a flow (sync).
         
         Args:
@@ -329,16 +341,17 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If execution update fails
         """
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             put_admin_realms_realm_authentication_flows_flow_alias_executions.sync_detailed,
-            realm=realm,
-            flow_alias=flow_alias,
-            body=execution_data
+            realm,
+            execution_data,
+            AuthenticationExecutionInfoRepresentation,
+            flow_alias=flow_alias
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update executions: {response.status_code}")
 
-    async def aupdate_executions(self, realm: str | None = None, flow_alias: str = None, execution_data: AuthenticationExecutionInfoRepresentation = None) -> None:
+    async def aupdate_executions(self, realm: str | None = None, *, flow_alias: str, execution_data: dict | AuthenticationExecutionInfoRepresentation) -> None:
         """Update executions for a flow (async).
         
         Args:
@@ -349,17 +362,18 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If execution update fails
         """
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             put_admin_realms_realm_authentication_flows_flow_alias_executions.asyncio_detailed,
-            realm=realm,
-            flow_alias=flow_alias,
-            body=execution_data
+            realm,
+            execution_data,
+            AuthenticationExecutionInfoRepresentation,
+            flow_alias=flow_alias
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update executions: {response.status_code}")
 
     # Authenticator Config
-    def get_config(self, realm: str | None = None, config_id: str = None) -> AuthenticatorConfigRepresentation | None:
+    def get_config(self, realm: str | None = None, *, config_id: str) -> AuthenticatorConfigRepresentation | None:
         """Get authenticator configuration (sync).
         
         Args:
@@ -371,11 +385,11 @@ class AuthenticationAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_authentication_config_id.sync,
-            realm=realm,
+            realm,
             id=config_id
         )
 
-    async def aget_config(self, realm: str | None = None, config_id: str = None) -> AuthenticatorConfigRepresentation | None:
+    async def aget_config(self, realm: str | None = None, *, config_id: str) -> AuthenticatorConfigRepresentation | None:
         """Get authenticator configuration (async).
         
         Args:
@@ -387,11 +401,11 @@ class AuthenticationAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_authentication_config_id.asyncio,
-            realm=realm,
+            realm,
             id=config_id
         )
 
-    def create_config(self, realm: str | None = None, config_data: dict | AuthenticatorConfigRepresentation = None) -> str:
+    def create_config(self, realm: str | None = None, *, config_data: dict | AuthenticatorConfigRepresentation) -> str:
         """Create authenticator configuration (sync).
         
         Args:
@@ -404,18 +418,18 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If configuration creation fails
         """
-        config_obj = config_data if isinstance(config_data, AuthenticatorConfigRepresentation) else AuthenticatorConfigRepresentation.from_dict(config_data)
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             post_admin_realms_realm_authentication_config.sync_detailed,
-            realm=realm,
-            body=config_obj
+            realm,
+            config_data,
+            AuthenticatorConfigRepresentation
         )
         if response.status_code != 201:
             raise APIError(f"Failed to create config: {response.status_code}")
         location = response.headers.get("Location", "")
         return location.split("/")[-1] if location else ""
 
-    async def acreate_config(self, realm: str | None = None, config_data: dict | AuthenticatorConfigRepresentation = None) -> str:
+    async def acreate_config(self, realm: str | None = None, *, config_data: dict | AuthenticatorConfigRepresentation) -> str:
         """Create authenticator configuration (async).
         
         Args:
@@ -428,18 +442,18 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If configuration creation fails
         """
-        config_obj = config_data if isinstance(config_data, AuthenticatorConfigRepresentation) else AuthenticatorConfigRepresentation.from_dict(config_data)
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             post_admin_realms_realm_authentication_config.asyncio_detailed,
-            realm=realm,
-            body=config_obj
+            realm,
+            config_data,
+            AuthenticatorConfigRepresentation
         )
         if response.status_code != 201:
             raise APIError(f"Failed to create config: {response.status_code}")
         location = response.headers.get("Location", "")
         return location.split("/")[-1] if location else ""
 
-    def update_config(self, realm: str | None = None, config_id: str = None, config_data: dict | AuthenticatorConfigRepresentation = None) -> None:
+    def update_config(self, realm: str | None = None, *, config_id: str, config_data: dict | AuthenticatorConfigRepresentation) -> None:
         """Update authenticator configuration (sync).
         
         Args:
@@ -450,17 +464,17 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If configuration update fails
         """
-        config_obj = config_data if isinstance(config_data, AuthenticatorConfigRepresentation) else AuthenticatorConfigRepresentation.from_dict(config_data)
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             put_admin_realms_realm_authentication_config_id.sync_detailed,
-            realm=realm,
-            id=config_id,
-            body=config_obj
+            realm,
+            config_data,
+            AuthenticatorConfigRepresentation,
+            id=config_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update config: {response.status_code}")
 
-    async def aupdate_config(self, realm: str | None = None, config_id: str = None, config_data: dict | AuthenticatorConfigRepresentation = None) -> None:
+    async def aupdate_config(self, realm: str | None = None, *, config_id: str, config_data: dict | AuthenticatorConfigRepresentation) -> None:
         """Update authenticator configuration (async).
         
         Args:
@@ -471,17 +485,17 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If configuration update fails
         """
-        config_obj = config_data if isinstance(config_data, AuthenticatorConfigRepresentation) else AuthenticatorConfigRepresentation.from_dict(config_data)
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             put_admin_realms_realm_authentication_config_id.asyncio_detailed,
-            realm=realm,
-            id=config_id,
-            body=config_obj
+            realm,
+            config_data,
+            AuthenticatorConfigRepresentation,
+            id=config_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update config: {response.status_code}")
 
-    def delete_config(self, realm: str | None = None, config_id: str = None) -> None:
+    def delete_config(self, realm: str | None = None, *, config_id: str) -> None:
         """Delete authenticator configuration (sync).
         
         Args:
@@ -491,15 +505,15 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If configuration deletion fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             delete_admin_realms_realm_authentication_config_id.sync_detailed,
-            realm=realm,
+            realm,
             id=config_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to delete config: {response.status_code}")
 
-    async def adelete_config(self, realm: str | None = None, config_id: str = None) -> None:
+    async def adelete_config(self, realm: str | None = None, *, config_id: str) -> None:
         """Delete authenticator configuration (async).
         
         Args:
@@ -509,16 +523,16 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If configuration deletion fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             delete_admin_realms_realm_authentication_config_id.asyncio_detailed,
-            realm=realm,
+            realm,
             id=config_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to delete config: {response.status_code}")
 
     # Providers
-    def get_authenticator_providers(self, realm: str | None = None) -> list | None:
+    def get_authenticator_providers(self, realm: str | None = None) -> list[dict[str, Any]] | None:
         """Get authenticator providers (sync).
         
         Args:
@@ -527,12 +541,12 @@ class AuthenticationAPI(BaseAPI):
         Returns:
             List of available authenticator providers
         """
-        return self._sync(
+        return self._sync_ap_list(
             get_admin_realms_realm_authentication_authenticator_providers.sync,
             realm
         )
 
-    async def aget_authenticator_providers(self, realm: str | None = None) -> list | None:
+    async def aget_authenticator_providers(self, realm: str | None = None) -> list[dict[str, Any]] | None:
         """Get authenticator providers (async).
         
         Args:
@@ -541,12 +555,12 @@ class AuthenticationAPI(BaseAPI):
         Returns:
             List of available authenticator providers
         """
-        return await self._async(
+        return await self._async_ap_list(
             get_admin_realms_realm_authentication_authenticator_providers.asyncio,
             realm
         )
 
-    def get_client_authenticator_providers(self, realm: str | None = None) -> list | None:
+    def get_client_authenticator_providers(self, realm: str | None = None) -> list[dict[str, Any]] | None:
         """Get client authenticator providers (sync).
         
         Args:
@@ -555,12 +569,12 @@ class AuthenticationAPI(BaseAPI):
         Returns:
             List of available client authenticator providers
         """
-        return self._sync(
+        return self._sync_ap_list(
             get_admin_realms_realm_authentication_client_authenticator_providers.sync,
             realm
         )
 
-    async def aget_client_authenticator_providers(self, realm: str | None = None) -> list | None:
+    async def aget_client_authenticator_providers(self, realm: str | None = None) -> list[dict[str, Any]] | None:
         """Get client authenticator providers (async).
         
         Args:
@@ -569,12 +583,12 @@ class AuthenticationAPI(BaseAPI):
         Returns:
             List of available client authenticator providers
         """
-        return await self._async(
+        return await self._async_ap_list(
             get_admin_realms_realm_authentication_client_authenticator_providers.asyncio,
             realm
         )
 
-    def get_form_action_providers(self, realm: str | None = None) -> list | None:
+    def get_form_action_providers(self, realm: str | None = None) -> list[dict[str, Any]] | None:
         """Get form action providers (sync).
         
         Args:
@@ -583,12 +597,12 @@ class AuthenticationAPI(BaseAPI):
         Returns:
             List of available form action providers
         """
-        return self._sync(
+        return self._sync_ap_list(
             get_admin_realms_realm_authentication_form_action_providers.sync,
             realm
         )
 
-    async def aget_form_action_providers(self, realm: str | None = None) -> list | None:
+    async def aget_form_action_providers(self, realm: str | None = None) -> list[dict[str, Any]] | None:
         """Get form action providers (async).
         
         Args:
@@ -597,12 +611,12 @@ class AuthenticationAPI(BaseAPI):
         Returns:
             List of available form action providers
         """
-        return await self._async(
+        return await self._async_ap_list(
             get_admin_realms_realm_authentication_form_action_providers.asyncio,
             realm
         )
 
-    def get_form_providers(self, realm: str | None = None) -> list | None:
+    def get_form_providers(self, realm: str | None = None) -> list[dict[str, Any]] | None:
         """Get form providers (sync).
         
         Args:
@@ -611,12 +625,12 @@ class AuthenticationAPI(BaseAPI):
         Returns:
             List of available form providers
         """
-        return self._sync(
+        return self._sync_ap_list(
             get_admin_realms_realm_authentication_form_providers.sync,
             realm
         )
 
-    async def aget_form_providers(self, realm: str | None = None) -> list | None:
+    async def aget_form_providers(self, realm: str | None = None) -> list[dict[str, Any]] | None:
         """Get form providers (async).
         
         Args:
@@ -625,7 +639,7 @@ class AuthenticationAPI(BaseAPI):
         Returns:
             List of available form providers
         """
-        return await self._async(
+        return await self._async_ap_list(
             get_admin_realms_realm_authentication_form_providers.asyncio,
             realm
         )
@@ -663,7 +677,7 @@ class AuthenticationAPI(BaseAPI):
             realm
         )
 
-    def get_required_action(self, realm: str | None = None, alias: str = None) -> RequiredActionProviderRepresentation | None:
+    def get_required_action(self, realm: str | None = None, *, alias: str) -> RequiredActionProviderRepresentation | None:
         """Get a required action by alias (sync).
         
         Args:
@@ -675,11 +689,11 @@ class AuthenticationAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_authentication_required_actions_alias.sync,
-            realm=realm,
+            realm,
             alias=alias
         )
 
-    async def aget_required_action(self, realm: str | None = None, alias: str = None) -> RequiredActionProviderRepresentation | None:
+    async def aget_required_action(self, realm: str | None = None, *, alias: str) -> RequiredActionProviderRepresentation | None:
         """Get a required action by alias (async).
         
         Args:
@@ -691,11 +705,11 @@ class AuthenticationAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_authentication_required_actions_alias.asyncio,
-            realm=realm,
+            realm,
             alias=alias
         )
 
-    def update_required_action(self, realm: str | None = None, alias: str = None, action_data: dict | RequiredActionProviderRepresentation = None) -> None:
+    def update_required_action(self, realm: str | None = None, *, alias: str, action_data: dict | RequiredActionProviderRepresentation) -> None:
         """Update a required action (sync).
         
         Args:
@@ -706,17 +720,17 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If update fails
         """
-        action_obj = action_data if isinstance(action_data, RequiredActionProviderRepresentation) else RequiredActionProviderRepresentation.from_dict(action_data)
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             put_admin_realms_realm_authentication_required_actions_alias.sync_detailed,
-            realm=realm,
-            alias=alias,
-            body=action_obj
+            realm,
+            action_data,
+            RequiredActionProviderRepresentation,
+            alias=alias
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update required action: {response.status_code}")
 
-    async def aupdate_required_action(self, realm: str | None = None, alias: str = None, action_data: dict | RequiredActionProviderRepresentation = None) -> None:
+    async def aupdate_required_action(self, realm: str | None = None, *, alias: str, action_data: dict | RequiredActionProviderRepresentation) -> None:
         """Update a required action (async).
         
         Args:
@@ -727,17 +741,17 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If update fails
         """
-        action_obj = action_data if isinstance(action_data, RequiredActionProviderRepresentation) else RequiredActionProviderRepresentation.from_dict(action_data)
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             put_admin_realms_realm_authentication_required_actions_alias.asyncio_detailed,
-            realm=realm,
-            alias=alias,
-            body=action_obj
+            realm,
+            action_data,
+            RequiredActionProviderRepresentation,
+            alias=alias
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update required action: {response.status_code}")
 
-    def delete_required_action(self, realm: str | None = None, alias: str = None) -> None:
+    def delete_required_action(self, realm: str | None = None, *, alias: str) -> None:
         """Delete a required action (sync).
         
         Args:
@@ -747,15 +761,15 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If deletion fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             delete_admin_realms_realm_authentication_required_actions_alias.sync_detailed,
-            realm=realm,
+            realm,
             alias=alias
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to delete required action: {response.status_code}")
 
-    async def adelete_required_action(self, realm: str | None = None, alias: str = None) -> None:
+    async def adelete_required_action(self, realm: str | None = None, *, alias: str) -> None:
         """Delete a required action (async).
         
         Args:
@@ -765,15 +779,15 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If deletion fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             delete_admin_realms_realm_authentication_required_actions_alias.asyncio_detailed,
-            realm=realm,
+            realm,
             alias=alias
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to delete required action: {response.status_code}")
 
-    def get_unregistered_required_actions(self, realm: str | None = None) -> list | None:
+    def get_unregistered_required_actions(self, realm: str | None = None) -> list[dict[str, str]] | None:
         """Get unregistered required actions (sync).
         
         Args:
@@ -782,12 +796,12 @@ class AuthenticationAPI(BaseAPI):
         Returns:
             List of available but unregistered required actions
         """
-        return self._sync(
+        return self._sync_ap_list(
             get_admin_realms_realm_authentication_unregistered_required_actions.sync,
             realm
         )
 
-    async def aget_unregistered_required_actions(self, realm: str | None = None) -> list | None:
+    async def aget_unregistered_required_actions(self, realm: str | None = None) -> list[dict[str, str]] | None:
         """Get unregistered required actions (async).
         
         Args:
@@ -796,12 +810,12 @@ class AuthenticationAPI(BaseAPI):
         Returns:
             List of available but unregistered required actions
         """
-        return await self._async(
+        return await self._async_ap_list(
             get_admin_realms_realm_authentication_unregistered_required_actions.asyncio,
             realm
         )
 
-    def register_required_action(self, realm: str | None = None, provider_data: dict = None) -> None:
+    def register_required_action(self, realm: str | None = None, *, provider_data: dict | PostAdminRealmsRealmAuthenticationRegisterRequiredActionBody) -> None:
         """Register a required action (sync).
         
         Args:
@@ -811,15 +825,16 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If registration fails
         """
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             post_admin_realms_realm_authentication_register_required_action.sync_detailed,
-            realm=realm,
-            body=provider_data
+            realm,
+            provider_data,
+            PostAdminRealmsRealmAuthenticationRegisterRequiredActionBody
         )
         if response.status_code != 201:
             raise APIError(f"Failed to register required action: {response.status_code}")
 
-    async def aregister_required_action(self, realm: str | None = None, provider_data: dict = None) -> None:
+    async def aregister_required_action(self, realm: str | None = None, *, provider_data: dict | PostAdminRealmsRealmAuthenticationRegisterRequiredActionBody) -> None:
         """Register a required action (async).
         
         Args:
@@ -829,15 +844,16 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If registration fails
         """
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             post_admin_realms_realm_authentication_register_required_action.asyncio_detailed,
-            realm=realm,
-            body=provider_data
+            realm,
+            provider_data,
+            PostAdminRealmsRealmAuthenticationRegisterRequiredActionBody
         )
         if response.status_code != 201:
             raise APIError(f"Failed to register required action: {response.status_code}")
 
-    def lower_required_action_priority(self, realm: str | None = None, alias: str = None) -> None:
+    def lower_required_action_priority(self, realm: str | None = None, *, alias: str) -> None:
         """Lower required action priority (sync).
         
         Args:
@@ -847,15 +863,15 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If priority change fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             post_admin_realms_realm_authentication_required_actions_alias_lower_priority.sync_detailed,
-            realm=realm,
+            realm,
             alias=alias
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to lower required action priority: {response.status_code}")
 
-    async def alower_required_action_priority(self, realm: str | None = None, alias: str = None) -> None:
+    async def alower_required_action_priority(self, realm: str | None = None, *, alias: str) -> None:
         """Lower required action priority (async).
         
         Args:
@@ -865,15 +881,15 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If priority change fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             post_admin_realms_realm_authentication_required_actions_alias_lower_priority.asyncio_detailed,
-            realm=realm,
+            realm,
             alias=alias
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to lower required action priority: {response.status_code}")
 
-    def raise_required_action_priority(self, realm: str | None = None, alias: str = None) -> None:
+    def raise_required_action_priority(self, realm: str | None = None, *, alias: str) -> None:
         """Raise required action priority (sync).
         
         Args:
@@ -883,15 +899,15 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If priority change fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             post_admin_realms_realm_authentication_required_actions_alias_raise_priority.sync_detailed,
-            realm=realm,
+            realm,
             alias=alias
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to raise required action priority: {response.status_code}")
 
-    async def araise_required_action_priority(self, realm: str | None = None, alias: str = None) -> None:
+    async def araise_required_action_priority(self, realm: str | None = None, *, alias: str) -> None:
         """Raise required action priority (async).
         
         Args:
@@ -901,16 +917,16 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If priority change fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             post_admin_realms_realm_authentication_required_actions_alias_raise_priority.asyncio_detailed,
-            realm=realm,
+            realm,
             alias=alias
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to raise required action priority: {response.status_code}")
 
     # Execution management
-    def add_execution(self, realm: str | None = None, flow_alias: str = None, provider: str = None) -> None:
+    def add_execution(self, realm: str | None = None, *, flow_alias: str, provider: str) -> None:
         """Add new authentication execution (sync).
         
         Args:
@@ -921,16 +937,17 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If adding execution fails
         """
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             post_admin_realms_realm_authentication_flows_flow_alias_executions_execution.sync_detailed,
-            realm=realm,
-            flow_alias=flow_alias,
-            body={"provider": provider}
+            realm,
+            {"provider": provider},
+            PostAdminRealmsRealmAuthenticationFlowsFlowAliasExecutionsExecutionBody,
+            flow_alias=flow_alias
         )
         if response.status_code != 201:
             raise APIError(f"Failed to add execution: {response.status_code}")
 
-    async def aadd_execution(self, realm: str | None = None, flow_alias: str = None, provider: str = None) -> None:
+    async def aadd_execution(self, realm: str | None = None, *, flow_alias: str, provider: str) -> None:
         """Add new authentication execution (async).
         
         Args:
@@ -941,16 +958,17 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If adding execution fails
         """
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             post_admin_realms_realm_authentication_flows_flow_alias_executions_execution.asyncio_detailed,
-            realm=realm,
-            flow_alias=flow_alias,
-            body={"provider": provider}
+            realm,
+            {"provider": provider},
+            PostAdminRealmsRealmAuthenticationFlowsFlowAliasExecutionsExecutionBody,
+            flow_alias=flow_alias
         )
         if response.status_code != 201:
             raise APIError(f"Failed to add execution: {response.status_code}")
 
-    def add_flow_execution(self, realm: str | None = None, flow_alias: str = None, flow_data: dict = None) -> None:
+    def add_flow_execution(self, realm: str | None = None, *, flow_alias: str, flow_data: dict) -> None:
         """Add new flow to execution (sync).
         
         Args:
@@ -961,16 +979,17 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If adding flow execution fails
         """
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             post_admin_realms_realm_authentication_flows_flow_alias_executions_flow.sync_detailed,
-            realm=realm,
-            flow_alias=flow_alias,
-            body=flow_data
+            realm,
+            flow_data,
+            PostAdminRealmsRealmAuthenticationFlowsFlowAliasExecutionsFlowBody,
+            flow_alias=flow_alias
         )
         if response.status_code != 201:
             raise APIError(f"Failed to add flow execution: {response.status_code}")
 
-    async def aadd_flow_execution(self, realm: str | None = None, flow_alias: str = None, flow_data: dict = None) -> None:
+    async def aadd_flow_execution(self, realm: str | None = None, *, flow_alias: str, flow_data: dict) -> None:
         """Add new flow to execution (async).
         
         Args:
@@ -981,16 +1000,17 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If adding flow execution fails
         """
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             post_admin_realms_realm_authentication_flows_flow_alias_executions_flow.asyncio_detailed,
-            realm=realm,
-            flow_alias=flow_alias,
-            body=flow_data
+            realm,
+            flow_data,
+            PostAdminRealmsRealmAuthenticationFlowsFlowAliasExecutionsFlowBody,
+            flow_alias=flow_alias
         )
         if response.status_code != 201:
             raise APIError(f"Failed to add flow execution: {response.status_code}")
 
-    def get_execution(self, realm: str | None = None, execution_id: str = None) -> dict | None:
+    def get_execution(self, realm: str | None = None, *, execution_id: str) -> AuthenticationExecutionRepresentation | None:
         """Get execution by ID (sync).
         
         Args:
@@ -1002,11 +1022,11 @@ class AuthenticationAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_authentication_executions_execution_id.sync,
-            realm=realm,
+            realm,
             execution_id=execution_id
         )
 
-    async def aget_execution(self, realm: str | None = None, execution_id: str = None) -> dict | None:
+    async def aget_execution(self, realm: str | None = None, *, execution_id: str) -> AuthenticationExecutionRepresentation | None:
         """Get execution by ID (async).
         
         Args:
@@ -1018,11 +1038,11 @@ class AuthenticationAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_authentication_executions_execution_id.asyncio,
-            realm=realm,
+            realm,
             execution_id=execution_id
         )
 
-    def delete_execution(self, realm: str | None = None, execution_id: str = None) -> None:
+    def delete_execution(self, realm: str | None = None, *, execution_id: str) -> None:
         """Delete execution (sync).
         
         Args:
@@ -1032,15 +1052,15 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If deletion fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             delete_admin_realms_realm_authentication_executions_execution_id.sync_detailed,
-            realm=realm,
+            realm,
             execution_id=execution_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to delete execution: {response.status_code}")
 
-    async def adelete_execution(self, realm: str | None = None, execution_id: str = None) -> None:
+    async def adelete_execution(self, realm: str | None = None, *, execution_id: str) -> None:
         """Delete execution (async).
         
         Args:
@@ -1050,15 +1070,15 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If deletion fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             delete_admin_realms_realm_authentication_executions_execution_id.asyncio_detailed,
-            realm=realm,
+            realm,
             execution_id=execution_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to delete execution: {response.status_code}")
 
-    def create_execution_config(self, realm: str | None = None, execution_id: str = None, config_data: dict = None) -> None:
+    def create_execution_config(self, realm: str | None = None, *, execution_id: str, config_data: dict | AuthenticatorConfigRepresentation) -> None:
         """Create execution configuration (sync).
         
         Args:
@@ -1069,16 +1089,17 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If configuration creation fails
         """
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             post_admin_realms_realm_authentication_executions_execution_id_config.sync_detailed,
-            realm=realm,
-            execution_id=execution_id,
-            body=config_data
+            realm,
+            config_data,
+            AuthenticatorConfigRepresentation,
+            execution_id=execution_id
         )
         if response.status_code != 201:
             raise APIError(f"Failed to create execution config: {response.status_code}")
 
-    async def acreate_execution_config(self, realm: str | None = None, execution_id: str = None, config_data: dict = None) -> None:
+    async def acreate_execution_config(self, realm: str | None = None, *, execution_id: str, config_data: dict | AuthenticatorConfigRepresentation) -> None:
         """Create execution configuration (async).
         
         Args:
@@ -1089,16 +1110,17 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If configuration creation fails
         """
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             post_admin_realms_realm_authentication_executions_execution_id_config.asyncio_detailed,
-            realm=realm,
-            execution_id=execution_id,
-            body=config_data
+            realm,
+            config_data,
+            AuthenticatorConfigRepresentation,
+            execution_id=execution_id
         )
         if response.status_code != 201:
             raise APIError(f"Failed to create execution config: {response.status_code}")
 
-    def lower_execution_priority(self, realm: str | None = None, execution_id: str = None) -> None:
+    def lower_execution_priority(self, realm: str | None = None, *, execution_id: str) -> None:
         """Lower execution priority (sync).
         
         Args:
@@ -1108,15 +1130,15 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If priority change fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             post_admin_realms_realm_authentication_executions_execution_id_lower_priority.sync_detailed,
-            realm=realm,
+            realm,
             execution_id=execution_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to lower execution priority: {response.status_code}")
 
-    async def alower_execution_priority(self, realm: str | None = None, execution_id: str = None) -> None:
+    async def alower_execution_priority(self, realm: str | None = None, *, execution_id: str) -> None:
         """Lower execution priority (async).
         
         Args:
@@ -1126,15 +1148,15 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If priority change fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             post_admin_realms_realm_authentication_executions_execution_id_lower_priority.asyncio_detailed,
-            realm=realm,
+            realm,
             execution_id=execution_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to lower execution priority: {response.status_code}")
 
-    def raise_execution_priority(self, realm: str | None = None, execution_id: str = None) -> None:
+    def raise_execution_priority(self, realm: str | None = None, *, execution_id: str) -> None:
         """Raise execution priority (sync).
         
         Args:
@@ -1144,15 +1166,15 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If priority change fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             post_admin_realms_realm_authentication_executions_execution_id_raise_priority.sync_detailed,
-            realm=realm,
+            realm,
             execution_id=execution_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to raise execution priority: {response.status_code}")
 
-    async def araise_execution_priority(self, realm: str | None = None, execution_id: str = None) -> None:
+    async def araise_execution_priority(self, realm: str | None = None, *, execution_id: str) -> None:
         """Raise execution priority (async).
         
         Args:
@@ -1162,13 +1184,289 @@ class AuthenticationAPI(BaseAPI):
         Raises:
             APIError: If priority change fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             post_admin_realms_realm_authentication_executions_execution_id_raise_priority.asyncio_detailed,
-            realm=realm,
+            realm,
             execution_id=execution_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to raise execution priority: {response.status_code}")
+
+    def get_execution_config(self, realm: str | None = None, *, execution_id: str, config_id: str) -> AuthenticatorConfigRepresentation | None:
+        """Get execution configuration by ID (sync).
+        
+        Args:
+            realm: The realm name
+            execution_id: Execution ID
+            config_id: Configuration ID
+            
+        Returns:
+            Execution configuration
+        """
+        return self._sync(
+            get_admin_realms_realm_authentication_executions_execution_id_config_id.sync,
+            realm,
+            execution_id=execution_id,
+            id=config_id
+        )
+
+    async def aget_execution_config(self, realm: str | None = None, *, execution_id: str, config_id: str) -> AuthenticatorConfigRepresentation | None:
+        """Get execution configuration by ID (async).
+        
+        Args:
+            realm: The realm name
+            execution_id: Execution ID
+            config_id: Configuration ID
+            
+        Returns:
+            Execution configuration
+        """
+        return await self._async(
+            get_admin_realms_realm_authentication_executions_execution_id_config_id.asyncio,
+            realm,
+            execution_id=execution_id,
+            id=config_id
+        )
+
+    def create_execution(self, realm: str | None = None, *, execution_data: dict | AuthenticationExecutionRepresentation) -> None:
+        """Create authentication execution (sync).
+        
+        Args:
+            realm: The realm name
+            execution_data: Execution configuration
+            
+        Raises:
+            APIError: If execution creation fails
+        """
+        response = self._sync_detailed_model(
+            post_admin_realms_realm_authentication_executions.sync_detailed,
+            realm,
+            execution_data,
+            AuthenticationExecutionRepresentation
+        )
+        if response.status_code != 201:
+            raise APIError(f"Failed to create execution: {response.status_code}")
+
+    async def acreate_execution(self, realm: str | None = None, *, execution_data: dict | AuthenticationExecutionRepresentation) -> None:
+        """Create authentication execution (async).
+        
+        Args:
+            realm: The realm name
+            execution_data: Execution configuration
+            
+        Raises:
+            APIError: If execution creation fails
+        """
+        response = await self._async_detailed_model(
+            post_admin_realms_realm_authentication_executions.asyncio_detailed,
+            realm,
+            execution_data,
+            AuthenticationExecutionRepresentation
+        )
+        if response.status_code != 201:
+            raise APIError(f"Failed to create execution: {response.status_code}")
+
+    def get_required_action_config(self, realm: str | None = None, *, alias: str) -> RequiredActionConfigRepresentation | None:
+        """Get required action configuration (sync).
+        
+        Args:
+            realm: The realm name
+            alias: Required action alias
+            
+        Returns:
+            Required action configuration
+        """
+        return self._sync(
+            get_admin_realms_realm_authentication_required_actions_alias_config.sync,
+            realm,
+            alias=alias
+        )
+
+    async def aget_required_action_config(self, realm: str | None = None, *, alias: str) -> RequiredActionConfigRepresentation | None:
+        """Get required action configuration (async).
+        
+        Args:
+            realm: The realm name
+            alias: Required action alias
+            
+        Returns:
+            Required action configuration
+        """
+        return await self._async(
+            get_admin_realms_realm_authentication_required_actions_alias_config.asyncio,
+            realm,
+            alias=alias
+        )
+
+    def update_required_action_config(self, realm: str | None = None, *, alias: str, config_data: dict | RequiredActionConfigRepresentation) -> None:
+        """Update required action configuration (sync).
+        
+        Args:
+            realm: The realm name
+            alias: Required action alias
+            config_data: Updated configuration
+            
+        Raises:
+            APIError: If configuration update fails
+        """
+        response = self._sync_detailed_model(
+            put_admin_realms_realm_authentication_required_actions_alias_config.sync_detailed,
+            realm,
+            config_data,
+            RequiredActionConfigRepresentation,
+            alias=alias
+        )
+        if response.status_code not in (200, 204):
+            raise APIError(f"Failed to update required action config: {response.status_code}")
+
+    async def aupdate_required_action_config(self, realm: str | None = None, *, alias: str, config_data: dict | RequiredActionConfigRepresentation) -> None:
+        """Update required action configuration (async).
+        
+        Args:
+            realm: The realm name
+            alias: Required action alias
+            config_data: Updated configuration
+            
+        Raises:
+            APIError: If configuration update fails
+        """
+        response = await self._async_detailed_model(
+            put_admin_realms_realm_authentication_required_actions_alias_config.asyncio_detailed,
+            realm,
+            config_data,
+            RequiredActionConfigRepresentation,
+            alias=alias
+        )
+        if response.status_code not in (200, 204):
+            raise APIError(f"Failed to update required action config: {response.status_code}")
+
+    def delete_required_action_config(self, realm: str | None = None, *, alias: str) -> None:
+        """Delete required action configuration (sync).
+        
+        Args:
+            realm: The realm name
+            alias: Required action alias
+            
+        Raises:
+            APIError: If configuration deletion fails
+        """
+        response = self._sync(
+            delete_admin_realms_realm_authentication_required_actions_alias_config.sync_detailed,
+            realm,
+            alias=alias
+        )
+        if response.status_code not in (200, 204):
+            raise APIError(f"Failed to delete required action config: {response.status_code}")
+
+    async def adelete_required_action_config(self, realm: str | None = None, *, alias: str) -> None:
+        """Delete required action configuration (async).
+        
+        Args:
+            realm: The realm name
+            alias: Required action alias
+            
+        Raises:
+            APIError: If configuration deletion fails
+        """
+        response = await self._async(
+            delete_admin_realms_realm_authentication_required_actions_alias_config.asyncio_detailed,
+            realm,
+            alias=alias
+        )
+        if response.status_code not in (200, 204):
+            raise APIError(f"Failed to delete required action config: {response.status_code}")
+
+    def get_required_action_config_description(self, realm: str | None = None, *, alias: str) -> RequiredActionConfigInfoRepresentation | None:
+        """Get required action configuration description (sync).
+        
+        Args:
+            realm: The realm name
+            alias: Required action alias
+            
+        Returns:
+            Configuration description
+        """
+        return self._sync(
+            get_admin_realms_realm_authentication_required_actions_alias_config_description.sync,
+            realm,
+            alias=alias
+        )
+
+    async def aget_required_action_config_description(self, realm: str | None = None, *, alias: str) -> RequiredActionConfigInfoRepresentation | None:
+        """Get required action configuration description (async).
+        
+        Args:
+            realm: The realm name
+            alias: Required action alias
+            
+        Returns:
+            Configuration description
+        """
+        return await self._async(
+            get_admin_realms_realm_authentication_required_actions_alias_config_description.asyncio,
+            realm,
+            alias=alias
+        )
+
+    def get_config_description(self, realm: str | None = None, *, provider_id: str) -> AuthenticatorConfigInfoRepresentation | None:
+        """Get authenticator configuration description (sync).
+        
+        Args:
+            realm: The realm name
+            provider_id: Provider ID
+            
+        Returns:
+            Configuration description for the provider
+        """
+        return self._sync(
+            get_admin_realms_realm_authentication_config_description_provider_id.sync,
+            realm,
+            provider_id=provider_id
+        )
+
+    async def aget_config_description(self, realm: str | None = None, *, provider_id: str) -> AuthenticatorConfigInfoRepresentation | None:
+        """Get authenticator configuration description (async).
+        
+        Args:
+            realm: The realm name
+            provider_id: Provider ID
+            
+        Returns:
+            Configuration description for the provider
+        """
+        return await self._async(
+            get_admin_realms_realm_authentication_config_description_provider_id.asyncio,
+            realm,
+            provider_id=provider_id
+        )
+
+    def get_per_client_config_description(self, realm: str | None = None) -> dict[str, Any] | None:
+        """Get per-client configuration description (sync).
+        
+        Args:
+            realm: The realm name
+            
+        Returns:
+            Per-client configuration description
+        """
+        return self._sync_ap(
+            get_admin_realms_realm_authentication_per_client_config_description.sync,
+            realm
+        )
+
+    async def aget_per_client_config_description(self, realm: str | None = None) -> dict[str, Any] | None:
+        """Get per-client configuration description (async).
+        
+        Args:
+            realm: The realm name
+            
+        Returns:
+            Per-client configuration description
+        """
+        return await self._async_ap(
+            get_admin_realms_realm_authentication_per_client_config_description.asyncio,
+            realm
+        )
 
 
 class AuthenticationClientMixin:

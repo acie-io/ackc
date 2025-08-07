@@ -1,17 +1,52 @@
 [project]
 name = "ackc"
-version = "0.8.0"
-description = "Acie's API Client for Keycloak"
+version = "1.0.0"
+description = "API Client for Keycloak"
+authors = [{ name = "Phillip Sitbon", email = "phillip.sitbon@gmail.com"}]
 readme = "readme.md"
+license-files = ["license.md"]
+license = "Apache-2.0"
 requires-python = ">=3.13"
 
-authors = [
-    { name = "Phillip Sitbon", email = "phillip.sitbon@gmail.com"},
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Web Environment",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: Internet",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+keywords = [
+    "keycloak",
+    "api",
+    "client",
+    "authentication",
+    "authorization",
+    "identity",
+    "access management",
+    "openid connect",
+    "oauth2",
+    "sso",
+    "single sign-on",
+    "security",
+    "jwt",
+    "rbac",
+    "identity provider",
+    "enterprise authentication",
 ]
 
 packages = [
     { include = "ackc" },
-    { include = "gen", format = "sdist" },  # NOTE: uv_build doesn't include this as expected
+    { include = "gen", format = "sdist" },
 ]
 
 dependencies = [
@@ -35,10 +70,18 @@ dev = [
 auth-token = "ackc.tool.token:main"
 auth-mc = "ackc.tool.mc:main"
 auth-realm-export = "ackc.tool.export_realm:main"
+ackc-init = "ackc.tool.init:main"
 
-[tool.uv.build-backend]
-module-root = ""
+[tool.hatch.build.targets.wheel.force-include]
+".env.example" = "ackc/.env.example"
+"compose.yaml" = "ackc/compose.yaml"
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+    ".github",
+    ".idea",
+]
 
 [build-system]
-requires = ["uv_build"]
-build-backend = "uv_build"
+requires = ["hatchling"]
+build-backend = "hatchling.build"

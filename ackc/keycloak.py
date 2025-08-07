@@ -26,15 +26,14 @@ class KeycloakClient(KeycloakClientMixin, BaseKeycloakClient):
         client = KeycloakClient()
         users = client.users.get_all("master")
         
-        # Async usage - same client!
+        # Async usage
         async with client:
             users = await client.users.aget_all("master")
-        
+
         # Direct access to generated API still works (not recommended for most use cases):
         from ackc.generated.api.users import get_admin_realms_realm_users
-        users = get_admin_realms_realm_users.sync(realm="master", client=client.client)
+        users = get_admin_realms_realm_users.sync(realm="master", client=client._client)
     """
-    realm: str = "acie"
 
     def _build_url(self, path: str, **params) -> str:
         """Build a complete URL with server, path, and optional query parameters.
@@ -133,6 +132,10 @@ class KeycloakClient(KeycloakClientMixin, BaseKeycloakClient):
     def export_realm_config(self, realm: str | None = None, *, include_users: bool = False) -> dict:
         """Export complete realm configuration for backup or migration.
 
+        Uses Keycloak's native partial export endpoint which includes all realm
+        settings, clients, roles, groups, identity providers, authentication flows,
+        and more. Optionally adds users (not included in native export).
+
         Args:
             realm: Realm name to export (defaults to instance realm)
             include_users: Whether to include users in export (can be large)
@@ -141,48 +144,26 @@ class KeycloakClient(KeycloakClientMixin, BaseKeycloakClient):
             Dictionary containing full realm configuration
         """
         realm = realm or self.realm
-        config = {}
-
-        realm_data = self.realms.get(realm)
-        if realm_data:
-            config["realm"] = realm_data.to_dict()
-
-        clients = self.clients.get_all(realm) or []
-        config["clients"] = [c.to_dict() for c in clients]
-
-        client_scopes = self.client_scopes.get_all(realm) or []
-        config["clientScopes"] = [cs.to_dict() for cs in client_scopes]
-
-        idps = self.identity_providers.get_all(realm) or []
-        config["identityProviders"] = [idp.to_dict() for idp in idps]
-
-        flows = self.authentication.get_flows(realm) or []
-        config["authenticationFlows"] = [f.to_dict() for f in flows]
-
-        actions = self.authentication.get_required_actions(realm) or []
-        config["requiredActions"] = [a.to_dict() for a in actions]
-
-        roles = self.roles.get_all(realm) or []
-        config["roles"] = {"realm": [r.to_dict() for r in roles]}
-
-        groups = self.groups.get_all(realm) or []
-        config["groups"] = groups
-
-        components = self.components.get_all(realm) or []
-        config["components"] = [c.to_dict() for c in components]
-
-        events_config = self.events.get_events_config(realm)
-        if events_config:
-            config["eventsConfig"] = events_config.to_dict()
-
+        
+        realm_rep = self.realms.partial_export(
+            realm=realm,
+            export_clients=True,
+            export_groups_and_roles=True
+        )
+        config = realm_rep.to_dict() if realm_rep else {}
+        
         if include_users:
-            users = self.users.get_all(realm) or []
+            users = self.users.get_all(realm, brief_representation=False) or []
             config["users"] = [u.to_dict() for u in users]
 
         return config
 
     async def aexport_realm_config(self, realm: str | None = None, *, include_users: bool = False) -> dict:
         """Export complete realm configuration for backup or migration (async).
+        
+        Uses Keycloak's native partial export endpoint which includes all realm
+        settings, clients, roles, groups, identity providers, authentication flows,
+        and more. Optionally adds users (not included in native export).
         
         Args:
             realm: Realm name to export (defaults to instance realm)
@@ -192,42 +173,16 @@ class KeycloakClient(KeycloakClientMixin, BaseKeycloakClient):
             Dictionary containing full realm configuration
         """
         realm = realm or self.realm
-        config = {}
-
-        realm_data = await self.realms.aget(realm)
-        if realm_data:
-            config["realm"] = realm_data.to_dict()
-
-        clients = await self.clients.aget_all(realm) or []
-        config["clients"] = [c.to_dict() for c in clients]
-
-        client_scopes = await self.client_scopes.aget_all(realm) or []
-        config["clientScopes"] = [cs.to_dict() for cs in client_scopes]
-
-        idps = await self.identity_providers.aget_all(realm) or []
-        config["identityProviders"] = [idp.to_dict() for idp in idps]
-
-        flows = await self.authentication.aget_flows(realm) or []
-        config["authenticationFlows"] = [f.to_dict() for f in flows]
-
-        actions = await self.authentication.aget_required_actions(realm) or []
-        config["requiredActions"] = [a.to_dict() for a in actions]
-
-        roles = await self.roles.aget_all(realm) or []
-        config["roles"] = {"realm": [r.to_dict() for r in roles]}
-
-        groups = await self.groups.aget_all(realm) or []
-        config["groups"] = groups
-
-        components = await self.components.aget_all(realm) or []
-        config["components"] = [c.to_dict() for c in components]
-
-        events_config = await self.events.aget_events_config(realm)
-        if events_config:
-            config["eventsConfig"] = events_config.to_dict()
-
+        
+        realm_rep = await self.realms.apartial_export(
+            realm=realm,
+            export_clients=True,
+            export_groups_and_roles=True
+        )
+        config = realm_rep.to_dict() if realm_rep else {}
+        
         if include_users:
-            users = await self.users.aget_all(realm) or []
+            users = await self.users.aget_all(realm, brief_representation=False) or []
             config["users"] = [u.to_dict() for u in users]
 
         return config

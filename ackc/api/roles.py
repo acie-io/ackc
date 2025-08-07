@@ -38,13 +38,13 @@ class RolesAPI(BaseAPI):
     """Role management API methods."""
 
     def get_all(
-        self,
-        realm: str | None = None,
-        *,
-        brief_representation: Unset | bool = True,
-        first: Unset | int = UNSET,
-        max: Unset | int = UNSET,
-        search: Unset | str = '',
+            self,
+            realm: str | None = None,
+            *,
+            brief_representation: Unset | bool = True,
+            first: Unset | int = UNSET,
+            max: Unset | int = UNSET,
+            search: Unset | str = '',
     ) -> list[RoleRepresentation] | None:
         """List realm roles.
         
@@ -68,13 +68,13 @@ class RolesAPI(BaseAPI):
         )
 
     async def aget_all(
-        self,
-        realm: str | None = None,
-        *,
-        brief_representation: Unset | bool = True,
-        first: Unset | int = UNSET,
-        max: Unset | int = UNSET,
-        search: Unset | str = '',
+            self,
+            realm: str | None = None,
+            *,
+            brief_representation: Unset | bool = True,
+            first: Unset | int = UNSET,
+            max: Unset | int = UNSET,
+            search: Unset | str = '',
     ) -> list[RoleRepresentation] | None:
         """List realm roles (async).
         
@@ -97,7 +97,7 @@ class RolesAPI(BaseAPI):
             search=search,
         )
 
-    def create(self, realm: str | None = None, role_data: dict | RoleRepresentation = None) -> None:
+    def create(self, realm: str | None = None, *, role_data: dict | RoleRepresentation) -> None:
         """Create a realm role (sync).
         
         Args:
@@ -107,16 +107,16 @@ class RolesAPI(BaseAPI):
         Raises:
             APIError: If role creation fails
         """
-        role_obj = role_data if isinstance(role_data, RoleRepresentation) else RoleRepresentation.from_dict(role_data)
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             post_admin_realms_realm_roles.sync_detailed,
-            realm=realm,
-            body=role_obj
+            realm,
+            role_data,
+            RoleRepresentation
         )
         if response.status_code != 201:
             raise APIError(f"Failed to create role: {response.status_code}")
 
-    async def acreate(self, realm: str | None = None, role_data: dict | RoleRepresentation = None) -> None:
+    async def acreate(self, realm: str | None = None, *, role_data: dict | RoleRepresentation) -> None:
         """Create a realm role (async).
         
         Args:
@@ -126,11 +126,11 @@ class RolesAPI(BaseAPI):
         Raises:
             APIError: If role creation fails
         """
-        role_obj = role_data if isinstance(role_data, RoleRepresentation) else RoleRepresentation.from_dict(role_data)
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             post_admin_realms_realm_roles.asyncio_detailed,
-            realm=realm,
-            body=role_obj
+            realm,
+            role_data,
+            RoleRepresentation
         )
         if response.status_code != 201:
             raise APIError(f"Failed to create role: {response.status_code}")
@@ -147,7 +147,7 @@ class RolesAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_roles_role_name.sync,
-            realm or self.realm,
+            realm,
             role_name=role_name
         )
 
@@ -163,7 +163,7 @@ class RolesAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_roles_role_name.asyncio,
-            realm or self.realm,
+            realm,
             role_name=role_name
         )
 
@@ -178,12 +178,12 @@ class RolesAPI(BaseAPI):
         Raises:
             APIError: If role update fails
         """
-        role_obj = role_data if isinstance(role_data, RoleRepresentation) else RoleRepresentation.from_dict(role_data)
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             put_admin_realms_realm_roles_role_name.sync_detailed,
-            realm or self.realm,
-            role_name=role_name,
-            body=role_obj
+            realm,
+            role_data,
+            RoleRepresentation,
+            role_name=role_name
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update role: {response.status_code}")
@@ -199,12 +199,12 @@ class RolesAPI(BaseAPI):
         Raises:
             APIError: If role update fails
         """
-        role_obj = role_data if isinstance(role_data, RoleRepresentation) else RoleRepresentation.from_dict(role_data)
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             put_admin_realms_realm_roles_role_name.asyncio_detailed,
-            realm or self.realm,
-            role_name=role_name,
-            body=role_obj
+            realm,
+            role_data,
+            RoleRepresentation,
+            role_name=role_name
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update role: {response.status_code}")
@@ -219,9 +219,9 @@ class RolesAPI(BaseAPI):
         Raises:
             APIError: If role deletion fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             delete_admin_realms_realm_roles_role_name.sync_detailed,
-            realm or self.realm,
+            realm,
             role_name=role_name
         )
         if response.status_code not in (200, 204):
@@ -237,9 +237,9 @@ class RolesAPI(BaseAPI):
         Raises:
             APIError: If role deletion fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             delete_admin_realms_realm_roles_role_name.asyncio_detailed,
-            realm or self.realm,
+            realm,
             role_name=role_name
         )
         if response.status_code not in (200, 204):
@@ -257,7 +257,7 @@ class RolesAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_roles_role_name_users.sync,
-            realm or self.realm,
+            realm,
             role_name=role_name
         )
 
@@ -273,40 +273,72 @@ class RolesAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_roles_role_name_users.asyncio,
-            realm or self.realm,
+            realm,
             role_name=role_name
         )
 
-    def get_groups(self, realm: str | None = None, *, role_name: str) -> list | None:
+    def get_groups(
+        self,
+        realm: str | None = None,
+        *,
+        role_name: str,
+        brief_representation: Unset | bool = True,
+        first: Unset | int = UNSET,
+        max: Unset | int = UNSET
+    ) -> list[UserRepresentation] | None:
         """Get groups with this role (sync).
         
         Args:
             realm: The realm name
             role_name: Name of the role
+            brief_representation: Only return basic group info (default True)
+            first: Pagination offset
+            max: Maximum results to return
             
         Returns:
             List of groups that have this role assigned
+
+        NOTE: The return type of this is suspicious, as it returns UserRepresentation objects instead of GroupRepresentation.
+        TODO: Report incorrect return type in the API documentation.
         """
         return self._sync(
             get_admin_realms_realm_roles_role_name_groups.sync,
-            realm or self.realm,
-            role_name=role_name
+            realm,
+            role_name=role_name,
+            brief_representation=brief_representation,
+            first=first,
+            max_=max
         )
 
-    async def aget_groups(self, realm: str | None = None, *, role_name: str) -> list | None:
+    async def aget_groups(
+        self,
+        realm: str | None = None, *,
+        role_name: str, brief_representation: Unset | bool = True,
+        first: Unset | int = UNSET,
+        max: Unset | int = UNSET
+    ) -> list[UserRepresentation] | None:
         """Get groups with this role (async).
         
         Args:
             realm: The realm name
             role_name: Name of the role
+            brief_representation: Only return basic group info (default True)
+            first: Pagination offset
+            max: Maximum results to return
             
         Returns:
             List of groups that have this role assigned
+
+        NOTE: The return type of this is suspicious, as it returns UserRepresentation objects instead of GroupRepresentation.
+        TODO: Report incorrect return type in the API documentation.
         """
         return await self._async(
             get_admin_realms_realm_roles_role_name_groups.asyncio,
-            realm or self.realm,
-            role_name=role_name
+            realm,
+            role_name=role_name,
+            brief_representation=brief_representation,
+            first=first,
+            max_=max
         )
 
     def get_composites(self, realm: str | None = None, *, role_name: str) -> list[RoleRepresentation] | None:
@@ -323,7 +355,7 @@ class RolesAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_roles_role_name_composites.sync,
-            realm or self.realm,
+            realm,
             role_name=role_name
         )
 
@@ -341,7 +373,7 @@ class RolesAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_roles_role_name_composites.asyncio,
-            realm or self.realm,
+            realm,
             role_name=role_name
         )
 
@@ -358,7 +390,7 @@ class RolesAPI(BaseAPI):
         """
         response = self._sync_detailed(
             post_admin_realms_realm_roles_role_name_composites.sync_detailed,
-            realm or self.realm,
+            realm,
             role_name=role_name,
             body=roles
         )
@@ -378,7 +410,7 @@ class RolesAPI(BaseAPI):
         """
         response = await self._async_detailed(
             post_admin_realms_realm_roles_role_name_composites.asyncio_detailed,
-            realm or self.realm,
+            realm,
             role_name=role_name,
             body=roles
         )
@@ -398,7 +430,7 @@ class RolesAPI(BaseAPI):
         """
         response = self._sync_detailed(
             delete_admin_realms_realm_roles_role_name_composites.sync_detailed,
-            realm or self.realm,
+            realm,
             role_name=role_name,
             body=roles
         )
@@ -418,7 +450,7 @@ class RolesAPI(BaseAPI):
         """
         response = await self._async_detailed(
             delete_admin_realms_realm_roles_role_name_composites.asyncio_detailed,
-            realm or self.realm,
+            realm,
             role_name=role_name,
             body=roles
         )
@@ -437,7 +469,7 @@ class RolesAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_roles_role_name_composites_realm.sync,
-            realm or self.realm,
+            realm,
             role_name=role_name
         )
 
@@ -453,16 +485,16 @@ class RolesAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_roles_role_name_composites_realm.asyncio,
-            realm or self.realm,
+            realm,
             role_name=role_name
         )
 
     def get_client_composites(
-        self,
-        realm: str | None = None,
-        *,
-        role_name: str,
-        client_uuid: str
+            self,
+            realm: str | None = None,
+            *,
+            role_name: str,
+            client_uuid: str
     ) -> list[RoleRepresentation] | None:
         """Get client-level composite roles (sync).
         
@@ -476,17 +508,17 @@ class RolesAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_roles_role_name_composites_clients_client_uuid.sync,
-            realm or self.realm,
+            realm,
             role_name=role_name,
             client_uuid=client_uuid
         )
 
     async def aget_client_composites(
-        self,
-        realm: str | None = None,
-        *,
-        role_name: str,
-        client_uuid: str
+            self,
+            realm: str | None = None,
+            *,
+            role_name: str,
+            client_uuid: str
     ) -> list[RoleRepresentation] | None:
         """Get client-level composite roles (async).
         
@@ -500,7 +532,7 @@ class RolesAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_roles_role_name_composites_clients_client_uuid.asyncio,
-            realm or self.realm,
+            realm,
             role_name=role_name,
             client_uuid=client_uuid
         )
@@ -518,7 +550,7 @@ class RolesAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_clients_client_uuid_roles.sync,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid
         )
 
@@ -534,16 +566,16 @@ class RolesAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_clients_client_uuid_roles.asyncio,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid
         )
 
     def create_client_role(
-        self,
-        realm: str | None = None,
-        *,
-        client_uuid: str,
-        role_data: dict | RoleRepresentation
+            self,
+            realm: str | None = None,
+            *,
+            client_uuid: str,
+            role_data: dict | RoleRepresentation
     ) -> None:
         """Create a client role (sync).
         
@@ -555,22 +587,22 @@ class RolesAPI(BaseAPI):
         Raises:
             APIError: If client role creation fails
         """
-        role_obj = role_data if isinstance(role_data, RoleRepresentation) else RoleRepresentation.from_dict(role_data)
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             post_admin_realms_realm_clients_client_uuid_roles.sync_detailed,
-            realm or self.realm,
-            client_uuid=client_uuid,
-            body=role_obj
+            realm,
+            role_data,
+            RoleRepresentation,
+            client_uuid=client_uuid
         )
         if response.status_code != 201:
             raise APIError(f"Failed to create client role: {response.status_code}")
 
     async def acreate_client_role(
-        self,
-        realm: str | None = None,
-        *,
-        client_uuid: str,
-        role_data: dict | RoleRepresentation
+            self,
+            realm: str | None = None,
+            *,
+            client_uuid: str,
+            role_data: dict | RoleRepresentation
     ) -> None:
         """Create a client role (async).
         
@@ -582,22 +614,22 @@ class RolesAPI(BaseAPI):
         Raises:
             APIError: If client role creation fails
         """
-        role_obj = role_data if isinstance(role_data, RoleRepresentation) else RoleRepresentation.from_dict(role_data)
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             post_admin_realms_realm_clients_client_uuid_roles.asyncio_detailed,
-            realm or self.realm,
-            client_uuid=client_uuid,
-            body=role_obj
+            realm,
+            role_data,
+            RoleRepresentation,
+            client_uuid=client_uuid
         )
         if response.status_code != 201:
             raise APIError(f"Failed to create client role: {response.status_code}")
 
     def get_client_role(
-        self,
-        realm: str | None = None,
-        *,
-        client_uuid: str,
-        role_name: str
+            self,
+            realm: str | None = None,
+            *,
+            client_uuid: str,
+            role_name: str
     ) -> RoleRepresentation | None:
         """Get a client role (sync).
         
@@ -611,17 +643,17 @@ class RolesAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_clients_client_uuid_roles_role_name.sync,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
             role_name=role_name
         )
 
     async def aget_client_role(
-        self,
-        realm: str | None = None,
-        *,
-        client_uuid: str,
-        role_name: str
+            self,
+            realm: str | None = None,
+            *,
+            client_uuid: str,
+            role_name: str
     ) -> RoleRepresentation | None:
         """Get a client role (async).
         
@@ -635,18 +667,18 @@ class RolesAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_clients_client_uuid_roles_role_name.asyncio,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
             role_name=role_name
         )
 
     def update_client_role(
-        self,
-        realm: str | None = None,
-        *,
-        client_uuid: str,
-        role_name: str,
-        role_data: dict | RoleRepresentation
+            self,
+            realm: str | None = None,
+            *,
+            client_uuid: str,
+            role_name: str,
+            role_data: dict | RoleRepresentation
     ) -> None:
         """Update a client role (sync).
         
@@ -659,24 +691,24 @@ class RolesAPI(BaseAPI):
         Raises:
             APIError: If client role update fails
         """
-        role_obj = role_data if isinstance(role_data, RoleRepresentation) else RoleRepresentation.from_dict(role_data)
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             put_admin_realms_realm_clients_client_uuid_roles_role_name.sync_detailed,
-            realm or self.realm,
+            realm,
+            role_data,
+            RoleRepresentation,
             client_uuid=client_uuid,
-            role_name=role_name,
-            body=role_obj
+            role_name=role_name
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update client role: {response.status_code}")
 
     async def aupdate_client_role(
-        self,
-        realm: str | None = None,
-        *,
-        client_uuid: str,
-        role_name: str,
-        role_data: dict | RoleRepresentation
+            self,
+            realm: str | None = None,
+            *,
+            client_uuid: str,
+            role_name: str,
+            role_data: dict | RoleRepresentation
     ) -> None:
         """Update a client role (async).
         
@@ -689,23 +721,23 @@ class RolesAPI(BaseAPI):
         Raises:
             APIError: If client role update fails
         """
-        role_obj = role_data if isinstance(role_data, RoleRepresentation) else RoleRepresentation.from_dict(role_data)
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             put_admin_realms_realm_clients_client_uuid_roles_role_name.asyncio_detailed,
-            realm or self.realm,
+            realm,
+            role_data,
+            RoleRepresentation,
             client_uuid=client_uuid,
-            role_name=role_name,
-            body=role_obj
+            role_name=role_name
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update client role: {response.status_code}")
 
     def delete_client_role(
-        self,
-        realm: str | None = None,
-        *,
-        client_uuid: str,
-        role_name: str
+            self,
+            realm: str | None = None,
+            *,
+            client_uuid: str,
+            role_name: str
     ) -> None:
         """Delete a client role (sync).
         
@@ -717,9 +749,9 @@ class RolesAPI(BaseAPI):
         Raises:
             APIError: If client role deletion fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             delete_admin_realms_realm_clients_client_uuid_roles_role_name.sync_detailed,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
             role_name=role_name
         )
@@ -727,11 +759,11 @@ class RolesAPI(BaseAPI):
             raise APIError(f"Failed to delete client role: {response.status_code}")
 
     async def adelete_client_role(
-        self,
-        realm: str | None = None,
-        *,
-        client_uuid: str,
-        role_name: str
+            self,
+            realm: str | None = None,
+            *,
+            client_uuid: str,
+            role_name: str
     ) -> None:
         """Delete a client role (async).
         
@@ -743,9 +775,9 @@ class RolesAPI(BaseAPI):
         Raises:
             APIError: If client role deletion fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             delete_admin_realms_realm_clients_client_uuid_roles_role_name.asyncio_detailed,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
             role_name=role_name
         )
@@ -753,11 +785,11 @@ class RolesAPI(BaseAPI):
             raise APIError(f"Failed to delete client role: {response.status_code}")
 
     def get_client_role_users(
-        self,
-        realm: str | None = None,
-        *,
-        client_uuid: str,
-        role_name: str
+            self,
+            realm: str | None = None,
+            *,
+            client_uuid: str,
+            role_name: str
     ) -> list[UserRepresentation] | None:
         """Get users with client role (sync).
         
@@ -771,17 +803,17 @@ class RolesAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_clients_client_uuid_roles_role_name_users.sync,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
             role_name=role_name
         )
 
     async def aget_client_role_users(
-        self,
-        realm: str | None = None,
-        *,
-        client_uuid: str,
-        role_name: str
+            self,
+            realm: str | None = None,
+            *,
+            client_uuid: str,
+            role_name: str
     ) -> list[UserRepresentation] | None:
         """Get users with client role (async).
         
@@ -795,7 +827,7 @@ class RolesAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_clients_client_uuid_roles_role_name_users.asyncio,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
             role_name=role_name
         )

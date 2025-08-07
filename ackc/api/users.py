@@ -1,5 +1,6 @@
 """User management API methods."""
 from functools import cached_property
+from typing import Any
 
 from .base import BaseAPI
 from ..exceptions import APIError
@@ -198,8 +199,12 @@ class UsersAPI(BaseAPI):
         Raises:
             APIError: If user creation fails
         """
-        user_obj = user_data if isinstance(user_data, UserRepresentation) else UserRepresentation.from_dict(user_data)
-        response = self._sync_detailed(post_admin_realms_realm_users.sync_detailed, realm=realm or self.realm, body=user_obj)
+        response = self._sync_detailed_model(
+            post_admin_realms_realm_users.sync_detailed,
+            realm,
+            user_data,
+            UserRepresentation
+        )
 
         if response.status_code != 201:
             raise APIError(f"Failed to create user: {response.status_code}")
@@ -220,8 +225,12 @@ class UsersAPI(BaseAPI):
         Raises:
             APIError: If user creation fails
         """
-        user_obj = user_data if isinstance(user_data, UserRepresentation) else UserRepresentation.from_dict(user_data)
-        response = await self._async_detailed(post_admin_realms_realm_users.asyncio_detailed, realm=realm or self.realm, body=user_obj)
+        response = await self._async_detailed_model(
+            post_admin_realms_realm_users.asyncio_detailed,
+            realm,
+            user_data,
+            UserRepresentation
+        )
 
         if response.status_code != 201:
             raise APIError(f"Failed to create user: {response.status_code}")
@@ -239,7 +248,7 @@ class UsersAPI(BaseAPI):
         Returns:
             User representation with full details
         """
-        return self._sync(get_admin_realms_realm_users_user_id.sync, realm=realm or self.realm, user_id=user_id)
+        return self._sync(get_admin_realms_realm_users_user_id.sync, realm=realm, user_id=user_id)
     
     async def aget(self, realm: str | None = None, *, user_id: str) -> UserRepresentation | None:
         """Get a user by ID (async).
@@ -251,7 +260,7 @@ class UsersAPI(BaseAPI):
         Returns:
             User representation with full details
         """
-        return await self._async(get_admin_realms_realm_users_user_id.asyncio, realm=realm or self.realm, user_id=user_id)
+        return await self._async(get_admin_realms_realm_users_user_id.asyncio, realm=realm, user_id=user_id)
 
     def update(self, realm: str | None = None, *, user_id: str, user_data: dict | UserRepresentation) -> None:
         """Update a user (sync).
@@ -264,8 +273,13 @@ class UsersAPI(BaseAPI):
         Raises:
             APIError: If user update fails
         """
-        user_obj = user_data if isinstance(user_data, UserRepresentation) else UserRepresentation.from_dict(user_data)
-        response = self._sync_detailed(put_admin_realms_realm_users_user_id.sync_detailed, realm=realm or self.realm, user_id=user_id, body=user_obj)
+        response = self._sync_detailed_model(
+            put_admin_realms_realm_users_user_id.sync_detailed,
+            realm,
+            user_data,
+            UserRepresentation,
+            user_id=user_id
+        )
 
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update user: {response.status_code}")
@@ -281,12 +295,12 @@ class UsersAPI(BaseAPI):
         Raises:
             APIError: If user update fails
         """
-        user_obj = user_data if isinstance(user_data, UserRepresentation) else UserRepresentation.from_dict(user_data)
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             put_admin_realms_realm_users_user_id.asyncio_detailed,
-            realm=realm or self.realm,
-            user_id=user_id,
-            body=user_obj
+            realm,
+            user_data,
+            UserRepresentation,
+            user_id=user_id
         )
 
         if response.status_code not in (200, 204):
@@ -302,12 +316,11 @@ class UsersAPI(BaseAPI):
         Raises:
             APIError: If user deletion fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             delete_admin_realms_realm_users_user_id.sync_detailed,
-            realm=realm or self.realm,
+            realm,
             user_id=user_id
         )
-
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to delete user: {response.status_code}")
 
@@ -321,12 +334,11 @@ class UsersAPI(BaseAPI):
         Raises:
             APIError: If user deletion fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             delete_admin_realms_realm_users_user_id.asyncio_detailed,
-            realm=realm or self.realm,
+            realm,
             user_id=user_id
         )
-
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to delete user: {response.status_code}")
 
@@ -361,7 +373,7 @@ class UsersAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_users_count.sync,
-            realm or self.realm,
+            realm,
             email=email,
             email_verified=email_verified,
             enabled=enabled,
@@ -403,7 +415,7 @@ class UsersAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_users_count.asyncio,
-            realm or self.realm,
+            realm,
             email=email,
             email_verified=email_verified,
             enabled=enabled,
@@ -426,7 +438,7 @@ class UsersAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_users_user_id_groups.sync,
-            realm or self.realm,
+            realm,
             user_id=user_id,
         )
 
@@ -442,7 +454,7 @@ class UsersAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_users_user_id_groups.asyncio,
-            realm or self.realm,
+            realm,
             user_id=user_id,
         )
 
@@ -457,11 +469,11 @@ class UsersAPI(BaseAPI):
         Raises:
             APIError: If adding user to group fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             put_admin_realms_realm_users_user_id_groups_group_id.sync_detailed,
-            realm or self.realm,
+            realm,
             user_id=user_id,
-            group_id=group_id,
+            group_id=group_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to add user to group: {response.status_code}")
@@ -477,11 +489,11 @@ class UsersAPI(BaseAPI):
         Raises:
             APIError: If adding user to group fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             put_admin_realms_realm_users_user_id_groups_group_id.asyncio_detailed,
-            realm or self.realm,
+            realm,
             user_id=user_id,
-            group_id=group_id,
+            group_id=group_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to add user to group: {response.status_code}")
@@ -497,11 +509,11 @@ class UsersAPI(BaseAPI):
         Raises:
             APIError: If removing user from group fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             delete_admin_realms_realm_users_user_id_groups_group_id.sync_detailed,
-            realm or self.realm,
+            realm,
             user_id=user_id,
-            group_id=group_id,
+            group_id=group_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to remove user from group: {response.status_code}")
@@ -517,11 +529,11 @@ class UsersAPI(BaseAPI):
         Raises:
             APIError: If removing user from group fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             delete_admin_realms_realm_users_user_id_groups_group_id.asyncio_detailed,
-            realm or self.realm,
+            realm,
             user_id=user_id,
-            group_id=group_id,
+            group_id=group_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to remove user from group: {response.status_code}")
@@ -545,7 +557,7 @@ class UsersAPI(BaseAPI):
         )
         response = self._sync_detailed(
             put_admin_realms_realm_users_user_id_reset_password.sync_detailed,
-            realm or self.realm,
+            realm,
             user_id=user_id,
             body=credential,
         )
@@ -571,7 +583,7 @@ class UsersAPI(BaseAPI):
         )
         response = await self._async_detailed(
             put_admin_realms_realm_users_user_id_reset_password.asyncio_detailed,
-            realm or self.realm,
+            realm,
             user_id=user_id,
             body=credential,
         )
@@ -589,11 +601,11 @@ class UsersAPI(BaseAPI):
         Raises:
             APIError: If sending verification email fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             put_admin_realms_realm_users_user_id_send_verify_email.sync_detailed,
-            realm or self.realm,
+            realm,
             user_id=user_id,
-            redirect_uri=redirect_uri,
+            redirect_uri=redirect_uri
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to send verification email: {response.status_code}")
@@ -609,11 +621,11 @@ class UsersAPI(BaseAPI):
         Raises:
             APIError: If sending verification email fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             put_admin_realms_realm_users_user_id_send_verify_email.asyncio_detailed,
-            realm or self.realm,
+            realm,
             user_id=user_id,
-            redirect_uri=redirect_uri,
+            redirect_uri=redirect_uri
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to send verification email: {response.status_code}")
@@ -630,7 +642,7 @@ class UsersAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_users_user_id_sessions.sync,
-            realm or self.realm,
+            realm,
             user_id=user_id,
         )
 
@@ -646,7 +658,7 @@ class UsersAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_users_user_id_sessions.asyncio,
-            realm or self.realm,
+            realm,
             user_id=user_id,
         )
 
@@ -660,10 +672,10 @@ class UsersAPI(BaseAPI):
         Raises:
             APIError: If logout operation fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             post_admin_realms_realm_users_user_id_logout.sync_detailed,
-            realm or self.realm,
-            user_id=user_id,
+            realm,
+            user_id=user_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to logout user: {response.status_code}")
@@ -678,10 +690,10 @@ class UsersAPI(BaseAPI):
         Raises:
             APIError: If logout operation fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             post_admin_realms_realm_users_user_id_logout.asyncio_detailed,
-            realm or self.realm,
-            user_id=user_id,
+            realm,
+            user_id=user_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to logout user: {response.status_code}")
@@ -698,7 +710,7 @@ class UsersAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_users_user_id_credentials.sync,
-            realm or self.realm,
+            realm,
             user_id=user_id,
         )
 
@@ -714,7 +726,7 @@ class UsersAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_users_user_id_credentials.asyncio,
-            realm or self.realm,
+            realm,
             user_id=user_id,
         )
 
@@ -729,11 +741,11 @@ class UsersAPI(BaseAPI):
         Raises:
             APIError: If credential deletion fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             delete_admin_realms_realm_users_user_id_credentials_credential_id.sync_detailed,
-            realm or self.realm,
+            realm,
             user_id=user_id,
-            credential_id=credential_id,
+            credential_id=credential_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to delete credential: {response.status_code}")
@@ -749,11 +761,11 @@ class UsersAPI(BaseAPI):
         Raises:
             APIError: If credential deletion fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             delete_admin_realms_realm_users_user_id_credentials_credential_id.asyncio_detailed,
-            realm or self.realm,
+            realm,
             user_id=user_id,
-            credential_id=credential_id,
+            credential_id=credential_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to delete credential: {response.status_code}")
@@ -768,14 +780,12 @@ class UsersAPI(BaseAPI):
         Returns:
             Number of groups the user belongs to
         """
-        result = self._sync(
+        result = self._sync_ap(
             get_admin_realms_realm_users_user_id_groups_count.sync,
-            realm or self.realm,
+            realm,
             user_id=user_id,
         )
-        if result and hasattr(result, 'additional_properties'):
-            return result.additional_properties.get("count")
-        return result["count"] if result and "count" in result else None
+        return result.get("count") if result else None
 
     async def aget_groups_count(self, realm: str | None = None, *, user_id: str) -> int | None:
         """Get count of user's group memberships (async).
@@ -787,14 +797,12 @@ class UsersAPI(BaseAPI):
         Returns:
             Number of groups the user belongs to
         """
-        result = await self._async(
+        result = await self._async_ap(
             get_admin_realms_realm_users_user_id_groups_count.asyncio,
-            realm or self.realm,
+            realm,
             user_id=user_id,
         )
-        if result and hasattr(result, 'additional_properties'):
-            return result.additional_properties.get("count")
-        return result["count"] if result and "count" in result else None
+        return result.get("count") if result else None
 
     def get_consents(self, realm: str | None = None, *, user_id: str) -> list[UserConsentRepresentation] | None:
         """Get user's consents (sync).
@@ -808,7 +816,7 @@ class UsersAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_users_user_id_consents.sync,
-            realm or self.realm,
+            realm,
             user_id=user_id,
         )
 
@@ -824,46 +832,46 @@ class UsersAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_users_user_id_consents.asyncio,
-            realm or self.realm,
+            realm,
             user_id=user_id,
         )
 
-    def revoke_consent(self, realm: str | None = None, *, user_id: str, client: str) -> None:
+    def revoke_consent(self, realm: str | None = None, *, user_id: str, client_path: str) -> None:
         """Revoke user consent for client (sync).
         
         Args:
             realm: The realm name
             user_id: User ID
-            client: Client ID to revoke consent for
+            client_path: Client ID to revoke consent for
             
         Raises:
             APIError: If revoking consent fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             delete_admin_realms_realm_users_user_id_consents_client.sync_detailed,
-            realm or self.realm,
+            realm,
             user_id=user_id,
-            client=client,
+            client_path=client_path
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to revoke consent: {response.status_code}")
 
-    async def arevoke_consent(self, realm: str | None = None, *, user_id: str, client: str) -> None:
+    async def arevoke_consent(self, realm: str | None = None, *, user_id: str, client_path: str) -> None:
         """Revoke user consent for client (async).
         
         Args:
             realm: The realm name
             user_id: User ID
-            client: Client ID to revoke consent for
+            client_path: Client ID to revoke consent for
             
         Raises:
             APIError: If revoking consent fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             delete_admin_realms_realm_users_user_id_consents_client.asyncio_detailed,
-            realm or self.realm,
+            realm,
             user_id=user_id,
-            client=client,
+            client_path=client_path
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to revoke consent: {response.status_code}")
@@ -880,7 +888,7 @@ class UsersAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_users_user_id_federated_identity.sync,
-            realm or self.realm,
+            realm,
             user_id=user_id,
         )
 
@@ -896,11 +904,11 @@ class UsersAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_users_user_id_federated_identity.asyncio,
-            realm or self.realm,
+            realm,
             user_id=user_id,
         )
 
-    def add_federated_identity(self, realm: str | None = None, *, user_id: str, provider: str, rep: dict) -> None:
+    def add_federated_identity(self, realm: str | None = None, *, user_id: str, provider: str, rep: dict | FederatedIdentityRepresentation) -> None:
         """Add federated identity to user (sync).
         
         Args:
@@ -912,17 +920,18 @@ class UsersAPI(BaseAPI):
         Raises:
             APIError: If adding federated identity fails
         """
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             post_admin_realms_realm_users_user_id_federated_identity_provider.sync_detailed,
-            realm or self.realm,
+            realm,
+            rep,
+            FederatedIdentityRepresentation,
             user_id=user_id,
-            provider=provider,
-            body=rep,
+            provider=provider
         )
         if response.status_code not in (200, 201, 204):
             raise APIError(f"Failed to add federated identity: {response.status_code}")
 
-    async def aadd_federated_identity(self, realm: str | None = None, *, user_id: str, provider: str, rep: dict) -> None:
+    async def aadd_federated_identity(self, realm: str | None = None, *, user_id: str, provider: str, rep: dict | FederatedIdentityRepresentation) -> None:
         """Add federated identity to user (async).
         
         Args:
@@ -934,12 +943,13 @@ class UsersAPI(BaseAPI):
         Raises:
             APIError: If adding federated identity fails
         """
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             post_admin_realms_realm_users_user_id_federated_identity_provider.asyncio_detailed,
-            realm or self.realm,
+            realm,
+            rep,
+            FederatedIdentityRepresentation,
             user_id=user_id,
-            provider=provider,
-            body=rep,
+            provider=provider
         )
         if response.status_code not in (200, 201, 204):
             raise APIError(f"Failed to add federated identity: {response.status_code}")
@@ -955,11 +965,11 @@ class UsersAPI(BaseAPI):
         Raises:
             APIError: If removing federated identity fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             delete_admin_realms_realm_users_user_id_federated_identity_provider.sync_detailed,
-            realm or self.realm,
+            realm,
             user_id=user_id,
-            provider=provider,
+            provider=provider
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to remove federated identity: {response.status_code}")
@@ -975,16 +985,16 @@ class UsersAPI(BaseAPI):
         Raises:
             APIError: If removing federated identity fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             delete_admin_realms_realm_users_user_id_federated_identity_provider.asyncio_detailed,
-            realm or self.realm,
+            realm,
             user_id=user_id,
-            provider=provider,
+            provider=provider
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to remove federated identity: {response.status_code}")
 
-    def impersonate(self, realm: str | None = None, *, user_id: str) -> dict | None:
+    def impersonate(self, realm: str | None = None, *, user_id: str) -> dict[str, Any] | None:
         """Impersonate user (sync).
         
         Args:
@@ -994,16 +1004,13 @@ class UsersAPI(BaseAPI):
         Returns:
             Impersonation session details
         """
-        result = self._sync(
+        return self._sync_ap(
             post_admin_realms_realm_users_user_id_impersonation.sync,
-            realm or self.realm,
+            realm,
             user_id=user_id,
         )
-        if result and hasattr(result, 'additional_properties'):
-            return result.additional_properties
-        return result
 
-    async def aimpersonate(self, realm: str | None = None, *, user_id: str) -> dict | None:
+    async def aimpersonate(self, realm: str | None = None, *, user_id: str) -> dict[str, Any] | None:
         """Impersonate user (async).
         
         Args:
@@ -1013,14 +1020,11 @@ class UsersAPI(BaseAPI):
         Returns:
             Impersonation session details
         """
-        result = await self._async(
+        return await self._async_ap(
             post_admin_realms_realm_users_user_id_impersonation.asyncio,
-            realm or self.realm,
+            realm,
             user_id=user_id,
         )
-        if result and hasattr(result, 'additional_properties'):
-            return result.additional_properties
-        return result
 
     def get_offline_sessions(self, realm: str | None = None, *, user_id: str, client_uuid: str) -> list[UserSessionRepresentation] | None:
         """Get user's offline sessions for a client (sync).
@@ -1035,7 +1039,7 @@ class UsersAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_users_user_id_offline_sessions_client_uuid.sync,
-            realm or self.realm,
+            realm,
             user_id=user_id,
             client_uuid=client_uuid,
         )
@@ -1053,7 +1057,7 @@ class UsersAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_users_user_id_offline_sessions_client_uuid.asyncio,
-            realm or self.realm,
+            realm,
             user_id=user_id,
             client_uuid=client_uuid,
         )
@@ -1072,20 +1076,14 @@ class UsersAPI(BaseAPI):
         Raises:
             APIError: If sending execute actions email fails
         """
-        params = {}
-        if redirect_uri:
-            params["redirect_uri"] = redirect_uri
-        if client_id:
-            params["client_id"] = client_id
-        if lifespan:
-            params["lifespan"] = lifespan
-            
         response = self._sync_detailed(
             put_admin_realms_realm_users_user_id_execute_actions_email.sync_detailed,
-            realm or self.realm,
+            realm,
             user_id=user_id,
             body=actions,
-            **params,
+            redirect_uri=redirect_uri,
+            client_id=client_id,
+            lifespan=lifespan,
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to send execute actions email: {response.status_code}")
@@ -1104,20 +1102,14 @@ class UsersAPI(BaseAPI):
         Raises:
             APIError: If sending execute actions email fails
         """
-        params = {}
-        if redirect_uri:
-            params["redirect_uri"] = redirect_uri
-        if client_id:
-            params["client_id"] = client_id
-        if lifespan:
-            params["lifespan"] = lifespan
-            
         response = await self._async_detailed(
             put_admin_realms_realm_users_user_id_execute_actions_email.asyncio_detailed,
-            realm or self.realm,
+            realm,
             user_id=user_id,
             body=actions,
-            **params,
+            redirect_uri=redirect_uri,
+            client_id=client_id,
+            lifespan=lifespan,
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to send execute actions email: {response.status_code}")
@@ -1134,7 +1126,7 @@ class UsersAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_users_user_id_configured_user_storage_credential_types.sync,
-            realm or self.realm,
+            realm,
             user_id=user_id,
         )
 
@@ -1150,7 +1142,7 @@ class UsersAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_users_user_id_configured_user_storage_credential_types.asyncio,
-            realm or self.realm,
+            realm,
             user_id=user_id,
         )
 
@@ -1164,14 +1156,11 @@ class UsersAPI(BaseAPI):
         Returns:
             Dictionary of unmanaged user attributes
         """
-        result = self._sync(
+        return self._sync_ap(
             get_admin_realms_realm_users_user_id_unmanaged_attributes.sync,
-            realm or self.realm,
+            realm,
             user_id=user_id,
         )
-        if result and hasattr(result, 'additional_properties'):
-            return result.additional_properties
-        return result
 
     async def aget_unmanaged_attributes(self, realm: str | None = None, *, user_id: str) -> dict[str, list[str]] | None:
         """Get unmanaged attributes (async).
@@ -1183,14 +1172,11 @@ class UsersAPI(BaseAPI):
         Returns:
             Dictionary of unmanaged user attributes
         """
-        result = await self._async(
+        return await self._async_ap(
             get_admin_realms_realm_users_user_id_unmanaged_attributes.asyncio,
-            realm or self.realm,
+            realm,
             user_id=user_id,
         )
-        if result and hasattr(result, 'additional_properties'):
-            return result.additional_properties
-        return result
 
     def move_credential_after(
         self,
@@ -1211,12 +1197,12 @@ class UsersAPI(BaseAPI):
         Raises:
             APIError: If moving credential fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             post_admin_realms_realm_users_user_id_credentials_credential_id_move_after_new_previous_credential_id.sync_detailed,
-            realm or self.realm,
+            realm,
             user_id=user_id,
             credential_id=credential_id,
-            new_previous_credential_id=new_previous_credential_id,
+            new_previous_credential_id=new_previous_credential_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to move credential: {response.status_code}")
@@ -1240,12 +1226,12 @@ class UsersAPI(BaseAPI):
         Raises:
             APIError: If moving credential fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             post_admin_realms_realm_users_user_id_credentials_credential_id_move_after_new_previous_credential_id.asyncio_detailed,
-            realm or self.realm,
+            realm,
             user_id=user_id,
             credential_id=credential_id,
-            new_previous_credential_id=new_previous_credential_id,
+            new_previous_credential_id=new_previous_credential_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to move credential: {response.status_code}")
@@ -1261,11 +1247,11 @@ class UsersAPI(BaseAPI):
         Raises:
             APIError: If moving credential fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             post_admin_realms_realm_users_user_id_credentials_credential_id_move_to_first.sync_detailed,
-            realm or self.realm,
+            realm,
             user_id=user_id,
-            credential_id=credential_id,
+            credential_id=credential_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to move credential to first: {response.status_code}")
@@ -1281,11 +1267,11 @@ class UsersAPI(BaseAPI):
         Raises:
             APIError: If moving credential fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             post_admin_realms_realm_users_user_id_credentials_credential_id_move_to_first.asyncio_detailed,
-            realm or self.realm,
+            realm,
             user_id=user_id,
-            credential_id=credential_id,
+            credential_id=credential_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to move credential to first: {response.status_code}")
@@ -1303,7 +1289,7 @@ class UsersAPI(BaseAPI):
         """
         response = self._sync_detailed(
             put_admin_realms_realm_users_user_id_disable_credential_types.sync_detailed,
-            realm or self.realm,
+            realm,
             user_id=user_id,
             body=credential_types,
         )
@@ -1323,7 +1309,7 @@ class UsersAPI(BaseAPI):
         """
         response = await self._async_detailed(
             put_admin_realms_realm_users_user_id_disable_credential_types.asyncio_detailed,
-            realm or self.realm,
+            realm,
             user_id=user_id,
             body=credential_types,
         )
@@ -1342,17 +1328,12 @@ class UsersAPI(BaseAPI):
         Raises:
             APIError: If sending reset password email fails
         """
-        params = {}
-        if redirect_uri:
-            params["redirect_uri"] = redirect_uri
-        if client_id:
-            params["client_id"] = client_id
-            
-        response = self._sync_detailed(
+        response = self._sync(
             put_admin_realms_realm_users_user_id_reset_password_email.sync_detailed,
-            realm or self.realm,
+            realm,
             user_id=user_id,
-            **params,
+            redirect_uri=redirect_uri,
+            client_id=client_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to send reset password email: {response.status_code}")
@@ -1369,17 +1350,12 @@ class UsersAPI(BaseAPI):
         Raises:
             APIError: If sending reset password email fails
         """
-        params = {}
-        if redirect_uri:
-            params["redirect_uri"] = redirect_uri
-        if client_id:
-            params["client_id"] = client_id
-            
-        response = await self._async_detailed(
+        response = await self._async(
             put_admin_realms_realm_users_user_id_reset_password_email.asyncio_detailed,
-            realm or self.realm,
+            realm,
             user_id=user_id,
-            **params,
+            redirect_uri=redirect_uri,
+            client_id=client_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to send reset password email: {response.status_code}")
@@ -1395,7 +1371,7 @@ class UsersAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_users_profile.sync,
-            realm or self.realm,
+            realm,
         )
 
     async def aget_profile(self, realm: str | None = None) -> UPConfig | None:
@@ -1409,10 +1385,10 @@ class UsersAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_users_profile.asyncio,
-            realm or self.realm,
+            realm,
         )
 
-    def update_profile(self, realm: str | None = None, *, profile_data: dict) -> None:
+    def update_profile(self, realm: str | None = None, *, profile_data: dict | UPConfig) -> None:
         """Update users profile (sync).
         
         Args:
@@ -1422,15 +1398,16 @@ class UsersAPI(BaseAPI):
         Raises:
             APIError: If profile update fails
         """
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             put_admin_realms_realm_users_profile.sync_detailed,
-            realm or self.realm,
-            body=profile_data,
+            realm,
+            profile_data,
+            UPConfig
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update profile: {response.status_code}")
 
-    async def aupdate_profile(self, realm: str | None = None, *, profile_data: dict) -> None:
+    async def aupdate_profile(self, realm: str | None = None, *, profile_data: dict | UPConfig) -> None:
         """Update users profile (async).
         
         Args:
@@ -1440,10 +1417,11 @@ class UsersAPI(BaseAPI):
         Raises:
             APIError: If profile update fails
         """
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             put_admin_realms_realm_users_profile.asyncio_detailed,
-            realm or self.realm,
-            body=profile_data,
+            realm,
+            profile_data,
+            UPConfig
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update profile: {response.status_code}")
@@ -1459,7 +1437,7 @@ class UsersAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_users_profile_metadata.sync,
-            realm or self.realm,
+            realm,
         )
 
     async def aget_profile_metadata(self, realm: str | None = None) -> UserProfileMetadata | None:
@@ -1473,7 +1451,7 @@ class UsersAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_users_profile_metadata.asyncio,
-            realm or self.realm,
+            realm,
         )
 
 

@@ -1,4 +1,4 @@
-"""Custom exceptions for ACIE Auth client.
+"""Custom exceptions.
 """
 
 

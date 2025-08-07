@@ -44,7 +44,7 @@ class ClientScopesAPI(BaseAPI):
         """
         return await self._async(get_admin_realms_realm_client_scopes.asyncio, realm)
 
-    def create(self, realm: str | None = None, scope_data: dict | ClientScopeRepresentation = None) -> str:
+    def create(self, realm: str | None = None, *, scope_data: dict | ClientScopeRepresentation) -> str:
         """Create a client scope (sync).
         
         Args:
@@ -57,18 +57,18 @@ class ClientScopesAPI(BaseAPI):
         Raises:
             APIError: If client scope creation fails
         """
-        scope_obj = scope_data if isinstance(scope_data, ClientScopeRepresentation) else ClientScopeRepresentation.from_dict(scope_data)
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             post_admin_realms_realm_client_scopes.sync_detailed,
-            realm=realm,
-            body=scope_obj
+            realm,
+            scope_data,
+            ClientScopeRepresentation
         )
         if response.status_code != 201:
             raise APIError(f"Failed to create client scope: {response.status_code}")
         location = response.headers.get("Location", "")
         return location.split("/")[-1] if location else ""
 
-    async def acreate(self, realm: str | None = None, scope_data: dict | ClientScopeRepresentation = None) -> str:
+    async def acreate(self, realm: str | None = None, *, scope_data: dict | ClientScopeRepresentation) -> str:
         """Create a client scope (async).
         
         Args:
@@ -81,18 +81,18 @@ class ClientScopesAPI(BaseAPI):
         Raises:
             APIError: If client scope creation fails
         """
-        scope_obj = scope_data if isinstance(scope_data, ClientScopeRepresentation) else ClientScopeRepresentation.from_dict(scope_data)
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             post_admin_realms_realm_client_scopes.asyncio_detailed,
-            realm=realm,
-            body=scope_obj
+            realm,
+            scope_data,
+            ClientScopeRepresentation
         )
         if response.status_code != 201:
             raise APIError(f"Failed to create client scope: {response.status_code}")
         location = response.headers.get("Location", "")
         return location.split("/")[-1] if location else ""
 
-    def get(self, realm: str | None = None, client_scope_id: str = None) -> ClientScopeRepresentation | None:
+    def get(self, realm: str | None = None, *, client_scope_id: str) -> ClientScopeRepresentation | None:
         """Get a client scope by ID (sync).
         
         Args:
@@ -104,11 +104,11 @@ class ClientScopesAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_client_scopes_client_scope_id.sync,
-            realm=realm,
+            realm,
             client_scope_id=client_scope_id
         )
 
-    async def aget(self, realm: str | None = None, client_scope_id: str = None) -> ClientScopeRepresentation | None:
+    async def aget(self, realm: str | None = None, *, client_scope_id: str) -> ClientScopeRepresentation | None:
         """Get a client scope by ID (async).
         
         Args:
@@ -120,12 +120,12 @@ class ClientScopesAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_client_scopes_client_scope_id.asyncio,
-            realm=realm,
+            realm,
             client_scope_id=client_scope_id
         )
 
-    def update(self, realm: str | None = None, client_scope_id: str = None,
-               scope_data: dict | ClientScopeRepresentation = None) -> None:
+    def update(self, realm: str | None = None, *, client_scope_id: str,
+               scope_data: dict | ClientScopeRepresentation) -> None:
         """Update a client scope (sync).
         
         Args:
@@ -136,18 +136,18 @@ class ClientScopesAPI(BaseAPI):
         Raises:
             APIError: If client scope update fails
         """
-        scope_obj = scope_data if isinstance(scope_data, ClientScopeRepresentation) else ClientScopeRepresentation.from_dict(scope_data)
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             put_admin_realms_realm_client_scopes_client_scope_id.sync_detailed,
-            realm=realm,
-            client_scope_id=client_scope_id,
-            body=scope_obj
+            realm,
+            scope_data,
+            ClientScopeRepresentation,
+            client_scope_id=client_scope_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update client scope: {response.status_code}")
 
-    async def aupdate(self, realm: str | None = None, client_scope_id: str = None,
-                      scope_data: dict | ClientScopeRepresentation = None) -> None:
+    async def aupdate(self, realm: str | None = None, *, client_scope_id: str,
+                      scope_data: dict | ClientScopeRepresentation) -> None:
         """Update a client scope (async).
         
         Args:
@@ -158,17 +158,17 @@ class ClientScopesAPI(BaseAPI):
         Raises:
             APIError: If client scope update fails
         """
-        scope_obj = scope_data if isinstance(scope_data, ClientScopeRepresentation) else ClientScopeRepresentation.from_dict(scope_data)
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             put_admin_realms_realm_client_scopes_client_scope_id.asyncio_detailed,
-            realm=realm,
-            client_scope_id=client_scope_id,
-            body=scope_obj
+            realm,
+            scope_data,
+            ClientScopeRepresentation,
+            client_scope_id=client_scope_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update client scope: {response.status_code}")
 
-    def delete(self, realm: str | None = None, client_scope_id: str = None) -> None:
+    def delete(self, realm: str | None = None, *, client_scope_id: str) -> None:
         """Delete a client scope (sync).
         
         Args:
@@ -178,15 +178,15 @@ class ClientScopesAPI(BaseAPI):
         Raises:
             APIError: If client scope deletion fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             delete_admin_realms_realm_client_scopes_client_scope_id.sync_detailed,
-            realm=realm,
+            realm,
             client_scope_id=client_scope_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to delete client scope: {response.status_code}")
 
-    async def adelete(self, realm: str | None = None, client_scope_id: str = None) -> None:
+    async def adelete(self, realm: str | None = None, *, client_scope_id: str) -> None:
         """Delete a client scope (async).
         
         Args:
@@ -196,9 +196,9 @@ class ClientScopesAPI(BaseAPI):
         Raises:
             APIError: If client scope deletion fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             delete_admin_realms_realm_client_scopes_client_scope_id.asyncio_detailed,
-            realm=realm,
+            realm,
             client_scope_id=client_scope_id
         )
         if response.status_code not in (200, 204):

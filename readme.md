@@ -1,20 +1,32 @@
-# ACKC - Acie API Client for Keycloak
+# 🔑 ACKC: API Client for Keycloak
+
+[![Python Version](https://img.shields.io/pypi/pyversions/ackc?style=flat-square&logo=python&logoColor=white)](https://pypi.org/project/ackc/)
+[![PyPI Version](https://img.shields.io/pypi/v/ackc?style=flat-square&logo=pypi&logoColor=white)](https://pypi.org/project/ackc/)
+[![GitHub Release](https://img.shields.io/github/v/release/acie-io/acic?style=flat-square&logo=github)](https://github.com/acie-io/ackc/releases)
+[![Downloads](https://img.shields.io/pypi/dm/ackc?style=flat-square)](https://pypistats.org/packages/ackc)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/acie-io/ackc)
+
+[//]: # ([![DeepWiki]&#40;https://img.shields.io/badge/DeepWiki-acie--io%2Fackc-blue.svg?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACwAAAAyCAYAAAAnWDnqAAAAAXNSR0IArs4c6QAAA05JREFUaEPtmUtyEzEQhtWTQyQLHNak2AB7ZnyXZMEjXMGeK/AIi+QuHrMnbChYY7MIh8g01fJoopFb0uhhEqqcbWTp06/uv1saEDv4O3n3dV60RfP947Mm9/SQc0ICFQgzfc4CYZoTPAswgSJCCUJUnAAoRHOAUOcATwbmVLWdGoH//PB8mnKqScAhsD0kYP3j/Yt5LPQe2KvcXmGvRHcDnpxfL2zOYJ1mFwrryWTz0advv1Ut4CJgf5uhDuDj5eUcAUoahrdY/56ebRWeraTjMt/00Sh3UDtjgHtQNHwcRGOC98BJEAEymycmYcWwOprTgcB6VZ5JK5TAJ+fXGLBm3FDAmn6oPPjR4rKCAoJCal2eAiQp2x0vxTPB3ALO2CRkwmDy5WohzBDwSEFKRwPbknEggCPB/imwrycgxX2NzoMCHhPkDwqYMr9tRcP5qNrMZHkVnOjRMWwLCcr8ohBVb1OMjxLwGCvjTikrsBOiA6fNyCrm8V1rP93iVPpwaE+gO0SsWmPiXB+jikdf6SizrT5qKasx5j8ABbHpFTx+vFXp9EnYQmLx02h1QTTrl6eDqxLnGjporxl3NL3agEvXdT0WmEost648sQOYAeJS9Q7bfUVoMGnjo4AZdUMQku50McDcMWcBPvr0SzbTAFDfvJqwLzgxwATnCgnp4wDl6Aa+Ax283gghmj+vj7feE2KBBRMW3FzOpLOADl0Isb5587h/U4gGvkt5v60Z1VLG8BhYjbzRwyQZemwAd6cCR5/XFWLYZRIMpX39AR0tjaGGiGzLVyhse5C9RKC6ai42ppWPKiBagOvaYk8lO7DajerabOZP46Lby5wKjw1HCRx7p9sVMOWGzb/vA1hwiWc6jm3MvQDTogQkiqIhJV0nBQBTU+3okKCFDy9WwferkHjtxib7t3xIUQtHxnIwtx4mpg26/HfwVNVDb4oI9RHmx5WGelRVlrtiw43zboCLaxv46AZeB3IlTkwouebTr1y2NjSpHz68WNFjHvupy3q8TFn3Hos2IAk4Ju5dCo8B3wP7VPr/FGaKiG+T+v+TQqIrOqMTL1VdWV1DdmcbO8KXBz6esmYWYKPwDL5b5FA1a0hwapHiom0r/cKaoqr+27/XcrS5UwSMbQAAAABJRU5ErkJggg==&#41;]&#40;https://deepwiki.com/acie-io/ackc&#41;)
 
 A comprehensive Python client library for Keycloak Admin REST API, providing a clean and typed interface for managing Keycloak resources.
+
+The only dependencies are `niquests` for HTTP and `attrs` for data models, making it lightweight and easy to integrate.
 
 ## Overview
 
 ACKC is a fully-typed Python library that wraps Keycloak's Admin REST API.
 
-It provides both synchronous and asynchronous interfaces for all major Keycloak administrative operations, with a focus on developer experience, type safety, and efficiency. The author of this package was also a little fed up with the usual daily slog of CLI login and token acquisition before getting to work, so this library aims to make that process as painless as possible.
+It provides both synchronous and asynchronous interfaces for all major Keycloak administrative operations, with a focus on developer experience, type safety, and efficiency.
+
+The author of this package was also a little fed up with the usual daily slog of CLI login and token acquisition before getting to work, so this library aims to make that process as painless as possible.
 
 ## Features
 
 - **Complete API Coverage**: 100% implementation of all 371 non-deprecated Keycloak Admin API endpoints
-- **Type Safety**: Full type annotations with attrs models for all requests and responses  
-- **Async Support**: Both sync and async methods for all operations
-- **Modern Python**: Built for Python 3.13+ using latest language features
-- **Auto-generated Models**: Generated from Keycloak's OpenAPI specification for accuracy
+- **Type Safety**: Full type annotations with `attrs` models for all requests and responses  
+- **Async Support**: Both sync and async methods for all operations (using the `niquests` library)
+- **Auto-generated Models**: Generated from Keycloak's OpenAPI specification using `openapi-python-client`
+- **CLI Tools**: Handy command-line utilities for common tasks like token acquisition and realm export
 - **Developer Friendly**: Clean API design with explicit parameters and comprehensive docstrings
 - **Multiple Auth Methods**: Support for client credentials, password grant, and device code flows
 
@@ -24,6 +36,12 @@ It provides both synchronous and asynchronous interfaces for all major Keycloak 
 
 ```bash
 uv add ackc
+```
+
+Standalone tool installation is also available:
+
+```bash
+uv tool install --python 3.13 ackc
 ```
 
 ## Quick Start
@@ -146,21 +164,36 @@ asyncio.run(main())
 ACKC includes helpful CLI tools:
 
 ### Get Token
+
+Acquire an access token for Keycloak using client, password, or device code flows.
+Also supports 2FA for password grant using the `--otp`/`--otp-code` options.
+
 ```bash
-auth-token --help
 auth-token --server https://keycloak.example.com --client admin-cli
 ```
 
 ### Export Realm
+Export a realm and associated data to JSON.
+
 ```bash
-auth-realm-export --help
-auth-realm-export --server https://keycloak.example.com --realm my-realm
+auth-realm-export my-realm
 ```
 
 ### Management Commands
+
+Get health status or dump Keycloak prometheus metrics.
+Requires `KC_HEALTH_ENABLED` or `KC_METRICS_ENABLED` to be set in Keycloak.
+
 ```bash
-auth-mc --help
-auth-mc --url http://localhost:9000 --json metrics  # Dump Keycloak prometheus metrics
+auth-mc --url http://localhost:9000 --json metrics 
+```
+
+### Initialize Docker Environment
+
+Creates Keycloak Docker compose.yaml and .env files in the current directory for development.
+
+```bash
+ackc-init 
 ```
 ## Advanced Usage
 
@@ -178,15 +211,15 @@ client = KeycloakClient(
 
 ### Per-Request Realm and Auth Realm Override
 ```python
-# Initialize client for master realm
-client = KeycloakClient(server_url="...", realm="master")
+# Initialize client for custom realm
+client = KeycloakClient(server_url="...", realm="my-realm")
 
 # Override realm for specific calls
 users = client.users.get_all(realm="other-realm")
 
-# Use a different realm for authentication.
-# Recommended for backend production clients to maintain least privilege.
-company_realm = "acie"
+# Use a different realm for API client authentication (master by default).
+# Recommended for backend production clients to maintain least privilege - the admin client should not have access to all realms.
+company_realm = "my-company-realm"
 client = KeycloakClient(server_url="...", auth_realm=company_realm, realm=company_realm)
 ```
 
@@ -226,23 +259,27 @@ python gen/generate_client.py --download
 
 ## License
 
-Private library - part of ACIE ecosystem.
+This project is licensed under the Apache License 2.0. See the [license](license.md) file for details.
 
 ## Contributing
 
-This is currently a private library. For issues or contributions, please contact the ACIE team.
+Contributions are welcome! Please read the [contributing guidelines](contributing.md) for details on how to contribute to this project.
 
 ## See Also
 
 - [Keycloak Documentation](https://www.keycloak.org/documentation)
 - [Keycloak Admin REST API](https://www.keycloak.org/docs-api/latest/rest-api/)
 
+## Appearances
 
-## API Modules
+- [@thomasdarimont/awesome-keycloak](https://github.com/thomasdarimont/awesome-keycloak) (pending)
+
+
+# API Modules
 
 ACKC organizes Keycloak's functionality into logical API modules:
 
-### Users API (`client.users`)
+## Users API (`client.users`)
 Manage users, credentials, roles, and user sessions.
 - Create, read, update, delete users
 - Manage user credentials and password resets
@@ -251,7 +288,7 @@ Manage users, credentials, roles, and user sessions.
 
 [Keycloak Documentation: User Management](https://www.keycloak.org/docs/latest/server_admin/#assembly-managing-users_server_administration_guide)
 
-### Realms API (`client.realms`)
+## Realms API (`client.realms`)
 Configure realms, realm settings, and realm-level operations.
 - Create and configure realms
 - Manage realm settings and themes
@@ -261,7 +298,7 @@ Configure realms, realm settings, and realm-level operations.
 
 [Keycloak Documentation: Realms](https://www.keycloak.org/docs/latest/server_admin/#_configuring-realms)
 
-### Clients API (`client.clients`)
+## Clients API (`client.clients`)
 Manage OAuth2/OIDC clients and their configurations.
 - Create and configure clients
 - Client secrets and registration tokens
@@ -271,7 +308,7 @@ Manage OAuth2/OIDC clients and their configurations.
 
 [Keycloak Documentation: Clients](https://www.keycloak.org/docs/latest/server_admin/#_oidc_clients)
 
-### Roles API (`client.roles`)
+## Roles API (`client.roles`)
 Define and manage realm and client roles.
 - Create realm and client roles
 - Role hierarchies and composites
@@ -280,7 +317,7 @@ Define and manage realm and client roles.
 
 [Keycloak Documentation: Roles](https://www.keycloak.org/docs/latest/server_admin/#proc-creating-realm-roles_server_administration_guide)
 
-### Groups API (`client.groups`)
+## Groups API (`client.groups`)
 Organize users into groups with hierarchical structures.
 - Create and manage groups
 - Group hierarchies and subgroups
@@ -289,7 +326,7 @@ Organize users into groups with hierarchical structures.
 
 [Keycloak Documentation: Groups](https://www.keycloak.org/docs/latest/server_admin/#proc-managing-groups_server_administration_guide)
 
-### Identity Providers API (`client.identity_providers`)
+## Identity Providers API (`client.identity_providers`)
 Configure external identity providers for federation.
 - SAML and OIDC provider configuration
 - Social login providers (Google, GitHub, etc.)
@@ -298,7 +335,7 @@ Configure external identity providers for federation.
 
 [Keycloak Documentation: Identity Providers](https://www.keycloak.org/docs/latest/server_admin/#_identity_broker)
 
-### Authentication API (`client.authentication`)
+## Authentication API (`client.authentication`)
 Customize authentication flows and requirements.
 - Authentication flows and executions
 - Required actions configuration
@@ -307,7 +344,7 @@ Customize authentication flows and requirements.
 
 [Keycloak Documentation: Authentication](https://www.keycloak.org/docs/latest/server_admin/#_authentication-flows)
 
-### Authorization API (`client.authorization`)
+## Authorization API (`client.authorization`)
 Fine-grained authorization using Keycloak Authorization Services.
 - Resource servers and resources
 - Authorization scopes and permissions
@@ -316,7 +353,7 @@ Fine-grained authorization using Keycloak Authorization Services.
 
 [Keycloak Documentation: Authorization Services](https://www.keycloak.org/docs/latest/authorization_services/)
 
-### Client Scopes API (`client.client_scopes`)
+## Client Scopes API (`client.client_scopes`)
 Manage reusable scope configurations for clients.
 - Create and configure client scopes
 - Protocol mappers for scopes
@@ -325,7 +362,7 @@ Manage reusable scope configurations for clients.
 
 [Keycloak Documentation: Client Scopes](https://www.keycloak.org/docs/latest/server_admin/#_client_scopes)
 
-### Protocol Mappers API (`client.protocol_mappers`)
+## Protocol Mappers API (`client.protocol_mappers`)
 Configure how tokens and assertions are populated.
 - Token claim mappings
 - SAML attribute mappings
@@ -334,7 +371,7 @@ Configure how tokens and assertions are populated.
 
 [Keycloak Documentation: Protocol Mappers](https://www.keycloak.org/docs/latest/server_admin/#_protocol-mappers)
 
-### Components API (`client.components`)
+## Components API (`client.components`)
 Manage pluggable components like user storage providers.
 - User storage providers (LDAP, custom)
 - Key providers and keystores
@@ -343,7 +380,7 @@ Manage pluggable components like user storage providers.
 
 [Keycloak Documentation: User Storage](https://www.keycloak.org/docs/latest/server_admin/#_user-storage-federation)
 
-### Sessions API (`client.sessions`)
+## Sessions API (`client.sessions`)
 Monitor and manage active user and client sessions.
 - List active sessions
 - Session statistics
@@ -352,7 +389,7 @@ Monitor and manage active user and client sessions.
 
 [Keycloak Documentation: Sessions](https://www.keycloak.org/docs/latest/server_admin/#managing-user-sessions)
 
-### Events API (`client.events`)
+## Events API (`client.events`)
 Access and configure audit and admin events.
 - Query login and admin events
 - Configure event listeners
@@ -361,7 +398,7 @@ Access and configure audit and admin events.
 
 [Keycloak Documentation: Events](https://www.keycloak.org/docs/latest/server_admin/#configuring-auditing-to-track-events)
 
-### Keys API (`client.keys`)
+## Keys API (`client.keys`)
 Manage realm cryptographic keys.
 - Active signing and encryption keys
 - Key rotation
@@ -370,7 +407,7 @@ Manage realm cryptographic keys.
 
 [Keycloak Documentation: Keys](https://www.keycloak.org/docs/latest/server_admin/#realm_keys)
 
-### Organizations API (`client.organizations`)
+## Organizations API (`client.organizations`)
 Manage organizations (Keycloak 25+).
 - Organization management
 - Organization members
@@ -379,7 +416,7 @@ Manage organizations (Keycloak 25+).
 
 [Keycloak Documentation: Organizations](https://www.keycloak.org/docs/latest/server_admin/#_managing_organizations)
 
-### Scope Mappings API (`client.scope_mappings`)
+## Scope Mappings API (`client.scope_mappings`)
 Manage client and realm scope mappings for users and groups.
 - Realm-level role mappings
 - Client-level role mappings
@@ -388,7 +425,7 @@ Manage client and realm scope mappings for users and groups.
 
 [Keycloak Documentation: Role Mappings](https://www.keycloak.org/docs/latest/server_admin/#_role_mappings)
 
-### Client Role Mappings API (`client.client_role_mappings`)
+## Client Role Mappings API (`client.client_role_mappings`)
 Manage client-specific role assignments.
 - Assign client roles to users
 - Assign client roles to groups
@@ -397,7 +434,7 @@ Manage client-specific role assignments.
 
 [Keycloak Documentation: Client Roles](https://www.keycloak.org/docs/latest/server_admin/#client-roles)
 
-### Role Mapper API (`client.role_mapper`)
+## Role Mapper API (`client.role_mapper`)
 Manage realm-level role assignments.
 - Assign realm roles to users
 - Assign realm roles to groups
@@ -406,7 +443,7 @@ Manage realm-level role assignments.
 
 [Keycloak Documentation: Realm Roles](https://www.keycloak.org/docs/latest/server_admin/#realm-roles)
 
-### Roles by ID API (`client.roles_by_id`)
+## Roles by ID API (`client.roles_by_id`)
 Manage roles using their unique IDs.
 - Role CRUD operations by ID
 - Composite role management by ID
@@ -415,7 +452,7 @@ Manage roles using their unique IDs.
 
 [Keycloak Documentation: Role Management](https://www.keycloak.org/docs/latest/server_admin/#_roles)
 
-### Attack Detection API (`client.attack_detection`)
+## Attack Detection API (`client.attack_detection`)
 Manage brute force attack detection.
 - View brute force status for users
 - Clear brute force flags for users
@@ -424,7 +461,7 @@ Manage brute force attack detection.
 
 [Keycloak Documentation: Attack Detection](https://www.keycloak.org/docs/latest/server_admin/#password-policies)
 
-### Client Initial Access API (`client.client_initial_access`)
+## Client Initial Access API (`client.client_initial_access`)
 Manage initial access tokens for dynamic client registration.
 - Create initial access tokens
 - List active tokens
@@ -433,7 +470,7 @@ Manage initial access tokens for dynamic client registration.
 
 [Keycloak Documentation: Client Registration](https://www.keycloak.org/docs/latest/securing_apps/#_client_registration)
 
-### Client Attribute Certificate API (`client.client_attribute_certificate`)
+## Client Attribute Certificate API (`client.client_attribute_certificate`)
 Manage client certificates and keystores.
 - Generate new certificates
 - Upload certificate chains
@@ -442,7 +479,7 @@ Manage client certificates and keystores.
 
 [Keycloak Documentation: Client Certificates](https://www.keycloak.org/docs/latest/server_admin/#_client-certificate-authentication)
 
-### Client Registration Policy API (`client.client_registration_policy`)
+## Client Registration Policy API (`client.client_registration_policy`)
 Manage policies for dynamic client registration.
 - List available policy providers
 - Configure registration policies
@@ -454,9 +491,7 @@ Manage policies for dynamic client registration.
 # Implementation Status
 
 * **Total API Endpoints**: 371 generated endpoints (excluding 23 deprecated template endpoints)
-* **Categories with Wrappers**: 21 of 21 (100%)  
-* **Endpoints Implemented**: 371 of 371 (100% coverage of non-deprecated APIs)
-* **Response Unwrapping**: Automatic unwrapping of wrapper types for cleaner API
+* **Categories with Wrappers**: 21
 
 | API Module                       | Endpoints | Coverage | Status                                                                                     |
 |----------------------------------|-----------|----------|--------------------------------------------------------------------------------------------|

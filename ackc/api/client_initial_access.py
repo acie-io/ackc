@@ -10,7 +10,12 @@ from ..generated.api.client_initial_access import (
 )
 from ..generated.models import ClientInitialAccessPresentation, ClientInitialAccessCreatePresentation
 
-__all__ = "ClientInitialAccessAPI", "ClientInitialAccessClientMixin"
+__all__ = (
+    "ClientInitialAccessAPI",
+    "ClientInitialAccessClientMixin",
+    "ClientInitialAccessPresentation",
+    "ClientInitialAccessCreatePresentation",
+)
 
 
 class ClientInitialAccessAPI(BaseAPI):
@@ -27,7 +32,7 @@ class ClientInitialAccessAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_clients_initial_access.sync,
-            realm or self.realm
+            realm
         )
 
     async def aget_all(self, realm: str | None = None) -> list[ClientInitialAccessPresentation] | None:
@@ -41,7 +46,7 @@ class ClientInitialAccessAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_clients_initial_access.asyncio,
-            realm or self.realm
+            realm
         )
 
     def create(self, realm: str | None = None, *, config: dict | ClientInitialAccessCreatePresentation) -> ClientInitialAccessPresentation | None:
@@ -56,12 +61,13 @@ class ClientInitialAccessAPI(BaseAPI):
         Returns:
             Created initial access token with the token value
         """
-        config_obj = config if isinstance(config, ClientInitialAccessCreatePresentation) else ClientInitialAccessCreatePresentation.from_dict(config)
-        return self._sync(
-            post_admin_realms_realm_clients_initial_access.sync,
-            realm or self.realm,
-            body=config_obj
+        response = self._sync_detailed_model(
+            post_admin_realms_realm_clients_initial_access.sync_detailed,
+            realm,
+            config,
+            ClientInitialAccessCreatePresentation
         )
+        return response.parsed
 
     async def acreate(self, realm: str | None = None, *, config: dict | ClientInitialAccessCreatePresentation) -> ClientInitialAccessPresentation | None:
         """Create a new client initial access token (async).
@@ -75,12 +81,13 @@ class ClientInitialAccessAPI(BaseAPI):
         Returns:
             Created initial access token with the token value
         """
-        config_obj = config if isinstance(config, ClientInitialAccessCreatePresentation) else ClientInitialAccessCreatePresentation.from_dict(config)
-        return await self._async(
-            post_admin_realms_realm_clients_initial_access.asyncio,
-            realm or self.realm,
-            body=config_obj
+        response = await self._async_detailed_model(
+            post_admin_realms_realm_clients_initial_access.asyncio_detailed,
+            realm,
+            config,
+            ClientInitialAccessCreatePresentation
         )
+        return response.parsed
 
     def delete(self, realm: str | None = None, *, id: str) -> None:
         """Delete a client initial access token.
@@ -92,9 +99,9 @@ class ClientInitialAccessAPI(BaseAPI):
         Raises:
             APIError: If deletion fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             delete_admin_realms_realm_clients_initial_access_id.sync_detailed,
-            realm or self.realm,
+            realm,
             id=id
         )
         if response.status_code not in (200, 204):
@@ -110,9 +117,9 @@ class ClientInitialAccessAPI(BaseAPI):
         Raises:
             APIError: If deletion fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             delete_admin_realms_realm_clients_initial_access_id.asyncio_detailed,
-            realm or self.realm,
+            realm,
             id=id
         )
         if response.status_code not in (200, 204):

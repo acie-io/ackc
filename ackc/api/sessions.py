@@ -27,7 +27,7 @@ class SessionsAPI(BaseAPI):
     """Session management API methods."""
 
     # Realm session operations
-    def get_client_session_stats(self, realm: str | None = None) -> list | None:
+    def get_client_session_stats(self, realm: str | None = None) -> list[dict[str, str]] | None:
         """Get client session statistics for a realm (sync).
         
         Args:
@@ -36,9 +36,9 @@ class SessionsAPI(BaseAPI):
         Returns:
             List of session statistics per client
         """
-        return self._sync(get_admin_realms_realm_client_session_stats.sync, realm)
+        return self._sync_ap_list(get_admin_realms_realm_client_session_stats.sync, realm)
 
-    async def aget_client_session_stats(self, realm: str | None = None) -> list | None:
+    async def aget_client_session_stats(self, realm: str | None = None) -> list[dict[str, str]] | None:
         """Get client session statistics for a realm (async).
         
         Args:
@@ -47,46 +47,50 @@ class SessionsAPI(BaseAPI):
         Returns:
             List of session statistics per client
         """
-        return await self._async(get_admin_realms_realm_client_session_stats.asyncio, realm)
+        return await self._async_ap_list(get_admin_realms_realm_client_session_stats.asyncio, realm)
 
-    def delete_session(self, realm: str | None = None, *, session: str) -> None:
+    def delete_session(self, realm: str | None = None, *, session: str, is_offline: Unset | bool = False) -> None:
         """Delete a session (sync).
         
         Args:
             realm: The realm name
             session: Session ID to delete
+            is_offline: Whether this is an offline session
             
         Raises:
             APIError: If session deletion fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             delete_admin_realms_realm_sessions_session.sync_detailed,
-            realm=realm,
-            session=session
+            realm,
+            session=session,
+            is_offline=is_offline
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to delete session: {response.status_code}")
 
-    async def adelete_session(self, realm: str | None = None, *, session: str) -> None:
+    async def adelete_session(self, realm: str | None = None, *, session: str, is_offline: Unset | bool = False) -> None:
         """Delete a session (async).
         
         Args:
             realm: The realm name
             session: Session ID to delete
+            is_offline: Whether this is an offline session
             
         Raises:
             APIError: If session deletion fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             delete_admin_realms_realm_sessions_session.asyncio_detailed,
-            realm=realm,
-            session=session
+            realm,
+            session=session,
+            is_offline=is_offline
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to delete session: {response.status_code}")
 
     # Client session operations
-    def get_client_session_count(self, realm: str | None = None, *, client_uuid: str) -> int | None:
+    def get_client_session_count(self, realm: str | None = None, *, client_uuid: str) -> dict[str, int] | None:
         """Get session count for a client (sync).
         
         Args:
@@ -94,15 +98,15 @@ class SessionsAPI(BaseAPI):
             client_uuid: Client UUID
             
         Returns:
-            Number of active sessions for the client
+            Dictionary with session count information
         """
-        return self._sync(
+        return self._sync_ap(
             get_admin_realms_realm_clients_client_uuid_session_count.sync,
-            realm=realm,
+            realm,
             client_uuid=client_uuid
         )
 
-    async def aget_client_session_count(self, realm: str | None = None, *, client_uuid: str) -> int | None:
+    async def aget_client_session_count(self, realm: str | None = None, *, client_uuid: str) -> dict[str, int] | None:
         """Get session count for a client (async).
         
         Args:
@@ -110,11 +114,11 @@ class SessionsAPI(BaseAPI):
             client_uuid: Client UUID
             
         Returns:
-            Number of active sessions for the client
+            Dictionary with session count information
         """
-        return await self._async(
+        return await self._async_ap(
             get_admin_realms_realm_clients_client_uuid_session_count.asyncio,
-            realm=realm,
+            realm,
             client_uuid=client_uuid
         )
 
@@ -139,7 +143,7 @@ class SessionsAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_clients_client_uuid_user_sessions.sync,
-            realm=realm,
+            realm,
             client_uuid=client_uuid,
             first=first,
             max_=max,
@@ -166,7 +170,7 @@ class SessionsAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_clients_client_uuid_user_sessions.asyncio,
-            realm=realm,
+            realm,
             client_uuid=client_uuid,
             first=first,
             max_=max,
@@ -193,7 +197,7 @@ class SessionsAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_clients_client_uuid_offline_sessions.sync,
-            realm=realm,
+            realm,
             client_uuid=client_uuid,
             first=first,
             max_=max,
@@ -220,13 +224,13 @@ class SessionsAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_clients_client_uuid_offline_sessions.asyncio,
-            realm=realm,
+            realm,
             client_uuid=client_uuid,
             first=first,
             max_=max,
         )
 
-    def get_client_offline_session_count(self, realm: str | None = None, *, client_uuid: str) -> int | None:
+    def get_client_offline_session_count(self, realm: str | None = None, *, client_uuid: str) -> dict[str, int] | None:
         """Get offline session count for a client (sync).
         
         Args:
@@ -234,15 +238,15 @@ class SessionsAPI(BaseAPI):
             client_uuid: Client UUID
             
         Returns:
-            Number of offline sessions for the client
+            Dictionary with offline session count information
         """
-        return self._sync(
+        return self._sync_ap(
             get_admin_realms_realm_clients_client_uuid_offline_session_count.sync,
-            realm=realm,
+            realm,
             client_uuid=client_uuid
         )
 
-    async def aget_client_offline_session_count(self, realm: str | None = None, *, client_uuid: str) -> int | None:
+    async def aget_client_offline_session_count(self, realm: str | None = None, *, client_uuid: str) -> dict[str, int] | None:
         """Get offline session count for a client (async).
         
         Args:
@@ -250,16 +254,16 @@ class SessionsAPI(BaseAPI):
             client_uuid: Client UUID
             
         Returns:
-            Number of offline sessions for the client
+            Dictionary with offline session count information
         """
-        return await self._async(
+        return await self._async_ap(
             get_admin_realms_realm_clients_client_uuid_offline_session_count.asyncio,
-            realm=realm,
+            realm,
             client_uuid=client_uuid
         )
 
     # User session operations
-    def get_user_sessions(self, realm: str | None = None, *, user_id: str) -> list | None:
+    def get_user_sessions(self, realm: str | None = None, *, user_id: str) -> list[UserSessionRepresentation] | None:
         """Get sessions for a user (sync).
         
         Args:
@@ -271,11 +275,11 @@ class SessionsAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_users_user_id_sessions.sync,
-            realm=realm,
+            realm,
             user_id=user_id
         )
 
-    async def aget_user_sessions(self, realm: str | None = None, *, user_id: str) -> list | None:
+    async def aget_user_sessions(self, realm: str | None = None, *, user_id: str) -> list[UserSessionRepresentation] | None:
         """Get sessions for a user (async).
         
         Args:
@@ -287,11 +291,11 @@ class SessionsAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_users_user_id_sessions.asyncio,
-            realm=realm,
+            realm,
             user_id=user_id
         )
 
-    def get_user_offline_sessions(self, realm: str | None = None, *, user_id: str, client_uuid: str) -> list | None:
+    def get_user_offline_sessions(self, realm: str | None = None, *, user_id: str, client_uuid: str) -> list[UserSessionRepresentation] | None:
         """Get offline sessions for a user and client (sync).
         
         Args:
@@ -304,12 +308,12 @@ class SessionsAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_users_user_id_offline_sessions_client_uuid.sync,
-            realm=realm,
+            realm,
             user_id=user_id,
             client_uuid=client_uuid
         )
 
-    async def aget_user_offline_sessions(self, realm: str | None = None, *, user_id: str, client_uuid: str) -> list | None:
+    async def aget_user_offline_sessions(self, realm: str | None = None, *, user_id: str, client_uuid: str) -> list[UserSessionRepresentation] | None:
         """Get offline sessions for a user and client (async).
         
         Args:
@@ -322,7 +326,7 @@ class SessionsAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_users_user_id_offline_sessions_client_uuid.asyncio,
-            realm=realm,
+            realm,
             user_id=user_id,
             client_uuid=client_uuid
         )

@@ -1,5 +1,6 @@
 """Attack detection API methods."""
 from functools import cached_property
+from typing import Any
 
 from .base import BaseAPI
 from ..exceptions import APIError
@@ -15,7 +16,7 @@ __all__ = "AttackDetectionAPI", "AttackDetectionClientMixin"
 class AttackDetectionAPI(BaseAPI):
     """Attack detection API methods."""
 
-    def get_brute_force_user_status(self, realm: str | None = None, *, user_id: str) -> dict | None:
+    def get_brute_force_user_status(self, realm: str | None = None, *, user_id: str) -> dict[str, Any] | None:
         """Get brute force detection status for a specific user.
         
         Args:
@@ -25,16 +26,13 @@ class AttackDetectionAPI(BaseAPI):
         Returns:
             Dictionary with brute force status including failed login count and disabled status
         """
-        result = self._sync(
+        return self._sync_ap(
             get_admin_realms_realm_attack_detection_brute_force_users_user_id.sync,
-            realm or self.realm,
+            realm,
             user_id=user_id
         )
-        if result and hasattr(result, 'additional_properties'):
-            return result.additional_properties
-        return result
 
-    async def aget_brute_force_user_status(self, realm: str | None = None, *, user_id: str) -> dict | None:
+    async def aget_brute_force_user_status(self, realm: str | None = None, *, user_id: str) -> dict[str, Any] | None:
         """Get brute force detection status for a specific user (async).
         
         Args:
@@ -44,14 +42,11 @@ class AttackDetectionAPI(BaseAPI):
         Returns:
             Dictionary with brute force status including failed login count and disabled status
         """
-        result = await self._async(
+        return await self._async_ap(
             get_admin_realms_realm_attack_detection_brute_force_users_user_id.asyncio,
-            realm or self.realm,
+            realm,
             user_id=user_id
         )
-        if result and hasattr(result, 'additional_properties'):
-            return result.additional_properties
-        return result
 
     def clear_all_brute_force_users(self, realm: str | None = None) -> None:
         """Clear brute force attempts for all users in the realm.
@@ -64,9 +59,9 @@ class AttackDetectionAPI(BaseAPI):
         Raises:
             APIError: If clearing brute force data fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             delete_admin_realms_realm_attack_detection_brute_force_users.sync_detailed,
-            realm or self.realm
+            realm
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to clear brute force users: {response.status_code}")
@@ -82,9 +77,9 @@ class AttackDetectionAPI(BaseAPI):
         Raises:
             APIError: If clearing brute force data fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             delete_admin_realms_realm_attack_detection_brute_force_users.asyncio_detailed,
-            realm or self.realm
+            realm
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to clear brute force users: {response.status_code}")
@@ -101,9 +96,9 @@ class AttackDetectionAPI(BaseAPI):
         Raises:
             APIError: If clearing brute force data fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             delete_admin_realms_realm_attack_detection_brute_force_users_user_id.sync_detailed,
-            realm or self.realm,
+            realm,
             user_id=user_id
         )
         if response.status_code not in (200, 204):
@@ -121,9 +116,9 @@ class AttackDetectionAPI(BaseAPI):
         Raises:
             APIError: If clearing brute force data fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             delete_admin_realms_realm_attack_detection_brute_force_users_user_id.asyncio_detailed,
-            realm or self.realm,
+            realm,
             user_id=user_id
         )
         if response.status_code not in (200, 204):

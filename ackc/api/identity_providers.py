@@ -1,5 +1,7 @@
 """Identity provider management API methods."""
+import json
 from functools import cached_property
+from typing import Any
 
 from .base import BaseAPI
 from ..exceptions import APIError
@@ -58,11 +60,11 @@ class IdentityProvidersAPI(BaseAPI):
         Raises:
             APIError: If creation fails
         """
-        provider_obj = provider_data if isinstance(provider_data, IdentityProviderRepresentation) else IdentityProviderRepresentation.from_dict(provider_data)
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             post_admin_realms_realm_identity_provider_instances.sync_detailed,
-            realm=realm,
-            body=provider_obj
+            realm,
+            provider_data,
+            IdentityProviderRepresentation
         )
         if response.status_code != 201:
             raise APIError(f"Failed to create identity provider: {response.status_code}")
@@ -77,11 +79,11 @@ class IdentityProvidersAPI(BaseAPI):
         Raises:
             APIError: If creation fails
         """
-        provider_obj = provider_data if isinstance(provider_data, IdentityProviderRepresentation) else IdentityProviderRepresentation.from_dict(provider_data)
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             post_admin_realms_realm_identity_provider_instances.asyncio_detailed,
-            realm=realm,
-            body=provider_obj
+            realm,
+            provider_data,
+            IdentityProviderRepresentation
         )
         if response.status_code != 201:
             raise APIError(f"Failed to create identity provider: {response.status_code}")
@@ -98,7 +100,7 @@ class IdentityProvidersAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_identity_provider_instances_alias.sync,
-            realm=realm,
+            realm,
             alias=alias
         )
 
@@ -114,7 +116,7 @@ class IdentityProvidersAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_identity_provider_instances_alias.asyncio,
-            realm=realm,
+            realm,
             alias=alias
         )
 
@@ -129,12 +131,12 @@ class IdentityProvidersAPI(BaseAPI):
         Raises:
             APIError: If update fails
         """
-        provider_obj = provider_data if isinstance(provider_data, IdentityProviderRepresentation) else IdentityProviderRepresentation.from_dict(provider_data)
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             put_admin_realms_realm_identity_provider_instances_alias.sync_detailed,
-            realm=realm,
-            alias=alias,
-            body=provider_obj
+            realm,
+            provider_data,
+            IdentityProviderRepresentation,
+            alias=alias
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update identity provider: {response.status_code}")
@@ -150,12 +152,12 @@ class IdentityProvidersAPI(BaseAPI):
         Raises:
             APIError: If update fails
         """
-        provider_obj = provider_data if isinstance(provider_data, IdentityProviderRepresentation) else IdentityProviderRepresentation.from_dict(provider_data)
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             put_admin_realms_realm_identity_provider_instances_alias.asyncio_detailed,
-            realm=realm,
-            alias=alias,
-            body=provider_obj
+            realm,
+            provider_data,
+            IdentityProviderRepresentation,
+            alias=alias
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update identity provider: {response.status_code}")
@@ -170,9 +172,9 @@ class IdentityProvidersAPI(BaseAPI):
         Raises:
             APIError: If deletion fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             delete_admin_realms_realm_identity_provider_instances_alias.sync_detailed,
-            realm=realm,
+            realm,
             alias=alias
         )
         if response.status_code not in (200, 204):
@@ -188,9 +190,9 @@ class IdentityProvidersAPI(BaseAPI):
         Raises:
             APIError: If deletion fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             delete_admin_realms_realm_identity_provider_instances_alias.asyncio_detailed,
-            realm=realm,
+            realm,
             alias=alias
         )
         if response.status_code not in (200, 204):
@@ -210,7 +212,7 @@ class IdentityProvidersAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_identity_provider_instances_alias_mappers.sync,
-            realm or self.realm,
+            realm,
             alias=alias
         )
 
@@ -228,7 +230,7 @@ class IdentityProvidersAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_identity_provider_instances_alias_mappers.asyncio,
-            realm or self.realm,
+            realm,
             alias=alias
         )
 
@@ -252,15 +254,12 @@ class IdentityProvidersAPI(BaseAPI):
         Raises:
             APIError: If mapper creation fails
         """
-        mapper_obj = (
-            mapper_data if isinstance(mapper_data, IdentityProviderMapperRepresentation)
-            else IdentityProviderMapperRepresentation.from_dict(mapper_data)
-        )
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             post_admin_realms_realm_identity_provider_instances_alias_mappers.sync_detailed,
-            realm or self.realm,
-            alias=alias,
-            body=mapper_obj
+            realm,
+            mapper_data,
+            IdentityProviderMapperRepresentation,
+            alias=alias
         )
         if response.status_code != 201:
             raise APIError(f"Failed to create mapper: {response.status_code}")
@@ -287,15 +286,12 @@ class IdentityProvidersAPI(BaseAPI):
         Raises:
             APIError: If mapper creation fails
         """
-        mapper_obj = (
-            mapper_data if isinstance(mapper_data, IdentityProviderMapperRepresentation)
-            else IdentityProviderMapperRepresentation.from_dict(mapper_data)
-        )
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             post_admin_realms_realm_identity_provider_instances_alias_mappers.asyncio_detailed,
-            realm or self.realm,
-            alias=alias,
-            body=mapper_obj
+            realm,
+            mapper_data,
+            IdentityProviderMapperRepresentation,
+            alias=alias
         )
         if response.status_code != 201:
             raise APIError(f"Failed to create mapper: {response.status_code}")
@@ -315,7 +311,7 @@ class IdentityProvidersAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_identity_provider_instances_alias_mappers_id.sync,
-            realm or self.realm,
+            realm,
             alias=alias,
             id=mapper_id
         )
@@ -333,7 +329,7 @@ class IdentityProvidersAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_identity_provider_instances_alias_mappers_id.asyncio,
-            realm or self.realm,
+            realm,
             alias=alias,
             id=mapper_id
         )
@@ -357,16 +353,13 @@ class IdentityProvidersAPI(BaseAPI):
         Raises:
             APIError: If mapper update fails
         """
-        mapper_obj = (
-            mapper_data if isinstance(mapper_data, IdentityProviderMapperRepresentation)
-            else IdentityProviderMapperRepresentation.from_dict(mapper_data)
-        )
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             put_admin_realms_realm_identity_provider_instances_alias_mappers_id.sync_detailed,
-            realm or self.realm,
+            realm,
+            mapper_data,
+            IdentityProviderMapperRepresentation,
             alias=alias,
-            id=mapper_id,
-            body=mapper_obj
+            id=mapper_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update mapper: {response.status_code}")
@@ -390,16 +383,13 @@ class IdentityProvidersAPI(BaseAPI):
         Raises:
             APIError: If mapper update fails
         """
-        mapper_obj = (
-            mapper_data if isinstance(mapper_data, IdentityProviderMapperRepresentation)
-            else IdentityProviderMapperRepresentation.from_dict(mapper_data)
-        )
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             put_admin_realms_realm_identity_provider_instances_alias_mappers_id.asyncio_detailed,
-            realm or self.realm,
+            realm,
+            mapper_data,
+            IdentityProviderMapperRepresentation,
             alias=alias,
-            id=mapper_id,
-            body=mapper_obj
+            id=mapper_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update mapper: {response.status_code}")
@@ -415,9 +405,9 @@ class IdentityProvidersAPI(BaseAPI):
         Raises:
             APIError: If mapper deletion fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             delete_admin_realms_realm_identity_provider_instances_alias_mappers_id.sync_detailed,
-            realm or self.realm,
+            realm,
             alias=alias,
             id=mapper_id
         )
@@ -435,33 +425,21 @@ class IdentityProvidersAPI(BaseAPI):
         Raises:
             APIError: If mapper deletion fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             delete_admin_realms_realm_identity_provider_instances_alias_mappers_id.asyncio_detailed,
-            realm or self.realm,
+            realm,
             alias=alias,
             id=mapper_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to delete mapper: {response.status_code}")
 
-    def get_mapper_types(self, realm: str | None = None, *, alias: str) -> dict | None:
+    def get_mapper_types(self, realm: str | None = None, *, alias: str) -> dict[str, Any] | None:
         """Get available mapper types (sync).
         
-        Args:
-            realm: The realm name
-            alias: Identity provider alias
-            
-        Returns:
-            Dictionary of available mapper types and their configurations
-        """
-        return self._sync(
-            get_admin_realms_realm_identity_provider_instances_alias_mapper_types.sync,
-            realm or self.realm,
-            alias=alias
-        )
-
-    async def aget_mapper_types(self, realm: str | None = None, *, alias: str) -> dict | None:
-        """Get available mapper types (async).
+        NOTE: This endpoint's OpenAPI spec is broken - it doesn't define a response schema.
+        The actual response needs to be manually extracted from the HTTP response.
+        TODO: Verify actual Keycloak API response format and report OpenAPI spec issue if needed.
         
         Args:
             realm: The realm name
@@ -470,13 +448,39 @@ class IdentityProvidersAPI(BaseAPI):
         Returns:
             Dictionary of available mapper types and their configurations
         """
-        return await self._async(
-            get_admin_realms_realm_identity_provider_instances_alias_mapper_types.asyncio,
-            realm or self.realm,
+        response = self._sync_detailed(
+            get_admin_realms_realm_identity_provider_instances_alias_mapper_types.sync_detailed,
+            realm,
             alias=alias
         )
+        if response.status_code == 200:
+            return json.loads(response.content)
+        return None
 
-    def export(self, realm: str | None = None, *, alias: str, format: str | None = None) -> dict | None:
+    async def aget_mapper_types(self, realm: str | None = None, *, alias: str) -> dict[str, Any] | None:
+        """Get available mapper types (async).
+        
+        NOTE: This endpoint's OpenAPI spec is broken - it doesn't define a response schema.
+        The actual response needs to be manually extracted from the HTTP response.
+        TODO: Verify actual Keycloak API response format and report OpenAPI spec issue if needed.
+        
+        Args:
+            realm: The realm name
+            alias: Identity provider alias
+            
+        Returns:
+            Dictionary of available mapper types and their configurations
+        """
+        response = await self._async_detailed(
+            get_admin_realms_realm_identity_provider_instances_alias_mapper_types.asyncio_detailed,
+            realm,
+            alias=alias
+        )
+        if response.status_code == 200:
+            return json.loads(response.content)
+        return None
+
+    def export(self, realm: str | None = None, *, alias: str, format: str | None = None) -> str | None:
         """Export identity provider configuration (sync).
         
         Args:
@@ -487,17 +491,17 @@ class IdentityProvidersAPI(BaseAPI):
         Returns:
             Exported configuration in requested format
         """
-        params = {}
-        if format:
-            params["format"] = format
-        return self._sync(
-            get_admin_realms_realm_identity_provider_instances_alias_export.sync,
-            realm or self.realm,
+        response = self._sync_detailed(
+            get_admin_realms_realm_identity_provider_instances_alias_export.sync_detailed,
+            realm,
             alias=alias,
-            **params
+            format_=format,
         )
+        if response.status_code == 200:
+            return response.content.decode('utf-8') if response.content else None
+        return None
 
-    async def aexport(self, realm: str | None = None, *, alias: str, format: str | None = None) -> dict | None:
+    async def aexport(self, realm: str | None = None, *, alias: str, format: str | None = None) -> str | None:
         """Export identity provider configuration (async).
         
         Args:
@@ -508,15 +512,15 @@ class IdentityProvidersAPI(BaseAPI):
         Returns:
             Exported configuration in requested format
         """
-        params = {}
-        if format:
-            params["format"] = format
-        return await self._async(
-            get_admin_realms_realm_identity_provider_instances_alias_export.asyncio,
-            realm or self.realm,
+        response = await self._async_detailed(
+            get_admin_realms_realm_identity_provider_instances_alias_export.asyncio_detailed,
+            realm,
             alias=alias,
-            **params
+            format_=format,
         )
+        if response.status_code == 200:
+            return response.content.decode('utf-8') if response.content else None
+        return None
 
     def import_config(self, realm: str | None = None, *, data: dict) -> dict[str, str] | None:
         """Import identity provider from configuration (sync).
@@ -528,14 +532,11 @@ class IdentityProvidersAPI(BaseAPI):
         Returns:
             Import result with created provider details
         """
-        result = self._sync(
+        return self._sync_ap(
             post_admin_realms_realm_identity_provider_import_config.sync,
-            realm or self.realm,
+            realm,
             body=data
         )
-        if result and hasattr(result, 'additional_properties'):
-            return result.additional_properties
-        return result
 
     async def aimport_config(self, realm: str | None = None, *, data: dict) -> dict[str, str] | None:
         """Import identity provider from configuration (async).
@@ -547,14 +548,11 @@ class IdentityProvidersAPI(BaseAPI):
         Returns:
             Import result with created provider details
         """
-        result = await self._async(
+        return await self._async_ap(
             post_admin_realms_realm_identity_provider_import_config.asyncio,
-            realm or self.realm,
+            realm,
             body=data
         )
-        if result and hasattr(result, 'additional_properties'):
-            return result.additional_properties
-        return result
 
 
 class IdentityProvidersClientMixin:

@@ -16,6 +16,7 @@ from ..generated.api.roles_by_id import (
     put_admin_realms_realm_roles_by_id_role_id_management_permissions,
 )
 from ..generated.models import RoleRepresentation, ManagementPermissionReference
+from ..generated.types import UNSET, Unset
 
 __all__ = "RolesByIdAPI", "RolesByIdClientMixin"
 
@@ -35,7 +36,7 @@ class RolesByIdAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_roles_by_id_role_id.sync,
-            realm or self.realm,
+            realm,
             role_id=role_id
         )
 
@@ -51,7 +52,7 @@ class RolesByIdAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_roles_by_id_role_id.asyncio,
-            realm or self.realm,
+            realm,
             role_id=role_id
         )
 
@@ -66,12 +67,12 @@ class RolesByIdAPI(BaseAPI):
         Raises:
             APIError: If role update fails
         """
-        role_obj = role_data if isinstance(role_data, RoleRepresentation) else RoleRepresentation.from_dict(role_data)
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             put_admin_realms_realm_roles_by_id_role_id.sync_detailed,
-            realm or self.realm,
-            role_id=role_id,
-            body=role_obj
+            realm,
+            role_data,
+            RoleRepresentation,
+            role_id=role_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update role: {response.status_code}")
@@ -87,12 +88,12 @@ class RolesByIdAPI(BaseAPI):
         Raises:
             APIError: If role update fails
         """
-        role_obj = role_data if isinstance(role_data, RoleRepresentation) else RoleRepresentation.from_dict(role_data)
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             put_admin_realms_realm_roles_by_id_role_id.asyncio_detailed,
-            realm or self.realm,
-            role_id=role_id,
-            body=role_obj
+            realm,
+            role_data,
+            RoleRepresentation,
+            role_id=role_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update role: {response.status_code}")
@@ -107,9 +108,9 @@ class RolesByIdAPI(BaseAPI):
         Raises:
             APIError: If role deletion fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             delete_admin_realms_realm_roles_by_id_role_id.sync_detailed,
-            realm or self.realm,
+            realm,
             role_id=role_id
         )
         if response.status_code not in (200, 204):
@@ -125,15 +126,15 @@ class RolesByIdAPI(BaseAPI):
         Raises:
             APIError: If role deletion fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             delete_admin_realms_realm_roles_by_id_role_id.asyncio_detailed,
-            realm or self.realm,
+            realm,
             role_id=role_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to delete role: {response.status_code}")
 
-    def get_composites(self, realm: str | None = None, *, role_id: str) -> list[RoleRepresentation] | None:
+    def get_composites(self, realm: str | None = None, *, role_id: str, first: Unset | int = UNSET, max: Unset | int = UNSET, search: Unset | str = UNSET) -> list[RoleRepresentation] | None:
         """Get composite roles for a role (sync).
         
         Composite roles combine permissions from multiple roles.
@@ -141,17 +142,23 @@ class RolesByIdAPI(BaseAPI):
         Args:
             realm: The realm name
             role_id: Role ID
+            first: Pagination offset
+            max: Maximum results
+            search: Search string
             
         Returns:
             List of composite roles that make up this role
         """
         return self._sync(
             get_admin_realms_realm_roles_by_id_role_id_composites.sync,
-            realm or self.realm,
-            role_id=role_id
+            realm,
+            role_id=role_id,
+            first=first,
+            max_=max,
+            search=search
         )
 
-    async def aget_composites(self, realm: str | None = None, *, role_id: str) -> list[RoleRepresentation] | None:
+    async def aget_composites(self, realm: str | None = None, *, role_id: str, first: Unset | int = UNSET, max: Unset | int = UNSET, search: Unset | str = UNSET) -> list[RoleRepresentation] | None:
         """Get composite roles for a role (async).
         
         Composite roles combine permissions from multiple roles.
@@ -159,14 +166,20 @@ class RolesByIdAPI(BaseAPI):
         Args:
             realm: The realm name
             role_id: Role ID
+            first: Pagination offset
+            max: Maximum results
+            search: Search string
             
         Returns:
             List of composite roles that make up this role
         """
         return await self._async(
             get_admin_realms_realm_roles_by_id_role_id_composites.asyncio,
-            realm or self.realm,
-            role_id=role_id
+            realm,
+            role_id=role_id,
+            first=first,
+            max_=max,
+            search=search
         )
 
     def get_realm_composites(self, realm: str | None = None, *, role_id: str) -> list[RoleRepresentation] | None:
@@ -181,7 +194,7 @@ class RolesByIdAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_roles_by_id_role_id_composites_realm.sync,
-            realm or self.realm,
+            realm,
             role_id=role_id
         )
 
@@ -197,7 +210,7 @@ class RolesByIdAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_roles_by_id_role_id_composites_realm.asyncio,
-            realm or self.realm,
+            realm,
             role_id=role_id
         )
 
@@ -214,7 +227,7 @@ class RolesByIdAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_roles_by_id_role_id_composites_clients_client_uuid.sync,
-            realm or self.realm,
+            realm,
             role_id=role_id,
             client_uuid=client_uuid
         )
@@ -232,7 +245,7 @@ class RolesByIdAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_roles_by_id_role_id_composites_clients_client_uuid.asyncio,
-            realm or self.realm,
+            realm,
             role_id=role_id,
             client_uuid=client_uuid
         )
@@ -250,7 +263,7 @@ class RolesByIdAPI(BaseAPI):
         """
         response = self._sync_detailed(
             post_admin_realms_realm_roles_by_id_role_id_composites.sync_detailed,
-            realm or self.realm,
+            realm,
             role_id=role_id,
             body=roles
         )
@@ -270,7 +283,7 @@ class RolesByIdAPI(BaseAPI):
         """
         response = await self._async_detailed(
             post_admin_realms_realm_roles_by_id_role_id_composites.asyncio_detailed,
-            realm or self.realm,
+            realm,
             role_id=role_id,
             body=roles
         )
@@ -290,7 +303,7 @@ class RolesByIdAPI(BaseAPI):
         """
         response = self._sync_detailed(
             delete_admin_realms_realm_roles_by_id_role_id_composites.sync_detailed,
-            realm or self.realm,
+            realm,
             role_id=role_id,
             body=roles
         )
@@ -310,7 +323,7 @@ class RolesByIdAPI(BaseAPI):
         """
         response = await self._async_detailed(
             delete_admin_realms_realm_roles_by_id_role_id_composites.asyncio_detailed,
-            realm or self.realm,
+            realm,
             role_id=role_id,
             body=roles
         )
@@ -329,7 +342,7 @@ class RolesByIdAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_roles_by_id_role_id_management_permissions.sync,
-            realm or self.realm,
+            realm,
             role_id=role_id
         )
 
@@ -345,7 +358,7 @@ class RolesByIdAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_roles_by_id_role_id_management_permissions.asyncio,
-            realm or self.realm,
+            realm,
             role_id=role_id
         )
 
@@ -360,13 +373,16 @@ class RolesByIdAPI(BaseAPI):
         Returns:
             Updated management permission reference
         """
-        ref_obj = ref if isinstance(ref, ManagementPermissionReference) else ManagementPermissionReference.from_dict(ref)
-        return self._sync(
-            put_admin_realms_realm_roles_by_id_role_id_management_permissions.sync,
-            realm or self.realm,
-            role_id=role_id,
-            body=ref_obj
+        response = self._sync_detailed_model(
+            put_admin_realms_realm_roles_by_id_role_id_management_permissions.sync_detailed,
+            realm,
+            ref,
+            ManagementPermissionReference,
+            role_id=role_id
         )
+        if response.status_code not in (200, 204):
+            raise APIError(f"Failed to update management permissions: {response.status_code}")
+        return response.parsed
 
     async def aupdate_management_permissions(self, realm: str | None = None, *, role_id: str, ref: dict | ManagementPermissionReference) -> ManagementPermissionReference | None:
         """Update management permissions for a role (async).
@@ -379,13 +395,16 @@ class RolesByIdAPI(BaseAPI):
         Returns:
             Updated management permission reference
         """
-        ref_obj = ref if isinstance(ref, ManagementPermissionReference) else ManagementPermissionReference.from_dict(ref)
-        return await self._async(
-            put_admin_realms_realm_roles_by_id_role_id_management_permissions.asyncio,
-            realm or self.realm,
-            role_id=role_id,
-            body=ref_obj
+        response = await self._async_detailed_model(
+            put_admin_realms_realm_roles_by_id_role_id_management_permissions.asyncio_detailed,
+            realm,
+            ref,
+            ManagementPermissionReference,
+            role_id=role_id
         )
+        if response.status_code not in (200, 204):
+            raise APIError(f"Failed to update management permissions: {response.status_code}")
+        return response.parsed
 
 
 class RolesByIdClientMixin:

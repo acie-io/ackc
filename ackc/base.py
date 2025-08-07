@@ -48,7 +48,7 @@ class BaseKeycloakClient(BaseClientManager):
             server_url: Keycloak server URL (default: KEYCLOAK_URL)
             client_id: OAuth2 client ID (default: KEYCLOAK_CLIENT_ID)
             client_secret: OAuth2 client secret (default: KEYCLOAK_CLIENT_SECRET)
-            auth_realm: Realm to authenticate against (default: KEYCLOAK_AUTH_REALM or realm)
+            auth_realm: Realm to authenticate against (default: KEYCLOAK_AUTH_REALM or "master")
             verify_ssl: Whether to verify SSL certificates (default: True)
             timeout: Request timeout in seconds (default: 30.0)
             headers: Custom headers to include in requests
@@ -62,7 +62,7 @@ class BaseKeycloakClient(BaseClientManager):
         self._server_url = server_url or env.KEYCLOAK_URL
         self._client_id = client_id or env.KEYCLOAK_CLIENT_ID
         self._client_secret = client_secret or env.KEYCLOAK_CLIENT_SECRET
-        self._auth_realm = auth_realm or env.KEYCLOAK_AUTH_REALM or self.realm
+        self._auth_realm = auth_realm or env.KEYCLOAK_AUTH_REALM or "master"
         self._refresh_buffer_seconds = refresh_buffer_seconds or 60
 
         if not self._client_id or not self._client_secret:

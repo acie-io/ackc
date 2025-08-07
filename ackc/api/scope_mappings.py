@@ -51,7 +51,7 @@ class ScopeMappingsAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_clients_client_uuid_scope_mappings.sync,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid
         )
 
@@ -59,7 +59,7 @@ class ScopeMappingsAPI(BaseAPI):
         """Get all scope mappings for a client (async)."""
         return await self._async(
             get_admin_realms_realm_clients_client_uuid_scope_mappings.asyncio,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid
         )
 
@@ -75,7 +75,7 @@ class ScopeMappingsAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_clients_client_uuid_scope_mappings_realm.sync,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid
         )
 
@@ -83,7 +83,7 @@ class ScopeMappingsAPI(BaseAPI):
         """Get realm-level scope mappings for a client (async)."""
         return await self._async(
             get_admin_realms_realm_clients_client_uuid_scope_mappings_realm.asyncio,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid
         )
 
@@ -99,7 +99,7 @@ class ScopeMappingsAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_clients_client_uuid_scope_mappings_realm_available.sync,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid
         )
 
@@ -107,11 +107,11 @@ class ScopeMappingsAPI(BaseAPI):
         """Get available realm-level scope mappings for a client (async)."""
         return await self._async(
             get_admin_realms_realm_clients_client_uuid_scope_mappings_realm_available.asyncio,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid
         )
 
-    def get_client_realm_scope_mappings_composite(self, realm: str | None = None, *, client_uuid: str) -> list[RoleRepresentation] | None:
+    def get_client_realm_scope_mappings_composite(self, realm: str | None = None, *, client_uuid: str, brief_representation: Unset | bool = True) -> list[RoleRepresentation] | None:
         """Get composite realm-level scope mappings for a client.
         
         Includes roles in scope directly and through composite roles.
@@ -119,22 +119,25 @@ class ScopeMappingsAPI(BaseAPI):
         Args:
             realm: The realm name
             client_uuid: Client UUID
+            brief_representation: Return brief representation (default True)
             
         Returns:
             List of effective realm roles in the client's scope
         """
         return self._sync(
             get_admin_realms_realm_clients_client_uuid_scope_mappings_realm_composite.sync,
-            realm or self.realm,
-            client_uuid=client_uuid
+            realm,
+            client_uuid=client_uuid,
+            brief_representation=brief_representation
         )
 
-    async def aget_client_realm_scope_mappings_composite(self, realm: str | None = None, *, client_uuid: str) -> list[RoleRepresentation] | None:
+    async def aget_client_realm_scope_mappings_composite(self, realm: str | None = None, *, client_uuid: str, brief_representation: Unset | bool = True) -> list[RoleRepresentation] | None:
         """Get composite realm-level scope mappings for a client (async)."""
         return await self._async(
             get_admin_realms_realm_clients_client_uuid_scope_mappings_realm_composite.asyncio,
-            realm or self.realm,
-            client_uuid=client_uuid
+            realm,
+            client_uuid=client_uuid,
+            brief_representation=brief_representation
         )
 
     def add_client_realm_scope_mappings(self, realm: str | None = None, *, client_uuid: str, roles: list[RoleRepresentation]) -> None:
@@ -150,7 +153,7 @@ class ScopeMappingsAPI(BaseAPI):
         """
         response = self._sync_detailed(
             post_admin_realms_realm_clients_client_uuid_scope_mappings_realm.sync_detailed,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
             body=roles
         )
@@ -161,7 +164,7 @@ class ScopeMappingsAPI(BaseAPI):
         """Add realm-level scope mappings to a client (async)."""
         response = await self._async_detailed(
             post_admin_realms_realm_clients_client_uuid_scope_mappings_realm.asyncio_detailed,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
             body=roles
         )
@@ -181,7 +184,7 @@ class ScopeMappingsAPI(BaseAPI):
         """
         response = self._sync_detailed(
             delete_admin_realms_realm_clients_client_uuid_scope_mappings_realm.sync_detailed,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
             body=roles
         )
@@ -192,7 +195,7 @@ class ScopeMappingsAPI(BaseAPI):
         """Remove realm-level scope mappings from a client (async)."""
         response = await self._async_detailed(
             delete_admin_realms_realm_clients_client_uuid_scope_mappings_realm.asyncio_detailed,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
             body=roles
         )
@@ -203,63 +206,63 @@ class ScopeMappingsAPI(BaseAPI):
         """Get client-level scope mappings for a client."""
         return self._sync(
             get_admin_realms_realm_clients_client_uuid_scope_mappings_clients_client.sync,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
-            client=client
+            client_path=client
         )
 
     async def aget_client_client_scope_mappings(self, realm: str | None = None, *, client_uuid: str, client: str) -> list[RoleRepresentation] | None:
         """Get client-level scope mappings for a client (async)."""
         return await self._async(
             get_admin_realms_realm_clients_client_uuid_scope_mappings_clients_client.asyncio,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
-            client=client
+            client_path=client
         )
 
     def get_client_client_scope_mappings_available(self, realm: str | None = None, *, client_uuid: str, client: str) -> list[RoleRepresentation] | None:
         """Get available client-level scope mappings for a client."""
         return self._sync(
             get_admin_realms_realm_clients_client_uuid_scope_mappings_clients_client_available.sync,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
-            client=client
+            client_path=client
         )
 
     async def aget_client_client_scope_mappings_available(self, realm: str | None = None, *, client_uuid: str, client: str) -> list[RoleRepresentation] | None:
         """Get available client-level scope mappings for a client (async)."""
         return await self._async(
             get_admin_realms_realm_clients_client_uuid_scope_mappings_clients_client_available.asyncio,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
-            client=client
+            client_path=client
         )
 
     def get_client_client_scope_mappings_composite(self, realm: str | None = None, *, client_uuid: str, client: str) -> list[RoleRepresentation] | None:
         """Get composite client-level scope mappings for a client."""
         return self._sync(
             get_admin_realms_realm_clients_client_uuid_scope_mappings_clients_client_composite.sync,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
-            client=client
+            client_path=client
         )
 
     async def aget_client_client_scope_mappings_composite(self, realm: str | None = None, *, client_uuid: str, client: str) -> list[RoleRepresentation] | None:
         """Get composite client-level scope mappings for a client (async)."""
         return await self._async(
             get_admin_realms_realm_clients_client_uuid_scope_mappings_clients_client_composite.asyncio,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
-            client=client
+            client_path=client
         )
 
     def add_client_client_scope_mappings(self, realm: str | None = None, *, client_uuid: str, client: str, roles: list[RoleRepresentation]) -> None:
         """Add client-level scope mappings to a client."""
         response = self._sync_detailed(
             post_admin_realms_realm_clients_client_uuid_scope_mappings_clients_client.sync_detailed,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
-            client=client,
+            client_path=client,
             body=roles
         )
         if response.status_code not in (200, 204):
@@ -269,9 +272,9 @@ class ScopeMappingsAPI(BaseAPI):
         """Add client-level scope mappings to a client (async)."""
         response = await self._async_detailed(
             post_admin_realms_realm_clients_client_uuid_scope_mappings_clients_client.asyncio_detailed,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
-            client=client,
+            client_path=client,
             body=roles
         )
         if response.status_code not in (200, 204):
@@ -281,9 +284,9 @@ class ScopeMappingsAPI(BaseAPI):
         """Remove client-level scope mappings from a client."""
         response = self._sync_detailed(
             delete_admin_realms_realm_clients_client_uuid_scope_mappings_clients_client.sync_detailed,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
-            client=client,
+            client_path=client,
             body=roles
         )
         if response.status_code not in (200, 204):
@@ -293,9 +296,9 @@ class ScopeMappingsAPI(BaseAPI):
         """Remove client-level scope mappings from a client (async)."""
         response = await self._async_detailed(
             delete_admin_realms_realm_clients_client_uuid_scope_mappings_clients_client.asyncio_detailed,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
-            client=client,
+            client_path=client,
             body=roles
         )
         if response.status_code not in (200, 204):
@@ -306,7 +309,7 @@ class ScopeMappingsAPI(BaseAPI):
         """Get all scope mappings for a client scope."""
         return self._sync(
             get_admin_realms_realm_client_scopes_client_scope_id_scope_mappings.sync,
-            realm or self.realm,
+            realm,
             client_scope_id=client_scope_id
         )
 
@@ -314,7 +317,7 @@ class ScopeMappingsAPI(BaseAPI):
         """Get all scope mappings for a client scope (async)."""
         return await self._async(
             get_admin_realms_realm_client_scopes_client_scope_id_scope_mappings.asyncio,
-            realm or self.realm,
+            realm,
             client_scope_id=client_scope_id
         )
 
@@ -322,7 +325,7 @@ class ScopeMappingsAPI(BaseAPI):
         """Get realm-level scope mappings for a client scope."""
         return self._sync(
             get_admin_realms_realm_client_scopes_client_scope_id_scope_mappings_realm.sync,
-            realm or self.realm,
+            realm,
             client_scope_id=client_scope_id
         )
 
@@ -330,7 +333,7 @@ class ScopeMappingsAPI(BaseAPI):
         """Get realm-level scope mappings for a client scope (async)."""
         return await self._async(
             get_admin_realms_realm_client_scopes_client_scope_id_scope_mappings_realm.asyncio,
-            realm or self.realm,
+            realm,
             client_scope_id=client_scope_id
         )
 
@@ -338,7 +341,7 @@ class ScopeMappingsAPI(BaseAPI):
         """Get available realm-level scope mappings for a client scope."""
         return self._sync(
             get_admin_realms_realm_client_scopes_client_scope_id_scope_mappings_realm_available.sync,
-            realm or self.realm,
+            realm,
             client_scope_id=client_scope_id
         )
 
@@ -346,31 +349,33 @@ class ScopeMappingsAPI(BaseAPI):
         """Get available realm-level scope mappings for a client scope (async)."""
         return await self._async(
             get_admin_realms_realm_client_scopes_client_scope_id_scope_mappings_realm_available.asyncio,
-            realm or self.realm,
+            realm,
             client_scope_id=client_scope_id
         )
 
-    def get_client_scope_realm_scope_mappings_composite(self, realm: str | None = None, *, client_scope_id: str) -> list[RoleRepresentation] | None:
+    def get_client_scope_realm_scope_mappings_composite(self, realm: str | None = None, *, client_scope_id: str, brief_representation: Unset | bool = True) -> list[RoleRepresentation] | None:
         """Get composite realm-level scope mappings for a client scope."""
         return self._sync(
             get_admin_realms_realm_client_scopes_client_scope_id_scope_mappings_realm_composite.sync,
-            realm or self.realm,
-            client_scope_id=client_scope_id
+            realm,
+            client_scope_id=client_scope_id,
+            brief_representation=brief_representation
         )
 
-    async def aget_client_scope_realm_scope_mappings_composite(self, realm: str | None = None, *, client_scope_id: str) -> list[RoleRepresentation] | None:
+    async def aget_client_scope_realm_scope_mappings_composite(self, realm: str | None = None, *, client_scope_id: str, brief_representation: Unset | bool = True) -> list[RoleRepresentation] | None:
         """Get composite realm-level scope mappings for a client scope (async)."""
         return await self._async(
             get_admin_realms_realm_client_scopes_client_scope_id_scope_mappings_realm_composite.asyncio,
-            realm or self.realm,
-            client_scope_id=client_scope_id
+            realm,
+            client_scope_id=client_scope_id,
+            brief_representation=brief_representation
         )
 
     def add_client_scope_realm_scope_mappings(self, realm: str | None = None, *, client_scope_id: str, roles: list[RoleRepresentation]) -> None:
         """Add realm-level scope mappings to a client scope."""
         response = self._sync_detailed(
             post_admin_realms_realm_client_scopes_client_scope_id_scope_mappings_realm.sync_detailed,
-            realm or self.realm,
+            realm,
             client_scope_id=client_scope_id,
             body=roles
         )
@@ -381,7 +386,7 @@ class ScopeMappingsAPI(BaseAPI):
         """Add realm-level scope mappings to a client scope (async)."""
         response = await self._async_detailed(
             post_admin_realms_realm_client_scopes_client_scope_id_scope_mappings_realm.asyncio_detailed,
-            realm or self.realm,
+            realm,
             client_scope_id=client_scope_id,
             body=roles
         )
@@ -392,7 +397,7 @@ class ScopeMappingsAPI(BaseAPI):
         """Remove realm-level scope mappings from a client scope."""
         response = self._sync_detailed(
             delete_admin_realms_realm_client_scopes_client_scope_id_scope_mappings_realm.sync_detailed,
-            realm or self.realm,
+            realm,
             client_scope_id=client_scope_id,
             body=roles
         )
@@ -403,7 +408,7 @@ class ScopeMappingsAPI(BaseAPI):
         """Remove realm-level scope mappings from a client scope (async)."""
         response = await self._async_detailed(
             delete_admin_realms_realm_client_scopes_client_scope_id_scope_mappings_realm.asyncio_detailed,
-            realm or self.realm,
+            realm,
             client_scope_id=client_scope_id,
             body=roles
         )
@@ -414,63 +419,65 @@ class ScopeMappingsAPI(BaseAPI):
         """Get client-level scope mappings for a client scope."""
         return self._sync(
             get_admin_realms_realm_client_scopes_client_scope_id_scope_mappings_clients_client.sync,
-            realm or self.realm,
+            realm,
             client_scope_id=client_scope_id,
-            client=client
+            client_path=client
         )
 
     async def aget_client_scope_client_scope_mappings(self, realm: str | None = None, *, client_scope_id: str, client: str) -> list[RoleRepresentation] | None:
         """Get client-level scope mappings for a client scope (async)."""
         return await self._async(
             get_admin_realms_realm_client_scopes_client_scope_id_scope_mappings_clients_client.asyncio,
-            realm or self.realm,
+            realm,
             client_scope_id=client_scope_id,
-            client=client
+            client_path=client
         )
 
     def get_client_scope_client_scope_mappings_available(self, realm: str | None = None, *, client_scope_id: str, client: str) -> list[RoleRepresentation] | None:
         """Get available client-level scope mappings for a client scope."""
         return self._sync(
             get_admin_realms_realm_client_scopes_client_scope_id_scope_mappings_clients_client_available.sync,
-            realm or self.realm,
+            realm,
             client_scope_id=client_scope_id,
-            client=client
+            client_path=client
         )
 
     async def aget_client_scope_client_scope_mappings_available(self, realm: str | None = None, *, client_scope_id: str, client: str) -> list[RoleRepresentation] | None:
         """Get available client-level scope mappings for a client scope (async)."""
         return await self._async(
             get_admin_realms_realm_client_scopes_client_scope_id_scope_mappings_clients_client_available.asyncio,
-            realm or self.realm,
+            realm,
             client_scope_id=client_scope_id,
-            client=client
+            client_path=client
         )
 
-    def get_client_scope_client_scope_mappings_composite(self, realm: str | None = None, *, client_scope_id: str, client: str) -> list[RoleRepresentation] | None:
+    def get_client_scope_client_scope_mappings_composite(self, realm: str | None = None, *, client_scope_id: str, client: str, brief_representation: Unset | bool = True) -> list[RoleRepresentation] | None:
         """Get composite client-level scope mappings for a client scope."""
         return self._sync(
             get_admin_realms_realm_client_scopes_client_scope_id_scope_mappings_clients_client_composite.sync,
-            realm or self.realm,
+            realm,
             client_scope_id=client_scope_id,
-            client=client
+            client_path=client,
+            brief_representation=brief_representation
         )
 
-    async def aget_client_scope_client_scope_mappings_composite(self, realm: str | None = None, *, client_scope_id: str, client: str) -> list[RoleRepresentation] | None:
+    async def aget_client_scope_client_scope_mappings_composite(self, realm: str | None = None, *, client_scope_id: str, client: str, brief_representation: Unset | bool = True) -> list[RoleRepresentation] | None:
         """Get composite client-level scope mappings for a client scope (async)."""
         return await self._async(
             get_admin_realms_realm_client_scopes_client_scope_id_scope_mappings_clients_client_composite.asyncio,
-            realm or self.realm,
+            realm,
             client_scope_id=client_scope_id,
-            client=client
+            client_path=client,
+            brief_representation=brief_representation
         )
 
     def add_client_scope_client_scope_mappings(self, realm: str | None = None, *, client_scope_id: str, client: str, roles: list[RoleRepresentation]) -> None:
         """Add client-level scope mappings to a client scope."""
         response = self._sync_detailed(
             post_admin_realms_realm_client_scopes_client_scope_id_scope_mappings_clients_client.sync_detailed,
-            realm or self.realm,
+            realm,
             client_scope_id=client_scope_id,
-            client=client,
+            client_path=client,
             body=roles
         )
         if response.status_code not in (200, 204):
@@ -480,9 +487,9 @@ class ScopeMappingsAPI(BaseAPI):
         """Add client-level scope mappings to a client scope (async)."""
         response = await self._async_detailed(
             post_admin_realms_realm_client_scopes_client_scope_id_scope_mappings_clients_client.asyncio_detailed,
-            realm or self.realm,
+            realm,
             client_scope_id=client_scope_id,
-            client=client,
+            client_path=client,
             body=roles
         )
         if response.status_code not in (200, 204):
@@ -492,9 +499,9 @@ class ScopeMappingsAPI(BaseAPI):
         """Remove client-level scope mappings from a client scope."""
         response = self._sync_detailed(
             delete_admin_realms_realm_client_scopes_client_scope_id_scope_mappings_clients_client.sync_detailed,
-            realm or self.realm,
+            realm,
             client_scope_id=client_scope_id,
-            client=client,
+            client_path=client,
             body=roles
         )
         if response.status_code not in (200, 204):
@@ -504,9 +511,9 @@ class ScopeMappingsAPI(BaseAPI):
         """Remove client-level scope mappings from a client scope (async)."""
         response = await self._async_detailed(
             delete_admin_realms_realm_client_scopes_client_scope_id_scope_mappings_clients_client.asyncio_detailed,
-            realm or self.realm,
+            realm,
             client_scope_id=client_scope_id,
-            client=client,
+            client_path=client,
             body=roles
         )
         if response.status_code not in (200, 204):

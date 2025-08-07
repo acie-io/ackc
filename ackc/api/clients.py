@@ -32,12 +32,24 @@ from ..generated.api.clients import (
 )
 from ..generated.models import (
     ClientRepresentation,
+    ClientScopeRepresentation,
     CredentialRepresentation,
+    GlobalRequestResult,
+    ManagementPermissionReference,
     UserRepresentation,
+    UserSessionRepresentation,
+    PostAdminRealmsRealmClientsClientUuidNodesBody,
 )
 from ..generated.types import UNSET, Unset
 
-__all__ = "ClientsAPI", "ClientsClientMixin", "ClientRepresentation"
+__all__ = (
+    "ClientsAPI",
+    "ClientsClientMixin",
+    "ClientRepresentation",
+    "ClientScopeRepresentation",
+    "ManagementPermissionReference",
+    "GlobalRequestResult",
+)
 
 
 class ClientsAPI(BaseAPI):
@@ -115,7 +127,7 @@ class ClientsAPI(BaseAPI):
             viewable_only=viewable_only,
         )
 
-    def create(self, realm: str | None = None, client_data: dict | ClientRepresentation = None) -> str:
+    def create(self, realm: str | None = None, *, client_data: dict | ClientRepresentation) -> str:
         """Create a client (sync).
         
         Args:
@@ -128,18 +140,18 @@ class ClientsAPI(BaseAPI):
         Raises:
             APIError: If client creation fails
         """
-        client_obj = client_data if isinstance(client_data, ClientRepresentation) else ClientRepresentation.from_dict(client_data)
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             post_admin_realms_realm_clients.sync_detailed,
-            realm=realm,
-            body=client_obj
+            realm,
+            client_data,
+            ClientRepresentation
         )
         if response.status_code != 201:
             raise APIError(f"Failed to create client: {response.status_code}")
         location = response.headers.get("Location", "")
         return location.split("/")[-1] if location else ""
 
-    async def acreate(self, realm: str | None = None, client_data: dict | ClientRepresentation = None) -> str:
+    async def acreate(self, realm: str | None = None, *, client_data: dict | ClientRepresentation) -> str:
         """Create a client (async).
         
         Args:
@@ -152,18 +164,18 @@ class ClientsAPI(BaseAPI):
         Raises:
             APIError: If client creation fails
         """
-        client_obj = client_data if isinstance(client_data, ClientRepresentation) else ClientRepresentation.from_dict(client_data)
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             post_admin_realms_realm_clients.asyncio_detailed,
-            realm=realm,
-            body=client_obj
+            realm,
+            client_data,
+            ClientRepresentation
         )
         if response.status_code != 201:
             raise APIError(f"Failed to create client: {response.status_code}")
         location = response.headers.get("Location", "")
         return location.split("/")[-1] if location else ""
 
-    def get(self, realm: str | None = None, client_uuid: str = None) -> ClientRepresentation | None:
+    def get(self, realm: str | None = None, *, client_uuid: str) -> ClientRepresentation | None:
         """Get a client by UUID (sync).
         
         Args:
@@ -175,11 +187,11 @@ class ClientsAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_clients_client_uuid.sync,
-            realm=realm,
+            realm,
             client_uuid=client_uuid
         )
 
-    async def aget(self, realm: str | None = None, client_uuid: str = None) -> ClientRepresentation | None:
+    async def aget(self, realm: str | None = None, *, client_uuid: str) -> ClientRepresentation | None:
         """Get a client by UUID (async).
         
         Args:
@@ -191,7 +203,7 @@ class ClientsAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_clients_client_uuid.asyncio,
-            realm=realm,
+            realm,
             client_uuid=client_uuid
         )
 
@@ -206,12 +218,12 @@ class ClientsAPI(BaseAPI):
         Raises:
             APIError: If client update fails
         """
-        client_obj = client_data if isinstance(client_data, ClientRepresentation) else ClientRepresentation.from_dict(client_data)
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             put_admin_realms_realm_clients_client_uuid.sync_detailed,
-            realm or self.realm,
-            client_uuid=client_uuid,
-            body=client_obj
+            realm,
+            client_data,
+            ClientRepresentation,
+            client_uuid=client_uuid
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update client: {response.status_code}")
@@ -227,12 +239,12 @@ class ClientsAPI(BaseAPI):
         Raises:
             APIError: If client update fails
         """
-        client_obj = client_data if isinstance(client_data, ClientRepresentation) else ClientRepresentation.from_dict(client_data)
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             put_admin_realms_realm_clients_client_uuid.asyncio_detailed,
-            realm or self.realm,
-            client_uuid=client_uuid,
-            body=client_obj
+            realm,
+            client_data,
+            ClientRepresentation,
+            client_uuid=client_uuid
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update client: {response.status_code}")
@@ -247,9 +259,9 @@ class ClientsAPI(BaseAPI):
         Raises:
             APIError: If client deletion fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             delete_admin_realms_realm_clients_client_uuid.sync_detailed,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid
         )
         if response.status_code not in (200, 204):
@@ -265,9 +277,9 @@ class ClientsAPI(BaseAPI):
         Raises:
             APIError: If client deletion fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             delete_admin_realms_realm_clients_client_uuid.asyncio_detailed,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid
         )
         if response.status_code not in (200, 204):
@@ -285,7 +297,7 @@ class ClientsAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_clients_client_uuid_client_secret.sync,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid
         )
 
@@ -301,7 +313,7 @@ class ClientsAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_clients_client_uuid_client_secret.asyncio,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid
         )
 
@@ -317,7 +329,7 @@ class ClientsAPI(BaseAPI):
         """
         return self._sync(
             post_admin_realms_realm_clients_client_uuid_client_secret.sync,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid
         )
 
@@ -333,7 +345,7 @@ class ClientsAPI(BaseAPI):
         """
         return await self._async(
             post_admin_realms_realm_clients_client_uuid_client_secret.asyncio,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid
         )
 
@@ -351,7 +363,7 @@ class ClientsAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_clients_client_uuid_service_account_user.sync,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid
         )
 
@@ -369,7 +381,7 @@ class ClientsAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_clients_client_uuid_service_account_user.asyncio,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid
         )
 
@@ -383,13 +395,11 @@ class ClientsAPI(BaseAPI):
         Returns:
             Number of active sessions for the client
         """
-        result = self._sync(
+        result = self._sync_ap(
             get_admin_realms_realm_clients_client_uuid_session_count.sync,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid
         )
-        if result and hasattr(result, 'additional_properties'):
-            return result.additional_properties.get("count")
         return result.get("count") if result else None
 
     async def aget_session_count(self, realm: str | None = None, *, client_uuid: str) -> int | None:
@@ -402,13 +412,11 @@ class ClientsAPI(BaseAPI):
         Returns:
             Number of active sessions for the client
         """
-        result = await self._async(
+        result = await self._async_ap(
             get_admin_realms_realm_clients_client_uuid_session_count.asyncio,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid
         )
-        if result and hasattr(result, 'additional_properties'):
-            return result.additional_properties.get("count")
         return result.get("count") if result else None
 
     def get_offline_session_count(self, realm: str | None = None, *, client_uuid: str) -> int | None:
@@ -421,13 +429,11 @@ class ClientsAPI(BaseAPI):
         Returns:
             Number of offline sessions for the client
         """
-        result = self._sync(
+        result = self._sync_ap(
             get_admin_realms_realm_clients_client_uuid_offline_session_count.sync,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid
         )
-        if result and hasattr(result, 'additional_properties'):
-            return result.additional_properties.get("count")
         return result.get("count") if result else None
 
     async def aget_offline_session_count(self, realm: str | None = None, *, client_uuid: str) -> int | None:
@@ -440,13 +446,11 @@ class ClientsAPI(BaseAPI):
         Returns:
             Number of offline sessions for the client
         """
-        result = await self._async(
+        result = await self._async_ap(
             get_admin_realms_realm_clients_client_uuid_offline_session_count.asyncio,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid
         )
-        if result and hasattr(result, 'additional_properties'):
-            return result.additional_properties.get("count")
         return result.get("count") if result else None
 
     def get_user_sessions(
@@ -456,7 +460,7 @@ class ClientsAPI(BaseAPI):
         client_uuid: str,
         first: int | None = None,
         max: int | None = None
-    ) -> list | None:
+    ) -> list[UserSessionRepresentation] | None:
         """Get user sessions for client (sync).
         
         Args:
@@ -468,16 +472,12 @@ class ClientsAPI(BaseAPI):
         Returns:
             List of user sessions for the client
         """
-        params = {}
-        if first is not None:
-            params["first"] = first
-        if max is not None:
-            params["max_"] = max
         return self._sync(
             get_admin_realms_realm_clients_client_uuid_user_sessions.sync,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
-            **params
+            first=first,
+            max_=max,
         )
 
     async def aget_user_sessions(
@@ -487,7 +487,7 @@ class ClientsAPI(BaseAPI):
         client_uuid: str,
         first: int | None = None,
         max: int | None = None
-    ) -> list | None:
+    ) -> list[UserSessionRepresentation] | None:
         """Get user sessions for client (async).
         
         Args:
@@ -499,16 +499,12 @@ class ClientsAPI(BaseAPI):
         Returns:
             List of user sessions for the client
         """
-        params = {}
-        if first is not None:
-            params["first"] = first
-        if max is not None:
-            params["max_"] = max
         return await self._async(
             get_admin_realms_realm_clients_client_uuid_user_sessions.asyncio,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
-            **params
+            first=first,
+            max_=max,
         )
 
     def get_offline_sessions(
@@ -518,7 +514,7 @@ class ClientsAPI(BaseAPI):
         client_uuid: str,
         first: int | None = None,
         max: int | None = None
-    ) -> list | None:
+    ) -> list[UserSessionRepresentation] | None:
         """Get offline sessions for client (sync).
         
         Args:
@@ -530,16 +526,12 @@ class ClientsAPI(BaseAPI):
         Returns:
             List of offline sessions for the client
         """
-        params = {}
-        if first is not None:
-            params["first"] = first
-        if max is not None:
-            params["max_"] = max
         return self._sync(
             get_admin_realms_realm_clients_client_uuid_offline_sessions.sync,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
-            **params
+            first=first,
+            max_=max,
         )
 
     async def aget_offline_sessions(
@@ -549,7 +541,7 @@ class ClientsAPI(BaseAPI):
         client_uuid: str,
         first: int | None = None,
         max: int | None = None
-    ) -> list | None:
+    ) -> list[UserSessionRepresentation] | None:
         """Get offline sessions for client (async).
         
         Args:
@@ -561,19 +553,15 @@ class ClientsAPI(BaseAPI):
         Returns:
             List of offline sessions for the client
         """
-        params = {}
-        if first is not None:
-            params["first"] = first
-        if max is not None:
-            params["max_"] = max
         return await self._async(
             get_admin_realms_realm_clients_client_uuid_offline_sessions.asyncio,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
-            **params
+            first=first,
+            max_=max,
         )
 
-    def get_default_client_scopes(self, realm: str | None = None, *, client_uuid: str) -> list | None:
+    def get_default_client_scopes(self, realm: str | None = None, *, client_uuid: str) -> list[ClientScopeRepresentation] | None:
         """Get default client scopes (sync).
         
         Default scopes are always included in tokens.
@@ -587,11 +575,11 @@ class ClientsAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_clients_client_uuid_default_client_scopes.sync,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid
         )
 
-    async def aget_default_client_scopes(self, realm: str | None = None, *, client_uuid: str) -> list | None:
+    async def aget_default_client_scopes(self, realm: str | None = None, *, client_uuid: str) -> list[ClientScopeRepresentation] | None:
         """Get default client scopes (async).
         
         Default scopes are always included in tokens.
@@ -605,7 +593,7 @@ class ClientsAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_clients_client_uuid_default_client_scopes.asyncio,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid
         )
 
@@ -622,9 +610,9 @@ class ClientsAPI(BaseAPI):
         Raises:
             APIError: If adding the scope fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             put_admin_realms_realm_clients_client_uuid_default_client_scopes_client_scope_id.sync_detailed,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
             client_scope_id=client_scope_id
         )
@@ -644,9 +632,9 @@ class ClientsAPI(BaseAPI):
         Raises:
             APIError: If adding the scope fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             put_admin_realms_realm_clients_client_uuid_default_client_scopes_client_scope_id.asyncio_detailed,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
             client_scope_id=client_scope_id
         )
@@ -664,9 +652,9 @@ class ClientsAPI(BaseAPI):
         Raises:
             APIError: If removing the scope fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             delete_admin_realms_realm_clients_client_uuid_default_client_scopes_client_scope_id.sync_detailed,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
             client_scope_id=client_scope_id
         )
@@ -684,16 +672,16 @@ class ClientsAPI(BaseAPI):
         Raises:
             APIError: If removing the scope fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             delete_admin_realms_realm_clients_client_uuid_default_client_scopes_client_scope_id.asyncio_detailed,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
             client_scope_id=client_scope_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to remove default client scope: {response.status_code}")
 
-    def get_optional_client_scopes(self, realm: str | None = None, *, client_uuid: str) -> list | None:
+    def get_optional_client_scopes(self, realm: str | None = None, *, client_uuid: str) -> list[ClientScopeRepresentation] | None:
         """Get optional client scopes (sync).
         
         Optional scopes must be explicitly requested in authorization requests.
@@ -707,11 +695,11 @@ class ClientsAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_clients_client_uuid_optional_client_scopes.sync,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid
         )
 
-    async def aget_optional_client_scopes(self, realm: str | None = None, *, client_uuid: str) -> list | None:
+    async def aget_optional_client_scopes(self, realm: str | None = None, *, client_uuid: str) -> list[ClientScopeRepresentation] | None:
         """Get optional client scopes (async).
         
         Optional scopes must be explicitly requested in authorization requests.
@@ -725,7 +713,7 @@ class ClientsAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_clients_client_uuid_optional_client_scopes.asyncio,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid
         )
 
@@ -740,9 +728,9 @@ class ClientsAPI(BaseAPI):
         Raises:
             APIError: If adding the scope fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             put_admin_realms_realm_clients_client_uuid_optional_client_scopes_client_scope_id.sync_detailed,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
             client_scope_id=client_scope_id
         )
@@ -760,9 +748,9 @@ class ClientsAPI(BaseAPI):
         Raises:
             APIError: If adding the scope fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             put_admin_realms_realm_clients_client_uuid_optional_client_scopes_client_scope_id.asyncio_detailed,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
             client_scope_id=client_scope_id
         )
@@ -780,9 +768,9 @@ class ClientsAPI(BaseAPI):
         Raises:
             APIError: If removing the scope fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             delete_admin_realms_realm_clients_client_uuid_optional_client_scopes_client_scope_id.sync_detailed,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
             client_scope_id=client_scope_id
         )
@@ -800,9 +788,9 @@ class ClientsAPI(BaseAPI):
         Raises:
             APIError: If removing the scope fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             delete_admin_realms_realm_clients_client_uuid_optional_client_scopes_client_scope_id.asyncio_detailed,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid,
             client_scope_id=client_scope_id
         )
@@ -821,9 +809,9 @@ class ClientsAPI(BaseAPI):
         Raises:
             APIError: If push revocation fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             post_admin_realms_realm_clients_client_uuid_push_revocation.sync_detailed,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid
         )
         if response.status_code not in (200, 204):
@@ -841,15 +829,15 @@ class ClientsAPI(BaseAPI):
         Raises:
             APIError: If push revocation fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             post_admin_realms_realm_clients_client_uuid_push_revocation.asyncio_detailed,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to push revocation: {response.status_code}")
 
-    def regenerate_registration_token(self, realm: str | None = None, *, client_uuid: str) -> dict | None:
+    def regenerate_registration_token(self, realm: str | None = None, *, client_uuid: str) -> ClientRepresentation | None:
         """Regenerate registration access token (sync).
         
         Creates a new registration access token for dynamic client registration.
@@ -863,11 +851,11 @@ class ClientsAPI(BaseAPI):
         """
         return self._sync(
             post_admin_realms_realm_clients_client_uuid_registration_access_token.sync,
-            realm or self.realm,
+            realm,
             client_uuid=client_uuid
         )
 
-    async def aregenerate_registration_token(self, realm: str | None = None, *, client_uuid: str) -> dict | None:
+    async def aregenerate_registration_token(self, realm: str | None = None, *, client_uuid: str) -> ClientRepresentation | None:
         """Regenerate registration access token (async).
         
         Creates a new registration access token for dynamic client registration.
@@ -881,7 +869,201 @@ class ClientsAPI(BaseAPI):
         """
         return await self._async(
             post_admin_realms_realm_clients_client_uuid_registration_access_token.asyncio,
-            realm or self.realm,
+            realm,
+            client_uuid=client_uuid
+        )
+
+    def get_management_permissions(self, realm: str | None = None, *, client_uuid: str) -> ManagementPermissionReference | None:
+        """Get management permissions for client (sync).
+        
+        Returns whether client authorization permissions have been initialized.
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            
+        Returns:
+            Management permission reference
+        """
+        return self._sync(
+            get_admin_realms_realm_clients_client_uuid_management_permissions.sync,
+            realm,
+            client_uuid=client_uuid
+        )
+
+    async def aget_management_permissions(self, realm: str | None = None, *, client_uuid: str) -> ManagementPermissionReference | None:
+        """Get management permissions for client (async).
+        
+        Returns whether client authorization permissions have been initialized.
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            
+        Returns:
+            Management permission reference
+        """
+        return await self._async(
+            get_admin_realms_realm_clients_client_uuid_management_permissions.asyncio,
+            realm,
+            client_uuid=client_uuid
+        )
+
+    def update_management_permissions(self, realm: str | None = None, *, client_uuid: str, permissions: dict | ManagementPermissionReference) -> ManagementPermissionReference | None:
+        """Update management permissions for client (sync).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            permissions: Management permissions to set
+            
+        Returns:
+            Updated management permission reference
+        """
+        response = self._sync_detailed_model(
+            put_admin_realms_realm_clients_client_uuid_management_permissions.sync_detailed,
+            realm,
+            permissions,
+            ManagementPermissionReference,
+            client_uuid=client_uuid
+        )
+        if response.status_code not in (200, 204):
+            raise APIError(f"Failed to update management permissions: {response.status_code}")
+        return response.parsed
+
+    async def aupdate_management_permissions(self, realm: str | None = None, *, client_uuid: str, permissions: dict | ManagementPermissionReference) -> ManagementPermissionReference | None:
+        """Update management permissions for client (async).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            permissions: Management permissions to set
+            
+        Returns:
+            Updated management permission reference
+        """
+        response = await self._async_detailed_model(
+            put_admin_realms_realm_clients_client_uuid_management_permissions.asyncio_detailed,
+            realm,
+            permissions,
+            ManagementPermissionReference,
+            client_uuid=client_uuid
+        )
+        if response.status_code not in (200, 204):
+            raise APIError(f"Failed to update management permissions: {response.status_code}")
+        return response.parsed
+
+    def register_node(self, realm: str | None = None, *, client_uuid: str, node_data: dict | PostAdminRealmsRealmClientsClientUuidNodesBody) -> None:
+        """Register a cluster node with the client (sync).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            node_data: Node registration data
+            
+        Raises:
+            APIError: If node registration fails
+        """
+        response = self._sync_detailed_model(
+            post_admin_realms_realm_clients_client_uuid_nodes.sync_detailed,
+            realm,
+            node_data,
+            PostAdminRealmsRealmClientsClientUuidNodesBody,
+            client_uuid=client_uuid
+        )
+        if response.status_code not in (200, 204):
+            raise APIError(f"Failed to register node: {response.status_code}")
+
+    async def aregister_node(self, realm: str | None = None, *, client_uuid: str, node_data: dict | PostAdminRealmsRealmClientsClientUuidNodesBody) -> None:
+        """Register a cluster node with the client (async).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            node_data: Node registration data
+            
+        Raises:
+            APIError: If node registration fails
+        """
+        response = await self._async_detailed_model(
+            post_admin_realms_realm_clients_client_uuid_nodes.asyncio_detailed,
+            realm,
+            node_data,
+            PostAdminRealmsRealmClientsClientUuidNodesBody,
+            client_uuid=client_uuid
+        )
+        if response.status_code not in (200, 204):
+            raise APIError(f"Failed to register node: {response.status_code}")
+
+    def unregister_node(self, realm: str | None = None, *, client_uuid: str, node: str) -> None:
+        """Unregister a cluster node from the client (sync).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            node: Node name to unregister
+            
+        Raises:
+            APIError: If node unregistration fails
+        """
+        response = self._sync(
+            delete_admin_realms_realm_clients_client_uuid_nodes_node.sync_detailed,
+            realm,
+            client_uuid=client_uuid,
+            node=node
+        )
+        if response.status_code not in (200, 204):
+            raise APIError(f"Failed to unregister node: {response.status_code}")
+
+    async def aunregister_node(self, realm: str | None = None, *, client_uuid: str, node: str) -> None:
+        """Unregister a cluster node from the client (async).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            node: Node name to unregister
+            
+        Raises:
+            APIError: If node unregistration fails
+        """
+        response = await self._async(
+            delete_admin_realms_realm_clients_client_uuid_nodes_node.asyncio_detailed,
+            realm,
+            client_uuid=client_uuid,
+            node=node
+        )
+        if response.status_code not in (200, 204):
+            raise APIError(f"Failed to unregister node: {response.status_code}")
+
+    def test_nodes_available(self, realm: str | None = None, *, client_uuid: str) -> GlobalRequestResult | None:
+        """Test if registered cluster nodes are available (sync).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            
+        Returns:
+            Node availability test results
+        """
+        return self._sync(
+            get_admin_realms_realm_clients_client_uuid_test_nodes_available.sync,
+            realm,
+            client_uuid=client_uuid
+        )
+
+    async def atest_nodes_available(self, realm: str | None = None, *, client_uuid: str) -> GlobalRequestResult | None:
+        """Test if registered cluster nodes are available (async).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            
+        Returns:
+            Node availability test results
+        """
+        return await self._async(
+            get_admin_realms_realm_clients_client_uuid_test_nodes_available.asyncio,
+            realm,
             client_uuid=client_uuid
         )
 

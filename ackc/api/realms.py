@@ -154,9 +154,12 @@ class RealmsAPI(BaseAPI):
         Raises:
             APIError: If realm update fails
         """
-        realm_obj = realm_data if isinstance(realm_data, RealmRepresentation) else RealmRepresentation.from_dict(
-            realm_data)
-        response = self._sync_any(put_admin_realms_realm.sync_detailed, realm=realm, body=realm_obj)
+        response = self._sync_detailed_model(
+            put_admin_realms_realm.sync_detailed,
+            realm,
+            realm_data,
+            RealmRepresentation
+        )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update realm: {response.status_code}")
 
@@ -170,9 +173,12 @@ class RealmsAPI(BaseAPI):
         Raises:
             APIError: If realm update fails
         """
-        realm_obj = realm_data if isinstance(realm_data, RealmRepresentation) else RealmRepresentation.from_dict(
-            realm_data)
-        response = await self._async_any(put_admin_realms_realm.asyncio_detailed, realm=realm, body=realm_obj)
+        response = await self._async_detailed_model(
+            put_admin_realms_realm.asyncio_detailed,
+            realm,
+            realm_data,
+            RealmRepresentation
+        )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update realm: {response.status_code}")
 
@@ -206,26 +212,28 @@ class RealmsAPI(BaseAPI):
         self,
         realm: str | None = None,
         *,
-        client: Unset | str = UNSET,
+        client_query: Unset | str = UNSET,
         date_from: Unset | str = UNSET,
         date_to: Unset | str = UNSET,
+        direction: Unset | str = UNSET,
         first: Unset | int = UNSET,
         ip_address: Unset | str = UNSET,
         max: Unset | int = UNSET,
-        type: Unset | str = UNSET,
+        type: Unset | list[str] = UNSET,
         user: Unset | str = UNSET
     ) -> list[EventRepresentation] | None:
         """Get realm events (sync).
         
         Args:
             realm: The realm name
-            client: Filter by client ID
+            client_query: Filter by client ID
             date_from: Start date for event search
             date_to: End date for event search
+            direction: Sort direction (asc or desc)
             first: Pagination offset
             ip_address: Filter by IP address
             max: Maximum results to return
-            type: Filter by event type
+            type: Filter by event types
             user: Filter by user ID
             
         Returns:
@@ -233,10 +241,11 @@ class RealmsAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_events.sync,
-            realm or self.realm,
-            client=client,
+            realm,
+            client_query=client_query,
             date_from=date_from,
             date_to=date_to,
+            direction=direction,
             first=first,
             ip_address=ip_address,
             max_=max,
@@ -248,26 +257,28 @@ class RealmsAPI(BaseAPI):
         self,
         realm: str | None = None,
         *,
-        client: Unset | str = UNSET,
+        client_query: Unset | str = UNSET,
         date_from: Unset | str = UNSET,
         date_to: Unset | str = UNSET,
+        direction: Unset | str = UNSET,
         first: Unset | int = UNSET,
         ip_address: Unset | str = UNSET,
         max: Unset | int = UNSET,
-        type: Unset | str = UNSET,
+        type: Unset | list[str] = UNSET,
         user: Unset | str = UNSET
     ) -> list[EventRepresentation] | None:
         """Get realm events (async).
         
         Args:
             realm: The realm name
-            client: Filter by client ID
+            client_query: Filter by client ID
             date_from: Start date for event search
             date_to: End date for event search
+            direction: Sort direction (asc or desc)
             first: Pagination offset
             ip_address: Filter by IP address
             max: Maximum results to return
-            type: Filter by event type
+            type: Filter by event types
             user: Filter by user ID
             
         Returns:
@@ -275,10 +286,11 @@ class RealmsAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_events.asyncio,
-            realm or self.realm,
-            client=client,
+            realm,
+            client_query=client_query,
             date_from=date_from,
             date_to=date_to,
+            direction=direction,
             first=first,
             ip_address=ip_address,
             max_=max,
@@ -297,7 +309,7 @@ class RealmsAPI(BaseAPI):
         """
         response = self._sync_detailed(
             delete_admin_realms_realm_events.sync_detailed,
-            realm or self.realm,
+            realm,
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to delete events: {response.status_code}")
@@ -313,7 +325,7 @@ class RealmsAPI(BaseAPI):
         """
         response = await self._async_detailed(
             delete_admin_realms_realm_events.asyncio_detailed,
-            realm or self.realm,
+            realm,
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to delete events: {response.status_code}")
@@ -357,7 +369,7 @@ class RealmsAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_admin_events.sync,
-            realm or self.realm,
+            realm,
             auth_client=auth_client,
             auth_ip_address=auth_ip_address,
             auth_realm=auth_realm,
@@ -410,7 +422,7 @@ class RealmsAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_admin_events.asyncio,
-            realm or self.realm,
+            realm,
             auth_client=auth_client,
             auth_ip_address=auth_ip_address,
             auth_realm=auth_realm,
@@ -435,7 +447,7 @@ class RealmsAPI(BaseAPI):
         """
         response = self._sync_detailed(
             delete_admin_realms_realm_admin_events.sync_detailed,
-            realm or self.realm,
+            realm,
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to delete admin events: {response.status_code}")
@@ -451,7 +463,7 @@ class RealmsAPI(BaseAPI):
         """
         response = await self._async_detailed(
             delete_admin_realms_realm_admin_events.asyncio_detailed,
-            realm or self.realm,
+            realm,
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to delete admin events: {response.status_code}")
@@ -467,7 +479,7 @@ class RealmsAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_events_config.sync,
-            realm or self.realm,
+            realm,
         )
 
     async def aget_events_config(self, realm: str | None = None) -> RealmEventsConfigRepresentation | None:
@@ -481,10 +493,10 @@ class RealmsAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_events_config.asyncio,
-            realm or self.realm,
+            realm,
         )
 
-    def update_events_config(self, realm: str | None = None, *, config: dict) -> None:
+    def update_events_config(self, realm: str | None = None, *, config: dict | RealmEventsConfigRepresentation) -> None:
         """Update events configuration (sync).
         
         Args:
@@ -494,15 +506,16 @@ class RealmsAPI(BaseAPI):
         Raises:
             APIError: If configuration update fails
         """
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             put_admin_realms_realm_events_config.sync_detailed,
-            realm or self.realm,
-            body=config,
+            realm,
+            config,
+            RealmEventsConfigRepresentation
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update events config: {response.status_code}")
 
-    async def aupdate_events_config(self, realm: str | None = None, *, config: dict) -> None:
+    async def aupdate_events_config(self, realm: str | None = None, *, config: dict | RealmEventsConfigRepresentation) -> None:
         """Update events configuration (async).
         
         Args:
@@ -512,10 +525,11 @@ class RealmsAPI(BaseAPI):
         Raises:
             APIError: If configuration update fails
         """
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             put_admin_realms_realm_events_config.asyncio_detailed,
-            realm or self.realm,
-            body=config,
+            realm,
+            config,
+            RealmEventsConfigRepresentation
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update events config: {response.status_code}")
@@ -533,7 +547,7 @@ class RealmsAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_default_groups.sync,
-            realm or self.realm,
+            realm,
         )
 
     async def aget_default_groups(self, realm: str | None = None) -> list[GroupRepresentation] | None:
@@ -549,7 +563,7 @@ class RealmsAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_default_groups.asyncio,
-            realm or self.realm,
+            realm,
         )
 
     def add_default_group(self, realm: str | None = None, *, group_id: str) -> None:
@@ -564,7 +578,7 @@ class RealmsAPI(BaseAPI):
         """
         response = self._sync_detailed(
             put_admin_realms_realm_default_groups_group_id.sync_detailed,
-            realm or self.realm,
+            realm,
             group_id=group_id,
         )
         if response.status_code not in (200, 204):
@@ -582,7 +596,7 @@ class RealmsAPI(BaseAPI):
         """
         response = await self._async_detailed(
             put_admin_realms_realm_default_groups_group_id.asyncio_detailed,
-            realm or self.realm,
+            realm,
             group_id=group_id,
         )
         if response.status_code not in (200, 204):
@@ -600,7 +614,7 @@ class RealmsAPI(BaseAPI):
         """
         response = self._sync_detailed(
             delete_admin_realms_realm_default_groups_group_id.sync_detailed,
-            realm or self.realm,
+            realm,
             group_id=group_id,
         )
         if response.status_code not in (200, 204):
@@ -618,7 +632,7 @@ class RealmsAPI(BaseAPI):
         """
         response = await self._async_detailed(
             delete_admin_realms_realm_default_groups_group_id.asyncio_detailed,
-            realm or self.realm,
+            realm,
             group_id=group_id,
         )
         if response.status_code not in (200, 204):
@@ -630,7 +644,7 @@ class RealmsAPI(BaseAPI):
         *,
         export_clients: bool = True,
         export_groups_and_roles: bool = True
-    ) -> dict | None:
+    ) -> RealmRepresentation | None:
         """Partial export of realm (sync).
         
         Args:
@@ -639,17 +653,13 @@ class RealmsAPI(BaseAPI):
             export_groups_and_roles: Whether to include groups and roles in export
             
         Returns:
-            Exported realm representation as a dictionary
+            Exported realm representation
         """
-        params = {}
-        if not export_clients:
-            params["exportClients"] = False
-        if not export_groups_and_roles:
-            params["exportGroupsAndRoles"] = False
         return self._sync(
             post_admin_realms_realm_partial_export.sync,
-            realm or self.realm,
-            **params,
+            realm,
+            export_clients=export_clients,
+            export_groups_and_roles=export_groups_and_roles,
         )
 
     async def apartial_export(
@@ -658,7 +668,7 @@ class RealmsAPI(BaseAPI):
         *,
         export_clients: bool = True,
         export_groups_and_roles: bool = True
-    ) -> dict | None:
+    ) -> RealmRepresentation | None:
         """Partial export of realm (async).
         
         Args:
@@ -667,17 +677,13 @@ class RealmsAPI(BaseAPI):
             export_groups_and_roles: Whether to include groups and roles in export
             
         Returns:
-            Exported realm representation as a dictionary
+            Exported realm representation
         """
-        params = {}
-        if not export_clients:
-            params["exportClients"] = False
-        if not export_groups_and_roles:
-            params["exportGroupsAndRoles"] = False
         return await self._async(
             post_admin_realms_realm_partial_export.asyncio,
-            realm or self.realm,
-            **params,
+            realm,
+            export_clients=export_clients,
+            export_groups_and_roles=export_groups_and_roles,
         )
 
     def partial_import(self, realm: str | None = None, *, rep: dict) -> None:
@@ -692,7 +698,7 @@ class RealmsAPI(BaseAPI):
         """
         response = self._sync_detailed(
             post_admin_realms_realm_partial_import.sync_detailed,
-            realm or self.realm,
+            realm,
             body=rep,
         )
         if response.status_code not in (200, 204):
@@ -710,7 +716,7 @@ class RealmsAPI(BaseAPI):
         """
         response = await self._async_detailed(
             post_admin_realms_realm_partial_import.asyncio_detailed,
-            realm or self.realm,
+            realm,
             body=rep,
         )
         if response.status_code not in (200, 204):
@@ -729,7 +735,7 @@ class RealmsAPI(BaseAPI):
         """
         response = self._sync_detailed(
             post_admin_realms_realm_logout_all.sync_detailed,
-            realm or self.realm,
+            realm,
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to logout all: {response.status_code}")
@@ -747,12 +753,12 @@ class RealmsAPI(BaseAPI):
         """
         response = await self._async_detailed(
             post_admin_realms_realm_logout_all.asyncio_detailed,
-            realm or self.realm,
+            realm,
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to logout all: {response.status_code}")
 
-    def get_client_session_stats(self, realm: str | None = None) -> list | None:
+    def get_client_session_stats(self, realm: str | None = None) -> list[dict[str, str]] | None:
         """Get client session statistics (sync).
         
         Args:
@@ -761,12 +767,12 @@ class RealmsAPI(BaseAPI):
         Returns:
             List of client session statistics including active and offline sessions
         """
-        return self._sync(
+        return self._sync_ap_list(
             get_admin_realms_realm_client_session_stats.sync,
-            realm or self.realm,
+            realm,
         )
 
-    async def aget_client_session_stats(self, realm: str | None = None) -> list | None:
+    async def aget_client_session_stats(self, realm: str | None = None) -> list[dict[str, str]] | None:
         """Get client session statistics (async).
         
         Args:
@@ -775,9 +781,9 @@ class RealmsAPI(BaseAPI):
         Returns:
             List of client session statistics including active and offline sessions
         """
-        return await self._async(
+        return await self._async_ap_list(
             get_admin_realms_realm_client_session_stats.asyncio,
-            realm or self.realm,
+            realm,
         )
 
     def get_default_client_scopes(self, realm: str | None = None) -> list[ClientScopeRepresentation] | None:
@@ -793,7 +799,7 @@ class RealmsAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_default_default_client_scopes.sync,
-            realm or self.realm,
+            realm,
         )
 
     async def aget_default_client_scopes(self, realm: str | None = None) -> list[ClientScopeRepresentation] | None:
@@ -809,7 +815,7 @@ class RealmsAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_default_default_client_scopes.asyncio,
-            realm or self.realm,
+            realm,
         )
 
     def add_default_client_scope(self, realm: str | None = None, *, client_scope_id: str) -> None:
@@ -824,7 +830,7 @@ class RealmsAPI(BaseAPI):
         """
         response = self._sync_detailed(
             put_admin_realms_realm_default_default_client_scopes_client_scope_id.sync_detailed,
-            realm or self.realm,
+            realm,
             client_scope_id=client_scope_id,
         )
         if response.status_code not in (200, 204):
@@ -842,7 +848,7 @@ class RealmsAPI(BaseAPI):
         """
         response = await self._async_detailed(
             put_admin_realms_realm_default_default_client_scopes_client_scope_id.asyncio_detailed,
-            realm or self.realm,
+            realm,
             client_scope_id=client_scope_id,
         )
         if response.status_code not in (200, 204):
@@ -860,7 +866,7 @@ class RealmsAPI(BaseAPI):
         """
         response = self._sync_detailed(
             delete_admin_realms_realm_default_default_client_scopes_client_scope_id.sync_detailed,
-            realm or self.realm,
+            realm,
             client_scope_id=client_scope_id,
         )
         if response.status_code not in (200, 204):
@@ -878,7 +884,7 @@ class RealmsAPI(BaseAPI):
         """
         response = await self._async_detailed(
             delete_admin_realms_realm_default_default_client_scopes_client_scope_id.asyncio_detailed,
-            realm or self.realm,
+            realm,
             client_scope_id=client_scope_id,
         )
         if response.status_code not in (200, 204):
@@ -897,7 +903,7 @@ class RealmsAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_default_optional_client_scopes.sync,
-            realm or self.realm,
+            realm,
         )
 
     async def aget_optional_client_scopes(self, realm: str | None = None) -> list[ClientScopeRepresentation] | None:
@@ -913,7 +919,7 @@ class RealmsAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_default_optional_client_scopes.asyncio,
-            realm or self.realm,
+            realm,
         )
 
     def add_optional_client_scope(self, realm: str | None = None, *, client_scope_id: str) -> None:
@@ -928,7 +934,7 @@ class RealmsAPI(BaseAPI):
         """
         response = self._sync_detailed(
             put_admin_realms_realm_default_optional_client_scopes_client_scope_id.sync_detailed,
-            realm or self.realm,
+            realm,
             client_scope_id=client_scope_id,
         )
         if response.status_code not in (200, 204):
@@ -946,7 +952,7 @@ class RealmsAPI(BaseAPI):
         """
         response = await self._async_detailed(
             put_admin_realms_realm_default_optional_client_scopes_client_scope_id.asyncio_detailed,
-            realm or self.realm,
+            realm,
             client_scope_id=client_scope_id,
         )
         if response.status_code not in (200, 204):
@@ -964,7 +970,7 @@ class RealmsAPI(BaseAPI):
         """
         response = self._sync_detailed(
             delete_admin_realms_realm_default_optional_client_scopes_client_scope_id.sync_detailed,
-            realm or self.realm,
+            realm,
             client_scope_id=client_scope_id,
         )
         if response.status_code not in (200, 204):
@@ -982,7 +988,7 @@ class RealmsAPI(BaseAPI):
         """
         response = await self._async_detailed(
             delete_admin_realms_realm_default_optional_client_scopes_client_scope_id.asyncio_detailed,
-            realm or self.realm,
+            realm,
             client_scope_id=client_scope_id,
         )
         if response.status_code not in (200, 204):

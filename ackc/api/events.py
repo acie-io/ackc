@@ -144,9 +144,9 @@ class EventsAPI(BaseAPI):
         Raises:
             APIError: If deletion fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             delete_admin_realms_realm_events.sync_detailed,
-            realm=realm
+            realm
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to delete events: {response.status_code}")
@@ -160,9 +160,9 @@ class EventsAPI(BaseAPI):
         Raises:
             APIError: If deletion fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             delete_admin_realms_realm_events.asyncio_detailed,
-            realm=realm
+            realm
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to delete events: {response.status_code}")
@@ -306,9 +306,9 @@ class EventsAPI(BaseAPI):
         Raises:
             APIError: If deletion fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             delete_admin_realms_realm_admin_events.sync_detailed,
-            realm=realm
+            realm
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to delete admin events: {response.status_code}")
@@ -322,9 +322,9 @@ class EventsAPI(BaseAPI):
         Raises:
             APIError: If deletion fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             delete_admin_realms_realm_admin_events.asyncio_detailed,
-            realm=realm
+            realm
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to delete admin events: {response.status_code}")
@@ -359,20 +359,21 @@ class EventsAPI(BaseAPI):
         Args:
             realm: The realm name
             config: Event configuration object or dict containing:
-                - eventsEnabled: Enable user event logging
-                - eventsListeners: List of event listener names
-                - enabledEventTypes: List of event types to log
-                - adminEventsEnabled: Enable admin event logging
-                - adminEventsDetailsEnabled: Include representation in admin events
+                - events_enabled: Enable user event logging
+                - events_expiration: Event expiration time in seconds
+                - events_listeners: List of event listener names
+                - enabled_event_types: List of event types to log
+                - admin_events_enabled: Enable admin event logging
+                - admin_events_details_enabled: Include representation in admin events
                 
         Raises:
             AuthError: If the update fails
         """
-        config_obj = config if isinstance(config, RealmEventsConfigRepresentation) else RealmEventsConfigRepresentation.from_dict(config)
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             put_admin_realms_realm_events_config.sync_detailed,
-            realm=realm,
-            body=config_obj
+            realm,
+            config,
+            RealmEventsConfigRepresentation
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update events config: {response.status_code}")
@@ -385,20 +386,21 @@ class EventsAPI(BaseAPI):
         Args:
             realm: The realm name
             config: Event configuration object or dict containing:
-                - eventsEnabled: Enable user event logging
-                - eventsListeners: List of event listener names
-                - enabledEventTypes: List of event types to log
-                - adminEventsEnabled: Enable admin event logging
-                - adminEventsDetailsEnabled: Include representation in admin events
+                - events_enabled: Enable user event logging
+                - events_expiration: Event expiration time in seconds
+                - events_listeners: List of event listener names
+                - enabled_event_types: List of event types to log
+                - admin_events_enabled: Enable admin event logging
+                - admin_events_details_enabled: Include representation in admin events
                 
         Raises:
             AuthError: If the update fails
         """
-        config_obj = config if isinstance(config, RealmEventsConfigRepresentation) else RealmEventsConfigRepresentation.from_dict(config)
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             put_admin_realms_realm_events_config.asyncio_detailed,
-            realm=realm,
-            body=config_obj
+            realm,
+            config,
+            RealmEventsConfigRepresentation
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update events config: {response.status_code}")

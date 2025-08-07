@@ -11,10 +11,10 @@ from ..generated.api.component import (
     delete_admin_realms_realm_components_id,
     get_admin_realms_realm_components_id_sub_component_types,
 )
-from ..generated.models import ComponentRepresentation
+from ..generated.models import ComponentRepresentation, ComponentTypeRepresentation
 from ..generated.types import UNSET, Unset
 
-__all__ = "ComponentsAPI", "ComponentsClientMixin", "ComponentRepresentation"
+__all__ = "ComponentsAPI", "ComponentsClientMixin", "ComponentRepresentation", "ComponentTypeRepresentation"
 
 
 class ComponentsAPI(BaseAPI):
@@ -74,7 +74,7 @@ class ComponentsAPI(BaseAPI):
             type_=type,
         )
 
-    def create(self, realm: str | None = None, component_data: dict | ComponentRepresentation = None) -> str:
+    def create(self, realm: str | None = None, *, component_data: dict | ComponentRepresentation) -> str:
         """Create a component (sync).
         
         Components are pluggable providers like user storage, key providers, etc.
@@ -89,18 +89,18 @@ class ComponentsAPI(BaseAPI):
         Raises:
             APIError: If component creation fails
         """
-        component_obj = component_data if isinstance(component_data, ComponentRepresentation) else ComponentRepresentation.from_dict(component_data)
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             post_admin_realms_realm_components.sync_detailed,
-            realm=realm,
-            body=component_obj
+            realm,
+            component_data,
+            ComponentRepresentation
         )
         if response.status_code != 201:
             raise APIError(f"Failed to create component: {response.status_code}")
         location = response.headers.get("Location", "")
         return location.split("/")[-1] if location else ""
 
-    async def acreate(self, realm: str | None = None, component_data: dict | ComponentRepresentation = None) -> str:
+    async def acreate(self, realm: str | None = None, *, component_data: dict | ComponentRepresentation) -> str:
         """Create a component (async).
         
         Components are pluggable providers like user storage, key providers, etc.
@@ -115,18 +115,18 @@ class ComponentsAPI(BaseAPI):
         Raises:
             APIError: If component creation fails
         """
-        component_obj = component_data if isinstance(component_data, ComponentRepresentation) else ComponentRepresentation.from_dict(component_data)
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             post_admin_realms_realm_components.asyncio_detailed,
-            realm=realm,
-            body=component_obj
+            realm,
+            component_data,
+            ComponentRepresentation
         )
         if response.status_code != 201:
             raise APIError(f"Failed to create component: {response.status_code}")
         location = response.headers.get("Location", "")
         return location.split("/")[-1] if location else ""
 
-    def get(self, realm: str | None = None, component_id: str = None) -> ComponentRepresentation | None:
+    def get(self, realm: str | None = None, *, component_id: str) -> ComponentRepresentation | None:
         """Get a component by ID (sync).
         
         Args:
@@ -138,11 +138,11 @@ class ComponentsAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_components_id.sync,
-            realm=realm,
+            realm,
             id=component_id
         )
 
-    async def aget(self, realm: str | None = None, component_id: str = None) -> ComponentRepresentation | None:
+    async def aget(self, realm: str | None = None, *, component_id: str) -> ComponentRepresentation | None:
         """Get a component by ID (async).
         
         Args:
@@ -154,11 +154,11 @@ class ComponentsAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_components_id.asyncio,
-            realm=realm,
+            realm,
             id=component_id
         )
 
-    def update(self, realm: str | None = None, component_id: str = None, component_data: dict | ComponentRepresentation = None) -> None:
+    def update(self, realm: str | None = None, *, component_id: str, component_data: dict | ComponentRepresentation) -> None:
         """Update a component (sync).
         
         Args:
@@ -169,17 +169,17 @@ class ComponentsAPI(BaseAPI):
         Raises:
             APIError: If component update fails
         """
-        component_obj = component_data if isinstance(component_data, ComponentRepresentation) else ComponentRepresentation.from_dict(component_data)
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             put_admin_realms_realm_components_id.sync_detailed,
-            realm=realm,
-            id=component_id,
-            body=component_obj
+            realm,
+            component_data,
+            ComponentRepresentation,
+            id=component_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update component: {response.status_code}")
 
-    async def aupdate(self, realm: str | None = None, component_id: str = None, component_data: dict | ComponentRepresentation = None) -> None:
+    async def aupdate(self, realm: str | None = None, *, component_id: str, component_data: dict | ComponentRepresentation) -> None:
         """Update a component (async).
         
         Args:
@@ -190,17 +190,17 @@ class ComponentsAPI(BaseAPI):
         Raises:
             APIError: If component update fails
         """
-        component_obj = component_data if isinstance(component_data, ComponentRepresentation) else ComponentRepresentation.from_dict(component_data)
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             put_admin_realms_realm_components_id.asyncio_detailed,
-            realm=realm,
-            id=component_id,
-            body=component_obj
+            realm,
+            component_data,
+            ComponentRepresentation,
+            id=component_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update component: {response.status_code}")
 
-    def delete(self, realm: str | None = None, component_id: str = None) -> None:
+    def delete(self, realm: str | None = None, *, component_id: str) -> None:
         """Delete a component (sync).
         
         Args:
@@ -210,15 +210,15 @@ class ComponentsAPI(BaseAPI):
         Raises:
             APIError: If component deletion fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             delete_admin_realms_realm_components_id.sync_detailed,
-            realm=realm,
+            realm,
             id=component_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to delete component: {response.status_code}")
 
-    async def adelete(self, realm: str | None = None, component_id: str = None) -> None:
+    async def adelete(self, realm: str | None = None, *, component_id: str) -> None:
         """Delete a component (async).
         
         Args:
@@ -228,15 +228,15 @@ class ComponentsAPI(BaseAPI):
         Raises:
             APIError: If component deletion fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             delete_admin_realms_realm_components_id.asyncio_detailed,
-            realm=realm,
+            realm,
             id=component_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to delete component: {response.status_code}")
 
-    def get_sub_component_types(self, realm: str | None = None, component_id: str = None, type: str | None = None) -> list | None:
+    def get_sub_component_types(self, realm: str | None = None, *, component_id: str, type: Unset | str = UNSET) -> list[ComponentTypeRepresentation] | None:
         """Get sub-component types (sync).
         
         Args:
@@ -249,12 +249,12 @@ class ComponentsAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_components_id_sub_component_types.sync,
-            realm=realm,
+            realm,
             id=component_id,
-            type=type
+            type_=type
         )
 
-    async def aget_sub_component_types(self, realm: str | None = None, component_id: str = None, type: str | None = None) -> list | None:
+    async def aget_sub_component_types(self, realm: str | None = None, *, component_id: str, type: Unset | str = UNSET) -> list[ComponentTypeRepresentation] | None:
         """Get sub-component types (async).
         
         Args:
@@ -267,9 +267,9 @@ class ComponentsAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_components_id_sub_component_types.asyncio,
-            realm=realm,
+            realm,
             id=component_id,
-            type=type
+            type_=type
         )
 
 

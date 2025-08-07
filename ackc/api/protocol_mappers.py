@@ -44,7 +44,7 @@ class ProtocolMappersAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_clients_client_uuid_protocol_mappers_models.sync,
-            realm=realm,
+            realm,
             client_uuid=client_uuid
         )
 
@@ -62,7 +62,7 @@ class ProtocolMappersAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_clients_client_uuid_protocol_mappers_models.asyncio,
-            realm=realm,
+            realm,
             client_uuid=client_uuid
         )
 
@@ -77,12 +77,12 @@ class ProtocolMappersAPI(BaseAPI):
         Raises:
             APIError: If mapper creation fails
         """
-        mapper_obj = mapper_data if isinstance(mapper_data, ProtocolMapperRepresentation) else ProtocolMapperRepresentation.from_dict(mapper_data)
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             post_admin_realms_realm_clients_client_uuid_protocol_mappers_models.sync_detailed,
-            realm=realm,
-            client_uuid=client_uuid,
-            body=mapper_obj
+            realm,
+            mapper_data,
+            ProtocolMapperRepresentation,
+            client_uuid=client_uuid
         )
         if response.status_code != 201:
             raise APIError(f"Failed to create client mapper: {response.status_code}")
@@ -98,12 +98,12 @@ class ProtocolMappersAPI(BaseAPI):
         Raises:
             APIError: If mapper creation fails
         """
-        mapper_obj = mapper_data if isinstance(mapper_data, ProtocolMapperRepresentation) else ProtocolMapperRepresentation.from_dict(mapper_data)
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             post_admin_realms_realm_clients_client_uuid_protocol_mappers_models.asyncio_detailed,
-            realm=realm,
-            client_uuid=client_uuid,
-            body=mapper_obj
+            realm,
+            mapper_data,
+            ProtocolMapperRepresentation,
+            client_uuid=client_uuid
         )
         if response.status_code != 201:
             raise APIError(f"Failed to create client mapper: {response.status_code}")
@@ -121,7 +121,7 @@ class ProtocolMappersAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_clients_client_uuid_protocol_mappers_models_id.sync,
-            realm=realm,
+            realm,
             client_uuid=client_uuid,
             id=mapper_id
         )
@@ -139,7 +139,7 @@ class ProtocolMappersAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_clients_client_uuid_protocol_mappers_models_id.asyncio,
-            realm=realm,
+            realm,
             client_uuid=client_uuid,
             id=mapper_id
         )
@@ -156,13 +156,13 @@ class ProtocolMappersAPI(BaseAPI):
         Raises:
             APIError: If mapper update fails
         """
-        mapper_obj = mapper_data if isinstance(mapper_data, ProtocolMapperRepresentation) else ProtocolMapperRepresentation.from_dict(mapper_data)
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             put_admin_realms_realm_clients_client_uuid_protocol_mappers_models_id.sync_detailed,
-            realm=realm,
+            realm,
+            mapper_data,
+            ProtocolMapperRepresentation,
             client_uuid=client_uuid,
-            id=mapper_id,
-            body=mapper_obj
+            id=mapper_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update client mapper: {response.status_code}")
@@ -179,13 +179,13 @@ class ProtocolMappersAPI(BaseAPI):
         Raises:
             APIError: If mapper update fails
         """
-        mapper_obj = mapper_data if isinstance(mapper_data, ProtocolMapperRepresentation) else ProtocolMapperRepresentation.from_dict(mapper_data)
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             put_admin_realms_realm_clients_client_uuid_protocol_mappers_models_id.asyncio_detailed,
-            realm=realm,
+            realm,
+            mapper_data,
+            ProtocolMapperRepresentation,
             client_uuid=client_uuid,
-            id=mapper_id,
-            body=mapper_obj
+            id=mapper_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update client mapper: {response.status_code}")
@@ -201,9 +201,9 @@ class ProtocolMappersAPI(BaseAPI):
         Raises:
             APIError: If mapper deletion fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             delete_admin_realms_realm_clients_client_uuid_protocol_mappers_models_id.sync_detailed,
-            realm=realm,
+            realm,
             client_uuid=client_uuid,
             id=mapper_id
         )
@@ -221,9 +221,9 @@ class ProtocolMappersAPI(BaseAPI):
         Raises:
             APIError: If mapper deletion fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             delete_admin_realms_realm_clients_client_uuid_protocol_mappers_models_id.asyncio_detailed,
-            realm=realm,
+            realm,
             client_uuid=client_uuid,
             id=mapper_id
         )
@@ -243,7 +243,7 @@ class ProtocolMappersAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_clients_client_uuid_protocol_mappers_protocol_protocol.sync,
-            realm=realm,
+            realm,
             client_uuid=client_uuid,
             protocol=protocol
         )
@@ -261,7 +261,7 @@ class ProtocolMappersAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_clients_client_uuid_protocol_mappers_protocol_protocol.asyncio,
-            realm=realm,
+            realm,
             client_uuid=client_uuid,
             protocol=protocol
         )
@@ -280,7 +280,7 @@ class ProtocolMappersAPI(BaseAPI):
         mapper_objs = [m if isinstance(m, ProtocolMapperRepresentation) else ProtocolMapperRepresentation.from_dict(m) for m in mappers]
         response = self._sync_detailed(
             post_admin_realms_realm_clients_client_uuid_protocol_mappers_add_models.sync_detailed,
-            realm=realm,
+            realm,
             client_uuid=client_uuid,
             body=mapper_objs
         )
@@ -301,7 +301,7 @@ class ProtocolMappersAPI(BaseAPI):
         mapper_objs = [m if isinstance(m, ProtocolMapperRepresentation) else ProtocolMapperRepresentation.from_dict(m) for m in mappers]
         response = await self._async_detailed(
             post_admin_realms_realm_clients_client_uuid_protocol_mappers_add_models.asyncio_detailed,
-            realm=realm,
+            realm,
             client_uuid=client_uuid,
             body=mapper_objs
         )
@@ -321,7 +321,7 @@ class ProtocolMappersAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_client_scopes_client_scope_id_protocol_mappers_models.sync,
-            realm=realm,
+            realm,
             client_scope_id=client_scope_id
         )
 
@@ -337,7 +337,7 @@ class ProtocolMappersAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_client_scopes_client_scope_id_protocol_mappers_models.asyncio,
-            realm=realm,
+            realm,
             client_scope_id=client_scope_id
         )
 
@@ -352,12 +352,12 @@ class ProtocolMappersAPI(BaseAPI):
         Raises:
             APIError: If mapper creation fails
         """
-        mapper_obj = mapper_data if isinstance(mapper_data, ProtocolMapperRepresentation) else ProtocolMapperRepresentation.from_dict(mapper_data)
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             post_admin_realms_realm_client_scopes_client_scope_id_protocol_mappers_models.sync_detailed,
-            realm=realm,
-            client_scope_id=client_scope_id,
-            body=mapper_obj
+            realm,
+            mapper_data,
+            ProtocolMapperRepresentation,
+            client_scope_id=client_scope_id
         )
         if response.status_code not in (200, 201):
             raise APIError(f"Failed to create scope mapper: {response.status_code}")
@@ -373,12 +373,12 @@ class ProtocolMappersAPI(BaseAPI):
         Raises:
             APIError: If mapper creation fails
         """
-        mapper_obj = mapper_data if isinstance(mapper_data, ProtocolMapperRepresentation) else ProtocolMapperRepresentation.from_dict(mapper_data)
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             post_admin_realms_realm_client_scopes_client_scope_id_protocol_mappers_models.asyncio_detailed,
-            realm=realm,
-            client_scope_id=client_scope_id,
-            body=mapper_obj
+            realm,
+            mapper_data,
+            ProtocolMapperRepresentation,
+            client_scope_id=client_scope_id
         )
         if response.status_code not in (200, 201):
             raise APIError(f"Failed to create scope mapper: {response.status_code}")
@@ -396,7 +396,7 @@ class ProtocolMappersAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_client_scopes_client_scope_id_protocol_mappers_models_id.sync,
-            realm=realm,
+            realm,
             client_scope_id=client_scope_id,
             id=mapper_id
         )
@@ -414,7 +414,7 @@ class ProtocolMappersAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_client_scopes_client_scope_id_protocol_mappers_models_id.asyncio,
-            realm=realm,
+            realm,
             client_scope_id=client_scope_id,
             id=mapper_id
         )
@@ -431,13 +431,13 @@ class ProtocolMappersAPI(BaseAPI):
         Raises:
             APIError: If mapper update fails
         """
-        mapper_obj = mapper_data if isinstance(mapper_data, ProtocolMapperRepresentation) else ProtocolMapperRepresentation.from_dict(mapper_data)
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             put_admin_realms_realm_client_scopes_client_scope_id_protocol_mappers_models_id.sync_detailed,
-            realm=realm,
+            realm,
+            mapper_data,
+            ProtocolMapperRepresentation,
             client_scope_id=client_scope_id,
-            id=mapper_id,
-            body=mapper_obj
+            id=mapper_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update scope mapper: {response.status_code}")
@@ -454,13 +454,13 @@ class ProtocolMappersAPI(BaseAPI):
         Raises:
             APIError: If mapper update fails
         """
-        mapper_obj = mapper_data if isinstance(mapper_data, ProtocolMapperRepresentation) else ProtocolMapperRepresentation.from_dict(mapper_data)
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             put_admin_realms_realm_client_scopes_client_scope_id_protocol_mappers_models_id.asyncio_detailed,
-            realm=realm,
+            realm,
+            mapper_data,
+            ProtocolMapperRepresentation,
             client_scope_id=client_scope_id,
-            id=mapper_id,
-            body=mapper_obj
+            id=mapper_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update scope mapper: {response.status_code}")
@@ -476,9 +476,9 @@ class ProtocolMappersAPI(BaseAPI):
         Raises:
             APIError: If mapper deletion fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             delete_admin_realms_realm_client_scopes_client_scope_id_protocol_mappers_models_id.sync_detailed,
-            realm=realm,
+            realm,
             client_scope_id=client_scope_id,
             id=mapper_id
         )
@@ -496,9 +496,9 @@ class ProtocolMappersAPI(BaseAPI):
         Raises:
             APIError: If mapper deletion fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             delete_admin_realms_realm_client_scopes_client_scope_id_protocol_mappers_models_id.asyncio_detailed,
-            realm=realm,
+            realm,
             client_scope_id=client_scope_id,
             id=mapper_id
         )
@@ -518,7 +518,7 @@ class ProtocolMappersAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_client_scopes_client_scope_id_protocol_mappers_protocol_protocol.sync,
-            realm=realm,
+            realm,
             client_scope_id=client_scope_id,
             protocol=protocol
         )
@@ -536,7 +536,7 @@ class ProtocolMappersAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_client_scopes_client_scope_id_protocol_mappers_protocol_protocol.asyncio,
-            realm=realm,
+            realm,
             client_scope_id=client_scope_id,
             protocol=protocol
         )
@@ -555,7 +555,7 @@ class ProtocolMappersAPI(BaseAPI):
         mapper_objs = [m if isinstance(m, ProtocolMapperRepresentation) else ProtocolMapperRepresentation.from_dict(m) for m in mappers]
         response = self._sync_detailed(
             post_admin_realms_realm_client_scopes_client_scope_id_protocol_mappers_add_models.sync_detailed,
-            realm=realm,
+            realm,
             client_scope_id=client_scope_id,
             body=mapper_objs
         )
@@ -576,7 +576,7 @@ class ProtocolMappersAPI(BaseAPI):
         mapper_objs = [m if isinstance(m, ProtocolMapperRepresentation) else ProtocolMapperRepresentation.from_dict(m) for m in mappers]
         response = await self._async_detailed(
             post_admin_realms_realm_client_scopes_client_scope_id_protocol_mappers_add_models.asyncio_detailed,
-            realm=realm,
+            realm,
             client_scope_id=client_scope_id,
             body=mapper_objs
         )

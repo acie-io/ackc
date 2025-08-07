@@ -1,7 +1,7 @@
 """Base for API and client manager classes.
 """
 import json
-from typing import Any, Callable, Protocol, Awaitable
+from typing import Any, Callable, Protocol, Awaitable, Mapping, Self
 
 from ..exceptions import AuthError, APIError
 from ..generated import AuthenticatedClient, Client
@@ -43,6 +43,22 @@ class AsyncDetailedFunctionProtocol[T](Protocol):
         """
         ...
 
+class AdditionalPropertiesContainerTypeProtocol[T](Protocol):
+    """Protocol for types that can contain additional properties.
+
+    This is used to ensure that the type has an `additional_properties` attribute.
+    """
+    additional_properties: dict[str, T] | None
+
+    def to_dict(self) -> dict[str, T]:
+        """Convert the instance to a dictionary."""
+        ...
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, T]) -> Self:
+        """Create an instance from a dictionary."""
+        ...
+
 
 class BaseAPI:
     """Base class that provides common functionality for API classes.
@@ -71,6 +87,20 @@ class BaseAPI:
     def _sync[T](self, func: SyncFunctionProtocol[T] | Callable[..., T], realm: str | None, **kwds) -> T:
         return self._sync_any(func, realm=realm or self.realm, **kwds)
 
+    def _sync_ap[T](self, func: SyncFunctionProtocol[AdditionalPropertiesContainerTypeProtocol[T]] | Callable[..., AdditionalPropertiesContainerTypeProtocol[T]], realm: str | None, **kwds) -> dict[str, T] | None:
+        """Helper for endpoints that return additional properties."""
+        result = self._sync_any(func, realm=realm or self.realm, **kwds)
+        if result:
+            return result.to_dict()
+        return result
+
+    def _sync_ap_list[T](self, func: SyncFunctionProtocol[list[AdditionalPropertiesContainerTypeProtocol[T]]] | Callable[..., list[AdditionalPropertiesContainerTypeProtocol[T]]], realm: str | None, **kwds) -> list[dict[str, T]] | None:
+        """Helper for endpoints that return a list of additional properties."""
+        result = self._sync_any(func, realm=realm or self.realm, **kwds)
+        if result:
+            return [item.to_dict() for item in result]
+        return result
+
     def _sync_detailed[T](self, func: SyncDetailedFunctionProtocol[T] | Callable[..., T], realm: str | None, body: Any | None = None, **kwds) -> T:
         return self._sync_any(func, realm=realm or self.realm, body=body, **kwds)
     
@@ -89,6 +119,20 @@ class BaseAPI:
 
     async def _async[T](self, func: AsyncFunctionProtocol[T] | Callable[..., Awaitable[T]], realm: str | None, **kwds) -> T:
         return await self._async_any(func, realm=realm or self.realm, **kwds)
+
+    async def _async_ap[T](self, func: AsyncFunctionProtocol[AdditionalPropertiesContainerTypeProtocol[T]] | Callable[..., Awaitable[AdditionalPropertiesContainerTypeProtocol[T]]], realm: str | None, **kwds) -> dict[str, T] | None:
+        """Helper for endpoints that return additional properties."""
+        result = await self._async_any(func, realm=realm or self.realm, **kwds)
+        if result:
+            return result.to_dict()
+        return result
+
+    async def _async_ap_list[T](self, func: AsyncFunctionProtocol[list[AdditionalPropertiesContainerTypeProtocol[T]]] | Callable[..., Awaitable[list[AdditionalPropertiesContainerTypeProtocol[T]]]], realm: str | None, **kwds) -> list[dict[str, T]] | None:
+        """Helper for endpoints that return a list of additional properties."""
+        result = await self._async_any(func, realm=realm or self.realm, **kwds)
+        if result:
+            return [item.to_dict() for item in result]
+        return result
 
     async def _async_detailed[T](self, func: AsyncDetailedFunctionProtocol[T] | Callable[..., Awaitable[T]], realm: str | None, body: Any | None = None, **kwds) -> T:
         return await self._async_any(func, realm=realm or self.realm, body=body, **kwds)

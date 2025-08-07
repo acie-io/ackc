@@ -26,7 +26,7 @@ class ClientRegistrationPolicyAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_client_registration_policy_providers.sync,
-            realm or self.realm
+            realm
         )
 
     async def aget_providers(self, realm: str | None = None) -> list[ComponentTypeRepresentation] | None:
@@ -42,7 +42,7 @@ class ClientRegistrationPolicyAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_client_registration_policy_providers.asyncio,
-            realm or self.realm
+            realm
         )
 
 

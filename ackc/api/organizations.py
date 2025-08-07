@@ -28,6 +28,8 @@ from ..generated.models import (
     OrganizationRepresentation,
     MemberRepresentation,
     IdentityProviderRepresentation,
+    PostAdminRealmsRealmOrganizationsOrgIdMembersInviteExistingUserBody,
+    PostAdminRealmsRealmOrganizationsOrgIdMembersInviteUserBody,
 )
 from ..generated.types import UNSET, Unset
 
@@ -115,7 +117,7 @@ class OrganizationsAPI(BaseAPI):
             search=search,
         )
 
-    def create(self, realm: str | None = None, org_data: dict | OrganizationRepresentation = None) -> str:
+    def create(self, realm: str | None = None, *, org_data: dict | OrganizationRepresentation) -> str:
         """Create an organization (sync).
         
         Args:
@@ -128,18 +130,18 @@ class OrganizationsAPI(BaseAPI):
         Raises:
             APIError: If organization creation fails
         """
-        org_obj = org_data if isinstance(org_data, OrganizationRepresentation) else OrganizationRepresentation.from_dict(org_data)
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             post_admin_realms_realm_organizations.sync_detailed,
-            realm=realm,
-            body=org_obj
+            realm,
+            org_data,
+            OrganizationRepresentation
         )
         if response.status_code != 201:
             raise APIError(f"Failed to create organization: {response.status_code}")
         location = response.headers.get("Location", "")
         return location.split("/")[-1] if location else ""
 
-    async def acreate(self, realm: str | None = None, org_data: dict | OrganizationRepresentation = None) -> str:
+    async def acreate(self, realm: str | None = None, *, org_data: dict | OrganizationRepresentation) -> str:
         """Create an organization (async).
         
         Args:
@@ -152,18 +154,18 @@ class OrganizationsAPI(BaseAPI):
         Raises:
             APIError: If organization creation fails
         """
-        org_obj = org_data if isinstance(org_data, OrganizationRepresentation) else OrganizationRepresentation.from_dict(org_data)
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             post_admin_realms_realm_organizations.asyncio_detailed,
-            realm=realm,
-            body=org_obj
+            realm,
+            org_data,
+            OrganizationRepresentation
         )
         if response.status_code != 201:
             raise APIError(f"Failed to create organization: {response.status_code}")
         location = response.headers.get("Location", "")
         return location.split("/")[-1] if location else ""
 
-    def get(self, realm: str | None = None, org_id: str = None) -> OrganizationRepresentation | None:
+    def get(self, realm: str | None = None, *, org_id: str) -> OrganizationRepresentation | None:
         """Get an organization by ID (sync).
         
         Args:
@@ -175,11 +177,11 @@ class OrganizationsAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_organizations_org_id.sync,
-            realm=realm,
+            realm,
             org_id=org_id
         )
 
-    async def aget(self, realm: str | None = None, org_id: str = None) -> OrganizationRepresentation | None:
+    async def aget(self, realm: str | None = None, *, org_id: str) -> OrganizationRepresentation | None:
         """Get an organization by ID (async).
         
         Args:
@@ -191,11 +193,11 @@ class OrganizationsAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_organizations_org_id.asyncio,
-            realm=realm,
+            realm,
             org_id=org_id
         )
 
-    def update(self, realm: str | None = None, org_id: str = None, org_data: dict | OrganizationRepresentation = None) -> None:
+    def update(self, realm: str | None = None, *, org_id: str, org_data: dict | OrganizationRepresentation) -> None:
         """Update an organization (sync).
         
         Args:
@@ -206,17 +208,17 @@ class OrganizationsAPI(BaseAPI):
         Raises:
             APIError: If organization update fails
         """
-        org_obj = org_data if isinstance(org_data, OrganizationRepresentation) else OrganizationRepresentation.from_dict(org_data)
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             put_admin_realms_realm_organizations_org_id.sync_detailed,
-            realm=realm,
-            org_id=org_id,
-            body=org_obj
+            realm,
+            org_data,
+            OrganizationRepresentation,
+            org_id=org_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update organization: {response.status_code}")
 
-    async def aupdate(self, realm: str | None = None, org_id: str = None, org_data: dict | OrganizationRepresentation = None) -> None:
+    async def aupdate(self, realm: str | None = None, *, org_id: str, org_data: dict | OrganizationRepresentation) -> None:
         """Update an organization (async).
         
         Args:
@@ -227,17 +229,17 @@ class OrganizationsAPI(BaseAPI):
         Raises:
             APIError: If organization update fails
         """
-        org_obj = org_data if isinstance(org_data, OrganizationRepresentation) else OrganizationRepresentation.from_dict(org_data)
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             put_admin_realms_realm_organizations_org_id.asyncio_detailed,
-            realm=realm,
-            org_id=org_id,
-            body=org_obj
+            realm,
+            org_data,
+            OrganizationRepresentation,
+            org_id=org_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to update organization: {response.status_code}")
 
-    def delete(self, realm: str | None = None, org_id: str = None) -> None:
+    def delete(self, realm: str | None = None, *, org_id: str) -> None:
         """Delete an organization (sync).
         
         Args:
@@ -247,15 +249,15 @@ class OrganizationsAPI(BaseAPI):
         Raises:
             APIError: If organization deletion fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             delete_admin_realms_realm_organizations_org_id.sync_detailed,
-            realm=realm,
+            realm,
             org_id=org_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to delete organization: {response.status_code}")
 
-    async def adelete(self, realm: str | None = None, org_id: str = None) -> None:
+    async def adelete(self, realm: str | None = None, *, org_id: str) -> None:
         """Delete an organization (async).
         
         Args:
@@ -265,47 +267,87 @@ class OrganizationsAPI(BaseAPI):
         Raises:
             APIError: If organization deletion fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             delete_admin_realms_realm_organizations_org_id.asyncio_detailed,
-            realm=realm,
+            realm,
             org_id=org_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to delete organization: {response.status_code}")
 
-    def get_members(self, realm: str | None = None, org_id: str = None) -> list[MemberRepresentation] | None:
+    def get_members(
+        self, 
+        realm: str | None = None, 
+        *, 
+        org_id: str,
+        exact: Unset | bool = UNSET,
+        first: Unset | int = 0,
+        max_results: Unset | int = 10,
+        membership_type: Unset | str = UNSET,
+        search: Unset | str = UNSET
+    ) -> list[MemberRepresentation] | None:
         """Get organization members (sync).
         
         Args:
             realm: The realm name
             org_id: Organization ID
+            exact: Exact match for search
+            first: Pagination offset
+            max_results: Maximum results to return
+            membership_type: Filter by membership type
+            search: Search string for members
             
         Returns:
             List of organization members
         """
         return self._sync(
             get_admin_realms_realm_organizations_org_id_members.sync,
-            realm=realm,
-            org_id=org_id
+            realm,
+            org_id=org_id,
+            exact=exact,
+            first=first,
+            max_=max_results,
+            membership_type=membership_type,
+            search=search
         )
 
-    async def aget_members(self, realm: str | None = None, org_id: str = None) -> list[MemberRepresentation] | None:
+    async def aget_members(
+        self,
+        realm: str | None = None,
+        *,
+        org_id: str,
+        exact: Unset | bool = UNSET,
+        first: Unset | int = 0,
+        max_results: Unset | int = 10,
+        membership_type: Unset | str = UNSET,
+        search: Unset | str = UNSET
+    ) -> list[MemberRepresentation] | None:
         """Get organization members (async).
         
         Args:
             realm: The realm name
             org_id: Organization ID
+            exact: Exact match for search
+            first: Pagination offset
+            max_results: Maximum results to return
+            membership_type: Filter by membership type
+            search: Search string for members
             
         Returns:
             List of organization members
         """
         return await self._async(
             get_admin_realms_realm_organizations_org_id_members.asyncio,
-            realm=realm,
-            org_id=org_id
+            realm,
+            org_id=org_id,
+            exact=exact,
+            first=first,
+            max_=max_results,
+            membership_type=membership_type,
+            search=search
         )
 
-    def add_member(self, realm: str | None = None, org_id: str = None, user_id: str = None) -> None:
+    def add_member(self, realm: str | None = None, *, org_id: str, user_id: str) -> None:
         """Add a member to an organization (sync).
         
         Args:
@@ -318,14 +360,14 @@ class OrganizationsAPI(BaseAPI):
         """
         response = self._sync_detailed(
             post_admin_realms_realm_organizations_org_id_members.sync_detailed,
-            realm=realm,
+            realm,
             org_id=org_id,
             body=user_id
         )
         if response.status_code != 201:
             raise APIError(f"Failed to add member: {response.status_code}")
 
-    async def aadd_member(self, realm: str | None = None, org_id: str = None, user_id: str = None) -> None:
+    async def aadd_member(self, realm: str | None = None, *, org_id: str, user_id: str) -> None:
         """Add a member to an organization (async).
         
         Args:
@@ -338,7 +380,7 @@ class OrganizationsAPI(BaseAPI):
         """
         response = await self._async_detailed(
             post_admin_realms_realm_organizations_org_id_members.asyncio_detailed,
-            realm=realm,
+            realm,
             org_id=org_id,
             body=user_id
         )
@@ -356,9 +398,9 @@ class OrganizationsAPI(BaseAPI):
         Raises:
             APIError: If removing member fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             delete_admin_realms_realm_organizations_org_id_members_member_id.sync_detailed,
-            realm or self.realm,
+            realm,
             org_id=org_id,
             member_id=member_id
         )
@@ -376,44 +418,68 @@ class OrganizationsAPI(BaseAPI):
         Raises:
             APIError: If removing member fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             delete_admin_realms_realm_organizations_org_id_members_member_id.asyncio_detailed,
-            realm or self.realm,
+            realm,
             org_id=org_id,
             member_id=member_id
         )
         if response.status_code not in (200, 204):
             raise APIError(f"Failed to remove member: {response.status_code}")
 
-    def get_count(self, realm: str | None = None) -> int | None:
+    def get_count(
+        self,
+        realm: str | None = None,
+        *,
+        exact: Unset | bool = UNSET,
+        q: Unset | str = UNSET,
+        search: Unset | str = UNSET
+    ) -> int | None:
         """Get total organization count (sync).
         
         Args:
             realm: The realm name
+            exact: Exact match for search
+            q: Query string
+            search: Search string for organizations
             
         Returns:
             Total number of organizations in the realm
         """
-        result = self._sync(
+        return self._sync(
             get_admin_realms_realm_organizations_count.sync,
-            realm or self.realm
+            realm,
+            exact=exact,
+            q=q,
+            search=search
         )
-        return result.get("count") if result else None
 
-    async def aget_count(self, realm: str | None = None) -> int | None:
+    async def aget_count(
+        self,
+        realm: str | None = None,
+        *,
+        exact: Unset | bool = UNSET,
+        q: Unset | str = UNSET,
+        search: Unset | str = UNSET
+    ) -> int | None:
         """Get total organization count (async).
         
         Args:
             realm: The realm name
+            exact: Exact match for search
+            q: Query string
+            search: Search string for organizations
             
         Returns:
             Total number of organizations in the realm
         """
-        result = await self._async(
+        return await self._async(
             get_admin_realms_realm_organizations_count.asyncio,
-            realm or self.realm
+            realm,
+            exact=exact,
+            q=q,
+            search=search
         )
-        return result.get("count") if result else None
 
     def get_members_count(self, realm: str | None = None, *, org_id: str) -> int | None:
         """Get organization member count (sync).
@@ -425,12 +491,11 @@ class OrganizationsAPI(BaseAPI):
         Returns:
             Number of members in the organization
         """
-        result = self._sync(
+        return self._sync(
             get_admin_realms_realm_organizations_org_id_members_count.sync,
-            realm or self.realm,
+            realm,
             org_id=org_id
         )
-        return result.get("count") if result else None
 
     async def aget_members_count(self, realm: str | None = None, *, org_id: str) -> int | None:
         """Get organization member count (async).
@@ -442,12 +507,11 @@ class OrganizationsAPI(BaseAPI):
         Returns:
             Number of members in the organization
         """
-        result = await self._async(
+        return await self._async(
             get_admin_realms_realm_organizations_org_id_members_count.asyncio,
-            realm or self.realm,
+            realm,
             org_id=org_id
         )
-        return result.get("count") if result else None
 
     def get_member(self, realm: str | None = None, *, org_id: str, member_id: str) -> MemberRepresentation | None:
         """Get organization member details (sync).
@@ -462,7 +526,7 @@ class OrganizationsAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_organizations_org_id_members_member_id.sync,
-            realm or self.realm,
+            realm,
             org_id=org_id,
             member_id=member_id
         )
@@ -480,7 +544,7 @@ class OrganizationsAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_organizations_org_id_members_member_id.asyncio,
-            realm or self.realm,
+            realm,
             org_id=org_id,
             member_id=member_id
         )
@@ -496,11 +560,12 @@ class OrganizationsAPI(BaseAPI):
         Raises:
             APIError: If invitation fails
         """
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             post_admin_realms_realm_organizations_org_id_members_invite_existing_user.sync_detailed,
-            realm or self.realm,
-            org_id=org_id,
-            body={"id": user_id}
+            realm,
+            {"id": user_id},
+            PostAdminRealmsRealmOrganizationsOrgIdMembersInviteExistingUserBody,
+            org_id=org_id
         )
         if response.status_code not in (200, 201, 204):
             raise APIError(f"Failed to invite user: {response.status_code}")
@@ -516,11 +581,12 @@ class OrganizationsAPI(BaseAPI):
         Raises:
             APIError: If invitation fails
         """
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             post_admin_realms_realm_organizations_org_id_members_invite_existing_user.asyncio_detailed,
-            realm or self.realm,
-            org_id=org_id,
-            body={"id": user_id}
+            realm,
+            {"id": user_id},
+            PostAdminRealmsRealmOrganizationsOrgIdMembersInviteExistingUserBody,
+            org_id=org_id
         )
         if response.status_code not in (200, 201, 204):
             raise APIError(f"Failed to invite user: {response.status_code}")
@@ -544,11 +610,12 @@ class OrganizationsAPI(BaseAPI):
         if last_name:
             body["lastName"] = last_name
             
-        response = self._sync_detailed(
+        response = self._sync_detailed_model(
             post_admin_realms_realm_organizations_org_id_members_invite_user.sync_detailed,
-            realm or self.realm,
-            org_id=org_id,
-            body=body
+            realm,
+            body,
+            PostAdminRealmsRealmOrganizationsOrgIdMembersInviteUserBody,
+            org_id=org_id
         )
         if response.status_code not in (200, 201, 204):
             raise APIError(f"Failed to invite new user: {response.status_code}")
@@ -572,11 +639,12 @@ class OrganizationsAPI(BaseAPI):
         if last_name:
             body["lastName"] = last_name
             
-        response = await self._async_detailed(
+        response = await self._async_detailed_model(
             post_admin_realms_realm_organizations_org_id_members_invite_user.asyncio_detailed,
-            realm or self.realm,
-            org_id=org_id,
-            body=body
+            realm,
+            body,
+            PostAdminRealmsRealmOrganizationsOrgIdMembersInviteUserBody,
+            org_id=org_id
         )
         if response.status_code not in (200, 201, 204):
             raise APIError(f"Failed to invite new user: {response.status_code}")
@@ -594,7 +662,7 @@ class OrganizationsAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_organizations_org_id_identity_providers.sync,
-            realm or self.realm,
+            realm,
             org_id=org_id
         )
 
@@ -610,7 +678,7 @@ class OrganizationsAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_organizations_org_id_identity_providers.asyncio,
-            realm or self.realm,
+            realm,
             org_id=org_id
         )
 
@@ -627,7 +695,7 @@ class OrganizationsAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_organizations_org_id_identity_providers_alias.sync,
-            realm or self.realm,
+            realm,
             org_id=org_id,
             alias=alias
         )
@@ -645,7 +713,7 @@ class OrganizationsAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_organizations_org_id_identity_providers_alias.asyncio,
-            realm or self.realm,
+            realm,
             org_id=org_id,
             alias=alias
         )
@@ -663,9 +731,9 @@ class OrganizationsAPI(BaseAPI):
         """
         response = self._sync_detailed(
             post_admin_realms_realm_organizations_org_id_identity_providers.sync_detailed,
-            realm or self.realm,
+            realm,
             org_id=org_id,
-            body={"alias": alias}
+            body=alias
         )
         if response.status_code not in (200, 201, 204):
             raise APIError(f"Failed to add identity provider: {response.status_code}")
@@ -683,9 +751,9 @@ class OrganizationsAPI(BaseAPI):
         """
         response = await self._async_detailed(
             post_admin_realms_realm_organizations_org_id_identity_providers.asyncio_detailed,
-            realm or self.realm,
+            realm,
             org_id=org_id,
-            body={"alias": alias}
+            body=alias
         )
         if response.status_code not in (200, 201, 204):
             raise APIError(f"Failed to add identity provider: {response.status_code}")
@@ -701,9 +769,9 @@ class OrganizationsAPI(BaseAPI):
         Raises:
             APIError: If removing identity provider fails
         """
-        response = self._sync_detailed(
+        response = self._sync(
             delete_admin_realms_realm_organizations_org_id_identity_providers_alias.sync_detailed,
-            realm or self.realm,
+            realm,
             org_id=org_id,
             alias=alias
         )
@@ -721,9 +789,9 @@ class OrganizationsAPI(BaseAPI):
         Raises:
             APIError: If removing identity provider fails
         """
-        response = await self._async_detailed(
+        response = await self._async(
             delete_admin_realms_realm_organizations_org_id_identity_providers_alias.asyncio_detailed,
-            realm or self.realm,
+            realm,
             org_id=org_id,
             alias=alias
         )
@@ -742,7 +810,7 @@ class OrganizationsAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_organizations_members_member_id_organizations.sync,
-            realm or self.realm,
+            realm,
             member_id=member_id
         )
 
@@ -758,7 +826,7 @@ class OrganizationsAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_organizations_members_member_id_organizations.asyncio,
-            realm or self.realm,
+            realm,
             member_id=member_id
         )
 

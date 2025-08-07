@@ -37,7 +37,7 @@ class ClientRoleMappingsAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_users_user_id_role_mappings_clients_client_id.sync,
-            realm or self.realm,
+            realm,
             user_id=user_id,
             client_id=client_id
         )
@@ -55,7 +55,7 @@ class ClientRoleMappingsAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_users_user_id_role_mappings_clients_client_id.asyncio,
-            realm or self.realm,
+            realm,
             user_id=user_id,
             client_id=client_id
         )
@@ -73,7 +73,7 @@ class ClientRoleMappingsAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_users_user_id_role_mappings_clients_client_id_available.sync,
-            realm or self.realm,
+            realm,
             user_id=user_id,
             client_id=client_id
         )
@@ -91,12 +91,12 @@ class ClientRoleMappingsAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_users_user_id_role_mappings_clients_client_id_available.asyncio,
-            realm or self.realm,
+            realm,
             user_id=user_id,
             client_id=client_id
         )
 
-    def get_user_composite_client_role_mappings(self, realm: str | None = None, *, user_id: str, client_id: str) -> list[RoleRepresentation] | None:
+    def get_user_composite_client_role_mappings(self, realm: str | None = None, *, user_id: str, client_id: str, brief_representation: Unset | bool = True) -> list[RoleRepresentation] | None:
         """Get composite client-level role mappings for a user.
         
         Includes roles mapped directly and through composite roles.
@@ -105,18 +105,20 @@ class ClientRoleMappingsAPI(BaseAPI):
             realm: The realm name
             user_id: User ID
             client_id: Client ID
+            brief_representation: Return brief representation (default True)
             
         Returns:
             List of effective client roles for the user
         """
         return self._sync(
             get_admin_realms_realm_users_user_id_role_mappings_clients_client_id_composite.sync,
-            realm or self.realm,
+            realm,
             user_id=user_id,
-            client_id=client_id
+            client_id=client_id,
+            brief_representation=brief_representation
         )
 
-    async def aget_user_composite_client_role_mappings(self, realm: str | None = None, *, user_id: str, client_id: str) -> list[RoleRepresentation] | None:
+    async def aget_user_composite_client_role_mappings(self, realm: str | None = None, *, user_id: str, client_id: str, brief_representation: Unset | bool = True) -> list[RoleRepresentation] | None:
         """Get composite client-level role mappings for a user (async).
         
         Includes roles mapped directly and through composite roles.
@@ -125,15 +127,17 @@ class ClientRoleMappingsAPI(BaseAPI):
             realm: The realm name
             user_id: User ID
             client_id: Client ID
+            brief_representation: Return brief representation (default True)
             
         Returns:
             List of effective client roles for the user
         """
         return await self._async(
             get_admin_realms_realm_users_user_id_role_mappings_clients_client_id_composite.asyncio,
-            realm or self.realm,
+            realm,
             user_id=user_id,
-            client_id=client_id
+            client_id=client_id,
+            brief_representation=brief_representation
         )
 
     def add_user_client_role_mappings(self, realm: str | None = None, *, user_id: str, client_id: str, roles: list[RoleRepresentation]) -> None:
@@ -150,7 +154,7 @@ class ClientRoleMappingsAPI(BaseAPI):
         """
         response = self._sync_detailed(
             post_admin_realms_realm_users_user_id_role_mappings_clients_client_id.sync_detailed,
-            realm or self.realm,
+            realm,
             user_id=user_id,
             client_id=client_id,
             body=roles
@@ -172,7 +176,7 @@ class ClientRoleMappingsAPI(BaseAPI):
         """
         response = await self._async_detailed(
             post_admin_realms_realm_users_user_id_role_mappings_clients_client_id.asyncio_detailed,
-            realm or self.realm,
+            realm,
             user_id=user_id,
             client_id=client_id,
             body=roles
@@ -194,7 +198,7 @@ class ClientRoleMappingsAPI(BaseAPI):
         """
         response = self._sync_detailed(
             delete_admin_realms_realm_users_user_id_role_mappings_clients_client_id.sync_detailed,
-            realm or self.realm,
+            realm,
             user_id=user_id,
             client_id=client_id,
             body=roles
@@ -216,7 +220,7 @@ class ClientRoleMappingsAPI(BaseAPI):
         """
         response = await self._async_detailed(
             delete_admin_realms_realm_users_user_id_role_mappings_clients_client_id.asyncio_detailed,
-            realm or self.realm,
+            realm,
             user_id=user_id,
             client_id=client_id,
             body=roles
@@ -237,7 +241,7 @@ class ClientRoleMappingsAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_groups_group_id_role_mappings_clients_client_id.sync,
-            realm or self.realm,
+            realm,
             group_id=group_id,
             client_id=client_id
         )
@@ -255,7 +259,7 @@ class ClientRoleMappingsAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_groups_group_id_role_mappings_clients_client_id.asyncio,
-            realm or self.realm,
+            realm,
             group_id=group_id,
             client_id=client_id
         )
@@ -273,7 +277,7 @@ class ClientRoleMappingsAPI(BaseAPI):
         """
         return self._sync(
             get_admin_realms_realm_groups_group_id_role_mappings_clients_client_id_available.sync,
-            realm or self.realm,
+            realm,
             group_id=group_id,
             client_id=client_id
         )
@@ -291,12 +295,12 @@ class ClientRoleMappingsAPI(BaseAPI):
         """
         return await self._async(
             get_admin_realms_realm_groups_group_id_role_mappings_clients_client_id_available.asyncio,
-            realm or self.realm,
+            realm,
             group_id=group_id,
             client_id=client_id
         )
 
-    def get_group_composite_client_role_mappings(self, realm: str | None = None, *, group_id: str, client_id: str) -> list[RoleRepresentation] | None:
+    def get_group_composite_client_role_mappings(self, realm: str | None = None, *, group_id: str, client_id: str, brief_representation: Unset | bool = True) -> list[RoleRepresentation] | None:
         """Get composite client-level role mappings for a group.
         
         Includes roles mapped directly and through composite roles.
@@ -305,18 +309,20 @@ class ClientRoleMappingsAPI(BaseAPI):
             realm: The realm name
             group_id: Group ID
             client_id: Client ID
+            brief_representation: Return brief representation (default True)
             
         Returns:
             List of effective client roles for the group
         """
         return self._sync(
             get_admin_realms_realm_groups_group_id_role_mappings_clients_client_id_composite.sync,
-            realm or self.realm,
+            realm,
             group_id=group_id,
-            client_id=client_id
+            client_id=client_id,
+            brief_representation=brief_representation
         )
 
-    async def aget_group_composite_client_role_mappings(self, realm: str | None = None, *, group_id: str, client_id: str) -> list[RoleRepresentation] | None:
+    async def aget_group_composite_client_role_mappings(self, realm: str | None = None, *, group_id: str, client_id: str, brief_representation: Unset | bool = True) -> list[RoleRepresentation] | None:
         """Get composite client-level role mappings for a group (async).
         
         Includes roles mapped directly and through composite roles.
@@ -325,15 +331,17 @@ class ClientRoleMappingsAPI(BaseAPI):
             realm: The realm name
             group_id: Group ID
             client_id: Client ID
+            brief_representation: Return brief representation (default True)
             
         Returns:
             List of effective client roles for the group
         """
         return await self._async(
             get_admin_realms_realm_groups_group_id_role_mappings_clients_client_id_composite.asyncio,
-            realm or self.realm,
+            realm,
             group_id=group_id,
-            client_id=client_id
+            client_id=client_id,
+            brief_representation=brief_representation
         )
 
     def add_group_client_role_mappings(self, realm: str | None = None, *, group_id: str, client_id: str, roles: list[RoleRepresentation]) -> None:
@@ -350,7 +358,7 @@ class ClientRoleMappingsAPI(BaseAPI):
         """
         response = self._sync_detailed(
             post_admin_realms_realm_groups_group_id_role_mappings_clients_client_id.sync_detailed,
-            realm or self.realm,
+            realm,
             group_id=group_id,
             client_id=client_id,
             body=roles
@@ -372,7 +380,7 @@ class ClientRoleMappingsAPI(BaseAPI):
         """
         response = await self._async_detailed(
             post_admin_realms_realm_groups_group_id_role_mappings_clients_client_id.asyncio_detailed,
-            realm or self.realm,
+            realm,
             group_id=group_id,
             client_id=client_id,
             body=roles
@@ -394,7 +402,7 @@ class ClientRoleMappingsAPI(BaseAPI):
         """
         response = self._sync_detailed(
             delete_admin_realms_realm_groups_group_id_role_mappings_clients_client_id.sync_detailed,
-            realm or self.realm,
+            realm,
             group_id=group_id,
             client_id=client_id,
             body=roles
@@ -416,7 +424,7 @@ class ClientRoleMappingsAPI(BaseAPI):
         """
         response = await self._async_detailed(
             delete_admin_realms_realm_groups_group_id_role_mappings_clients_client_id.asyncio_detailed,
-            realm or self.realm,
+            realm,
             group_id=group_id,
             client_id=client_id,
             body=roles
