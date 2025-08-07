@@ -15,13 +15,18 @@ from ..generated.api.default import (
     put_admin_realms_realm_clients_client_uuid_authz_resource_server_resource_resource_id,
     delete_admin_realms_realm_clients_client_uuid_authz_resource_server_resource_resource_id,
     get_admin_realms_realm_clients_client_uuid_authz_resource_server_resource_search,
-    # Scopes
+    get_admin_realms_realm_clients_client_uuid_authz_resource_server_resource_resource_id_attributes,
+    get_admin_realms_realm_clients_client_uuid_authz_resource_server_resource_resource_id_permissions,
+    get_admin_realms_realm_clients_client_uuid_authz_resource_server_resource_resource_id_scopes,
+    # Scopes  
     get_admin_realms_realm_clients_client_uuid_authz_resource_server_scope,
     post_admin_realms_realm_clients_client_uuid_authz_resource_server_scope,
     get_admin_realms_realm_clients_client_uuid_authz_resource_server_scope_scope_id,
     put_admin_realms_realm_clients_client_uuid_authz_resource_server_scope_scope_id,
     delete_admin_realms_realm_clients_client_uuid_authz_resource_server_scope_scope_id,
     get_admin_realms_realm_clients_client_uuid_authz_resource_server_scope_search,
+    get_admin_realms_realm_clients_client_uuid_authz_resource_server_scope_scope_id_permissions,
+    get_admin_realms_realm_clients_client_uuid_authz_resource_server_scope_scope_id_resources,
     # Policies
     get_admin_realms_realm_clients_client_uuid_authz_resource_server_policy,
     post_admin_realms_realm_clients_client_uuid_authz_resource_server_policy,
@@ -46,7 +51,7 @@ from ..generated.models import (
     EvaluationResultRepresentation,
 )
 from ..generated.types import UNSET, Unset
-from ..exceptions import AuthError
+from ..exceptions import APIError
 
 __all__ = (
     "AuthorizationAPI",
@@ -67,7 +72,15 @@ class AuthorizationAPI(BaseAPI):
 
     # Resource Server Management
     def get_resource_server(self, realm: str | None = None, *, client_uuid: str) -> ResourceServerRepresentation | None:
-        """Get resource server settings (sync)."""
+        """Get resource server settings (sync).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            
+        Returns:
+            Resource server configuration
+        """
         return self._sync(
             get_admin_realms_realm_clients_client_uuid_authz_resource_server.sync,
             realm=realm,
@@ -75,7 +88,15 @@ class AuthorizationAPI(BaseAPI):
         )
 
     async def aget_resource_server(self, realm: str | None = None, *, client_uuid: str) -> ResourceServerRepresentation | None:
-        """Get resource server settings (async)."""
+        """Get resource server settings (async).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            
+        Returns:
+            Resource server configuration
+        """
         return await self._async(
             get_admin_realms_realm_clients_client_uuid_authz_resource_server.asyncio,
             realm=realm,
@@ -83,7 +104,16 @@ class AuthorizationAPI(BaseAPI):
         )
 
     def update_resource_server(self, realm: str | None = None, *, client_uuid: str, server_data: dict | ResourceServerRepresentation) -> None:
-        """Update resource server settings (sync)."""
+        """Update resource server settings (sync).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            server_data: Updated resource server configuration
+            
+        Raises:
+            APIError: If update fails
+        """
         server_obj = server_data if isinstance(server_data, ResourceServerRepresentation) else ResourceServerRepresentation.from_dict(server_data)
         response = self._sync_detailed(
             put_admin_realms_realm_clients_client_uuid_authz_resource_server.sync_detailed,
@@ -92,10 +122,19 @@ class AuthorizationAPI(BaseAPI):
             body=server_obj
         )
         if response.status_code not in (200, 204):
-            raise AuthError(f"Failed to update resource server: {response.status_code}")
+            raise APIError(f"Failed to update resource server: {response.status_code}")
 
     async def aupdate_resource_server(self, realm: str | None = None, *, client_uuid: str, server_data: dict | ResourceServerRepresentation) -> None:
-        """Update resource server settings (async)."""
+        """Update resource server settings (async).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            server_data: Updated resource server configuration
+            
+        Raises:
+            APIError: If update fails
+        """
         server_obj = server_data if isinstance(server_data, ResourceServerRepresentation) else ResourceServerRepresentation.from_dict(server_data)
         response = await self._async_detailed(
             put_admin_realms_realm_clients_client_uuid_authz_resource_server.asyncio_detailed,
@@ -104,10 +143,18 @@ class AuthorizationAPI(BaseAPI):
             body=server_obj
         )
         if response.status_code not in (200, 204):
-            raise AuthError(f"Failed to update resource server: {response.status_code}")
+            raise APIError(f"Failed to update resource server: {response.status_code}")
 
     def get_resource_server_settings(self, realm: str | None = None, *, client_uuid: str) -> ResourceServerRepresentation | None:
-        """Get resource server configuration settings (sync)."""
+        """Get resource server configuration settings (sync).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            
+        Returns:
+            Resource server settings including policies and permissions
+        """
         return self._sync(
             get_admin_realms_realm_clients_client_uuid_authz_resource_server_settings.sync,
             realm=realm,
@@ -115,7 +162,15 @@ class AuthorizationAPI(BaseAPI):
         )
 
     async def aget_resource_server_settings(self, realm: str | None = None, *, client_uuid: str) -> ResourceServerRepresentation | None:
-        """Get resource server configuration settings (async)."""
+        """Get resource server configuration settings (async).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            
+        Returns:
+            Resource server settings including policies and permissions
+        """
         return await self._async(
             get_admin_realms_realm_clients_client_uuid_authz_resource_server_settings.asyncio,
             realm=realm,
@@ -123,7 +178,16 @@ class AuthorizationAPI(BaseAPI):
         )
 
     def import_resource_server(self, realm: str | None = None, *, client_uuid: str, import_data: dict | ResourceServerRepresentation) -> None:
-        """Import resource server configuration (sync)."""
+        """Import resource server configuration (sync).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            import_data: Resource server configuration to import
+            
+        Raises:
+            APIError: If import fails
+        """
         import_obj = import_data if isinstance(import_data, ResourceServerRepresentation) else ResourceServerRepresentation.from_dict(import_data)
         response = self._sync_detailed(
             post_admin_realms_realm_clients_client_uuid_authz_resource_server_import.sync_detailed,
@@ -132,10 +196,19 @@ class AuthorizationAPI(BaseAPI):
             body=import_obj
         )
         if response.status_code not in (200, 201, 204):
-            raise AuthError(f"Failed to import resource server: {response.status_code}")
+            raise APIError(f"Failed to import resource server: {response.status_code}")
 
     async def aimport_resource_server(self, realm: str | None = None, *, client_uuid: str, import_data: dict | ResourceServerRepresentation) -> None:
-        """Import resource server configuration (async)."""
+        """Import resource server configuration (async).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            import_data: Resource server configuration to import
+            
+        Raises:
+            APIError: If import fails
+        """
         import_obj = import_data if isinstance(import_data, ResourceServerRepresentation) else ResourceServerRepresentation.from_dict(import_data)
         response = await self._async_detailed(
             post_admin_realms_realm_clients_client_uuid_authz_resource_server_import.asyncio_detailed,
@@ -144,7 +217,7 @@ class AuthorizationAPI(BaseAPI):
             body=import_obj
         )
         if response.status_code not in (200, 201, 204):
-            raise AuthError(f"Failed to import resource server: {response.status_code}")
+            raise APIError(f"Failed to import resource server: {response.status_code}")
 
     # Resource Management
     def get_resources(
@@ -256,7 +329,19 @@ class AuthorizationAPI(BaseAPI):
         )
 
     def create_resource(self, realm: str | None = None, *, client_uuid: str, resource_data: dict | ResourceRepresentation) -> ResourceRepresentation:
-        """Create a resource (sync)."""
+        """Create a resource (sync).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            resource_data: Resource configuration
+            
+        Returns:
+            Created resource representation
+            
+        Raises:
+            APIError: If resource creation fails
+        """
         response = self._sync_detailed_model(
             post_admin_realms_realm_clients_client_uuid_authz_resource_server_resource.sync_detailed,
             realm=realm,
@@ -265,11 +350,23 @@ class AuthorizationAPI(BaseAPI):
             client_uuid=client_uuid
         )
         if response.status_code != 201:
-            raise AuthError(f"Failed to create resource: {response.status_code}")
+            raise APIError(f"Failed to create resource: {response.status_code}")
         return response.parsed
 
     async def acreate_resource(self, realm: str | None = None, *, client_uuid: str, resource_data: dict | ResourceRepresentation) -> ResourceRepresentation:
-        """Create a resource (async)."""
+        """Create a resource (async).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            resource_data: Resource configuration
+            
+        Returns:
+            Created resource representation
+            
+        Raises:
+            APIError: If resource creation fails
+        """
         response = await self._async_detailed_model(
             post_admin_realms_realm_clients_client_uuid_authz_resource_server_resource.asyncio_detailed,
             realm=realm,
@@ -278,11 +375,20 @@ class AuthorizationAPI(BaseAPI):
             client_uuid=client_uuid
         )
         if response.status_code != 201:
-            raise AuthError(f"Failed to create resource: {response.status_code}")
+            raise APIError(f"Failed to create resource: {response.status_code}")
         return response.parsed
 
     def get_resource(self, realm: str | None = None, *, client_uuid: str, resource_id: str) -> ResourceRepresentation | None:
-        """Get a resource by ID (sync)."""
+        """Get a resource by ID (sync).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            resource_id: Resource ID
+            
+        Returns:
+            Resource representation
+        """
         return self._sync(
             get_admin_realms_realm_clients_client_uuid_authz_resource_server_resource_resource_id.sync,
             realm=realm,
@@ -291,7 +397,16 @@ class AuthorizationAPI(BaseAPI):
         )
 
     async def aget_resource(self, realm: str | None = None, *, client_uuid: str, resource_id: str) -> ResourceRepresentation | None:
-        """Get a resource by ID (async)."""
+        """Get a resource by ID (async).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            resource_id: Resource ID
+            
+        Returns:
+            Resource representation
+        """
         return await self._async(
             get_admin_realms_realm_clients_client_uuid_authz_resource_server_resource_resource_id.asyncio,
             realm=realm,
@@ -300,7 +415,17 @@ class AuthorizationAPI(BaseAPI):
         )
 
     def update_resource(self, realm: str | None = None, *, client_uuid: str, resource_id: str, resource_data: dict | ResourceRepresentation) -> None:
-        """Update a resource (sync)."""
+        """Update a resource (sync).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            resource_id: Resource ID to update
+            resource_data: Updated resource configuration
+            
+        Raises:
+            APIError: If resource update fails
+        """
         response = self._sync_detailed_model(
             put_admin_realms_realm_clients_client_uuid_authz_resource_server_resource_resource_id.sync_detailed,
             realm=realm,
@@ -310,10 +435,20 @@ class AuthorizationAPI(BaseAPI):
             resource_id=resource_id
         )
         if response.status_code not in (200, 204):
-            raise AuthError(f"Failed to update resource: {response.status_code}")
+            raise APIError(f"Failed to update resource: {response.status_code}")
 
     async def aupdate_resource(self, realm: str | None = None, *, client_uuid: str, resource_id: str, resource_data: dict | ResourceRepresentation) -> None:
-        """Update a resource (async)."""
+        """Update a resource (async).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            resource_id: Resource ID to update
+            resource_data: Updated resource configuration
+            
+        Raises:
+            APIError: If resource update fails
+        """
         response = await self._async_detailed_model(
             put_admin_realms_realm_clients_client_uuid_authz_resource_server_resource_resource_id.asyncio_detailed,
             realm=realm,
@@ -323,10 +458,19 @@ class AuthorizationAPI(BaseAPI):
             resource_id=resource_id
         )
         if response.status_code not in (200, 204):
-            raise AuthError(f"Failed to update resource: {response.status_code}")
+            raise APIError(f"Failed to update resource: {response.status_code}")
 
     def delete_resource(self, realm: str | None = None, *, client_uuid: str, resource_id: str) -> None:
-        """Delete a resource (sync)."""
+        """Delete a resource (sync).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            resource_id: Resource ID to delete
+            
+        Raises:
+            APIError: If resource deletion fails
+        """
         response = self._sync_detailed(
             delete_admin_realms_realm_clients_client_uuid_authz_resource_server_resource_resource_id.sync_detailed,
             realm=realm,
@@ -334,10 +478,19 @@ class AuthorizationAPI(BaseAPI):
             resource_id=resource_id
         )
         if response.status_code not in (200, 204):
-            raise AuthError(f"Failed to delete resource: {response.status_code}")
+            raise APIError(f"Failed to delete resource: {response.status_code}")
 
     async def adelete_resource(self, realm: str | None = None, *, client_uuid: str, resource_id: str) -> None:
-        """Delete a resource (async)."""
+        """Delete a resource (async).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            resource_id: Resource ID to delete
+            
+        Raises:
+            APIError: If resource deletion fails
+        """
         response = await self._async_detailed(
             delete_admin_realms_realm_clients_client_uuid_authz_resource_server_resource_resource_id.asyncio_detailed,
             realm=realm,
@@ -345,7 +498,7 @@ class AuthorizationAPI(BaseAPI):
             resource_id=resource_id
         )
         if response.status_code not in (200, 204):
-            raise AuthError(f"Failed to delete resource: {response.status_code}")
+            raise APIError(f"Failed to delete resource: {response.status_code}")
 
     def search_resources(
         self,
@@ -523,7 +676,19 @@ class AuthorizationAPI(BaseAPI):
         )
 
     def create_scope(self, realm: str | None = None, *, client_uuid: str, scope_data: dict | ScopeRepresentation) -> ScopeRepresentation:
-        """Create a scope (sync)."""
+        """Create a scope (sync).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            scope_data: Scope configuration
+            
+        Returns:
+            Created scope representation
+            
+        Raises:
+            APIError: If scope creation fails
+        """
         response = self._sync_detailed_model(
             post_admin_realms_realm_clients_client_uuid_authz_resource_server_scope.sync_detailed,
             realm=realm,
@@ -532,11 +697,23 @@ class AuthorizationAPI(BaseAPI):
             client_uuid=client_uuid
         )
         if response.status_code != 201:
-            raise AuthError(f"Failed to create scope: {response.status_code}")
+            raise APIError(f"Failed to create scope: {response.status_code}")
         return response.parsed
 
     async def acreate_scope(self, realm: str | None = None, *, client_uuid: str, scope_data: dict | ScopeRepresentation) -> ScopeRepresentation:
-        """Create a scope (async)."""
+        """Create a scope (async).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            scope_data: Scope configuration
+            
+        Returns:
+            Created scope representation
+            
+        Raises:
+            APIError: If scope creation fails
+        """
         response = await self._async_detailed_model(
             post_admin_realms_realm_clients_client_uuid_authz_resource_server_scope.asyncio_detailed,
             realm=realm,
@@ -545,11 +722,20 @@ class AuthorizationAPI(BaseAPI):
             client_uuid=client_uuid
         )
         if response.status_code != 201:
-            raise AuthError(f"Failed to create scope: {response.status_code}")
+            raise APIError(f"Failed to create scope: {response.status_code}")
         return response.parsed
 
     def get_scope(self, realm: str | None = None, *, client_uuid: str, scope_id: str) -> ScopeRepresentation | None:
-        """Get a scope by ID (sync)."""
+        """Get a scope by ID (sync).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            scope_id: Scope ID
+            
+        Returns:
+            Scope representation
+        """
         return self._sync(
             get_admin_realms_realm_clients_client_uuid_authz_resource_server_scope_scope_id.sync,
             realm=realm,
@@ -558,7 +744,16 @@ class AuthorizationAPI(BaseAPI):
         )
 
     async def aget_scope(self, realm: str | None = None, *, client_uuid: str, scope_id: str) -> ScopeRepresentation | None:
-        """Get a scope by ID (async)."""
+        """Get a scope by ID (async).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            scope_id: Scope ID
+            
+        Returns:
+            Scope representation
+        """
         return await self._async(
             get_admin_realms_realm_clients_client_uuid_authz_resource_server_scope_scope_id.asyncio,
             realm=realm,
@@ -567,7 +762,17 @@ class AuthorizationAPI(BaseAPI):
         )
 
     def update_scope(self, realm: str | None = None, *, client_uuid: str, scope_id: str, scope_data: dict | ScopeRepresentation) -> None:
-        """Update a scope (sync)."""
+        """Update a scope (sync).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            scope_id: Scope ID to update
+            scope_data: Updated scope configuration
+            
+        Raises:
+            APIError: If scope update fails
+        """
         response = self._sync_detailed_model(
             put_admin_realms_realm_clients_client_uuid_authz_resource_server_scope_scope_id.sync_detailed,
             realm=realm,
@@ -577,10 +782,20 @@ class AuthorizationAPI(BaseAPI):
             scope_id=scope_id
         )
         if response.status_code not in (200, 204):
-            raise AuthError(f"Failed to update scope: {response.status_code}")
+            raise APIError(f"Failed to update scope: {response.status_code}")
 
     async def aupdate_scope(self, realm: str | None = None, *, client_uuid: str, scope_id: str, scope_data: dict | ScopeRepresentation) -> None:
-        """Update a scope (async)."""
+        """Update a scope (async).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            scope_id: Scope ID to update
+            scope_data: Updated scope configuration
+            
+        Raises:
+            APIError: If scope update fails
+        """
         response = await self._async_detailed_model(
             put_admin_realms_realm_clients_client_uuid_authz_resource_server_scope_scope_id.asyncio_detailed,
             realm=realm,
@@ -590,10 +805,19 @@ class AuthorizationAPI(BaseAPI):
             scope_id=scope_id
         )
         if response.status_code not in (200, 204):
-            raise AuthError(f"Failed to update scope: {response.status_code}")
+            raise APIError(f"Failed to update scope: {response.status_code}")
 
     def delete_scope(self, realm: str | None = None, *, client_uuid: str, scope_id: str) -> None:
-        """Delete a scope (sync)."""
+        """Delete a scope (sync).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            scope_id: Scope ID to delete
+            
+        Raises:
+            APIError: If scope deletion fails
+        """
         response = self._sync_detailed(
             delete_admin_realms_realm_clients_client_uuid_authz_resource_server_scope_scope_id.sync_detailed,
             realm=realm,
@@ -601,10 +825,19 @@ class AuthorizationAPI(BaseAPI):
             scope_id=scope_id
         )
         if response.status_code not in (200, 204):
-            raise AuthError(f"Failed to delete scope: {response.status_code}")
+            raise APIError(f"Failed to delete scope: {response.status_code}")
 
     async def adelete_scope(self, realm: str | None = None, *, client_uuid: str, scope_id: str) -> None:
-        """Delete a scope (async)."""
+        """Delete a scope (async).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            scope_id: Scope ID to delete
+            
+        Raises:
+            APIError: If scope deletion fails
+        """
         response = await self._async_detailed(
             delete_admin_realms_realm_clients_client_uuid_authz_resource_server_scope_scope_id.asyncio_detailed,
             realm=realm,
@@ -612,7 +845,7 @@ class AuthorizationAPI(BaseAPI):
             scope_id=scope_id
         )
         if response.status_code not in (200, 204):
-            raise AuthError(f"Failed to delete scope: {response.status_code}")
+            raise APIError(f"Failed to delete scope: {response.status_code}")
 
     def search_scopes(
         self,
@@ -772,7 +1005,19 @@ class AuthorizationAPI(BaseAPI):
         )
 
     def create_policy(self, realm: str | None = None, *, client_uuid: str, policy_data: dict) -> AbstractPolicyRepresentation:
-        """Create a policy (sync)."""
+        """Create a policy (sync).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            policy_data: Policy configuration
+            
+        Returns:
+            Created policy representation
+            
+        Raises:
+            APIError: If policy creation fails
+        """
         response = self._sync_detailed_json(
             post_admin_realms_realm_clients_client_uuid_authz_resource_server_policy.sync_detailed,
             realm=realm,
@@ -780,11 +1025,23 @@ class AuthorizationAPI(BaseAPI):
             body=policy_data
         )
         if response.status_code != 201:
-            raise AuthError(f"Failed to create policy: {response.status_code}")
+            raise APIError(f"Failed to create policy: {response.status_code}")
         return response.parsed
 
     async def acreate_policy(self, realm: str | None = None, *, client_uuid: str, policy_data: dict) -> AbstractPolicyRepresentation:
-        """Create a policy (async)."""
+        """Create a policy (async).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            policy_data: Policy configuration
+            
+        Returns:
+            Created policy representation
+            
+        Raises:
+            APIError: If policy creation fails
+        """
         response = await self._async_detailed_json(
             post_admin_realms_realm_clients_client_uuid_authz_resource_server_policy.asyncio_detailed,
             realm=realm,
@@ -792,7 +1049,7 @@ class AuthorizationAPI(BaseAPI):
             body=policy_data
         )
         if response.status_code != 201:
-            raise AuthError(f"Failed to create policy: {response.status_code}")
+            raise APIError(f"Failed to create policy: {response.status_code}")
         return response.parsed
 
     def search_policies(
@@ -850,7 +1107,15 @@ class AuthorizationAPI(BaseAPI):
         )
 
     def get_policy_providers(self, realm: str | None = None, *, client_uuid: str) -> list[PolicyProviderRepresentation] | None:
-        """Get policy providers (sync)."""
+        """Get policy providers (sync).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            
+        Returns:
+            List of available policy providers
+        """
         return self._sync(
             get_admin_realms_realm_clients_client_uuid_authz_resource_server_policy_providers.sync,
             realm=realm,
@@ -858,7 +1123,15 @@ class AuthorizationAPI(BaseAPI):
         )
 
     async def aget_policy_providers(self, realm: str | None = None, *, client_uuid: str) -> list[PolicyProviderRepresentation] | None:
-        """Get policy providers (async)."""
+        """Get policy providers (async).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            
+        Returns:
+            List of available policy providers
+        """
         return await self._async(
             get_admin_realms_realm_clients_client_uuid_authz_resource_server_policy_providers.asyncio,
             realm=realm,
@@ -866,7 +1139,19 @@ class AuthorizationAPI(BaseAPI):
         )
 
     def evaluate_policies(self, realm: str | None = None, *, client_uuid: str, evaluation_data: dict | PolicyEvaluationRequest) -> PolicyEvaluationResponse | None:
-        """Evaluate policies (sync)."""
+        """Evaluate policies (sync).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            evaluation_data: Policy evaluation request data
+            
+        Returns:
+            Policy evaluation results
+            
+        Raises:
+            APIError: If policy evaluation fails
+        """
         response = self._sync_detailed_model(
             post_admin_realms_realm_clients_client_uuid_authz_resource_server_policy_evaluate.sync_detailed,
             realm=realm,
@@ -875,11 +1160,23 @@ class AuthorizationAPI(BaseAPI):
             client_uuid=client_uuid
         )
         if response.status_code != 200:
-            raise AuthError(f"Failed to evaluate policies: {response.status_code}")
+            raise APIError(f"Failed to evaluate policies: {response.status_code}")
         return response.parsed
 
     async def aevaluate_policies(self, realm: str | None = None, *, client_uuid: str, evaluation_data: dict | PolicyEvaluationRequest) -> PolicyEvaluationResponse | None:
-        """Evaluate policies (async)."""
+        """Evaluate policies (async).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            evaluation_data: Policy evaluation request data
+            
+        Returns:
+            Policy evaluation results
+            
+        Raises:
+            APIError: If policy evaluation fails
+        """
         response = await self._async_detailed_model(
             post_admin_realms_realm_clients_client_uuid_authz_resource_server_policy_evaluate.asyncio_detailed,
             realm=realm,
@@ -888,7 +1185,7 @@ class AuthorizationAPI(BaseAPI):
             client_uuid=client_uuid
         )
         if response.status_code != 200:
-            raise AuthError(f"Failed to evaluate policies: {response.status_code}")
+            raise APIError(f"Failed to evaluate policies: {response.status_code}")
         return response.parsed
 
     # Permission Management
@@ -1001,7 +1298,19 @@ class AuthorizationAPI(BaseAPI):
         )
 
     def create_permission(self, realm: str | None = None, *, client_uuid: str, permission_data: dict) -> AbstractPolicyRepresentation:
-        """Create a permission (sync)."""
+        """Create a permission (sync).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            permission_data: Permission configuration
+            
+        Returns:
+            Created permission representation
+            
+        Raises:
+            APIError: If permission creation fails
+        """
         response = self._sync_detailed_json(
             post_admin_realms_realm_clients_client_uuid_authz_resource_server_permission.sync_detailed,
             realm=realm,
@@ -1009,11 +1318,23 @@ class AuthorizationAPI(BaseAPI):
             body=permission_data
         )
         if response.status_code != 201:
-            raise AuthError(f"Failed to create permission: {response.status_code}")
+            raise APIError(f"Failed to create permission: {response.status_code}")
         return response.parsed
 
     async def acreate_permission(self, realm: str | None = None, *, client_uuid: str, permission_data: dict) -> AbstractPolicyRepresentation:
-        """Create a permission (async)."""
+        """Create a permission (async).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            permission_data: Permission configuration
+            
+        Returns:
+            Created permission representation
+            
+        Raises:
+            APIError: If permission creation fails
+        """
         response = await self._async_detailed_json(
             post_admin_realms_realm_clients_client_uuid_authz_resource_server_permission.asyncio_detailed,
             realm=realm,
@@ -1021,7 +1342,7 @@ class AuthorizationAPI(BaseAPI):
             body=permission_data
         )
         if response.status_code != 201:
-            raise AuthError(f"Failed to create permission: {response.status_code}")
+            raise APIError(f"Failed to create permission: {response.status_code}")
         return response.parsed
 
     def search_permissions(
@@ -1079,7 +1400,15 @@ class AuthorizationAPI(BaseAPI):
         )
 
     def get_permission_providers(self, realm: str | None = None, *, client_uuid: str) -> list[PolicyProviderRepresentation] | None:
-        """Get permission providers (sync)."""
+        """Get permission providers (sync).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            
+        Returns:
+            List of available permission providers
+        """
         return self._sync(
             get_admin_realms_realm_clients_client_uuid_authz_resource_server_permission_providers.sync,
             realm=realm,
@@ -1087,7 +1416,15 @@ class AuthorizationAPI(BaseAPI):
         )
 
     async def aget_permission_providers(self, realm: str | None = None, *, client_uuid: str) -> list[PolicyProviderRepresentation] | None:
-        """Get permission providers (async)."""
+        """Get permission providers (async).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            
+        Returns:
+            List of available permission providers
+        """
         return await self._async(
             get_admin_realms_realm_clients_client_uuid_authz_resource_server_permission_providers.asyncio,
             realm=realm,
@@ -1095,7 +1432,19 @@ class AuthorizationAPI(BaseAPI):
         )
 
     def evaluate_permissions(self, realm: str | None = None, *, client_uuid: str, evaluation_data: dict | PolicyEvaluationRequest) -> PolicyEvaluationResponse | None:
-        """Evaluate permissions (sync)."""
+        """Evaluate permissions (sync).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            evaluation_data: Permission evaluation request data
+            
+        Returns:
+            Permission evaluation results
+            
+        Raises:
+            APIError: If permission evaluation fails
+        """
         response = self._sync_detailed_model(
             post_admin_realms_realm_clients_client_uuid_authz_resource_server_permission_evaluate.sync_detailed,
             realm=realm,
@@ -1104,11 +1453,23 @@ class AuthorizationAPI(BaseAPI):
             client_uuid=client_uuid
         )
         if response.status_code != 200:
-            raise AuthError(f"Failed to evaluate permissions: {response.status_code}")
+            raise APIError(f"Failed to evaluate permissions: {response.status_code}")
         return response.parsed
 
     async def aevaluate_permissions(self, realm: str | None = None, *, client_uuid: str, evaluation_data: dict | PolicyEvaluationRequest) -> PolicyEvaluationResponse | None:
-        """Evaluate permissions (async)."""
+        """Evaluate permissions (async).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            evaluation_data: Permission evaluation request data
+            
+        Returns:
+            Permission evaluation results
+            
+        Raises:
+            APIError: If permission evaluation fails
+        """
         response = await self._async_detailed_model(
             post_admin_realms_realm_clients_client_uuid_authz_resource_server_permission_evaluate.asyncio_detailed,
             realm=realm,
@@ -1117,8 +1478,190 @@ class AuthorizationAPI(BaseAPI):
             client_uuid=client_uuid
         )
         if response.status_code != 200:
-            raise AuthError(f"Failed to evaluate permissions: {response.status_code}")
+            raise APIError(f"Failed to evaluate permissions: {response.status_code}")
         return response.parsed
+
+    # Resource additional endpoints
+    def get_resource_attributes(self, realm: str | None = None, *, client_uuid: str, resource_id: str) -> dict | None:
+        """Get resource attributes (sync).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            resource_id: Resource ID
+            
+        Returns:
+            Resource attributes dictionary
+        """
+        return self._sync(
+            get_admin_realms_realm_clients_client_uuid_authz_resource_server_resource_resource_id_attributes.sync,
+            realm or self.realm,
+            client_uuid=client_uuid,
+            resource_id=resource_id,
+        )
+
+    async def aget_resource_attributes(self, realm: str | None = None, *, client_uuid: str, resource_id: str) -> dict | None:
+        """Get resource attributes (async).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            resource_id: Resource ID
+            
+        Returns:
+            Resource attributes dictionary
+        """
+        return await self._async(
+            get_admin_realms_realm_clients_client_uuid_authz_resource_server_resource_resource_id_attributes.asyncio,
+            realm or self.realm,
+            client_uuid=client_uuid,
+            resource_id=resource_id,
+        )
+
+    def get_resource_permissions(self, realm: str | None = None, *, client_uuid: str, resource_id: str) -> list | None:
+        """Get permissions for a resource (sync).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            resource_id: Resource ID
+            
+        Returns:
+            List of permissions for the resource
+        """
+        return self._sync(
+            get_admin_realms_realm_clients_client_uuid_authz_resource_server_resource_resource_id_permissions.sync,
+            realm or self.realm,
+            client_uuid=client_uuid,
+            resource_id=resource_id,
+        )
+
+    async def aget_resource_permissions(self, realm: str | None = None, *, client_uuid: str, resource_id: str) -> list | None:
+        """Get permissions for a resource (async).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            resource_id: Resource ID
+            
+        Returns:
+            List of permissions for the resource
+        """
+        return await self._async(
+            get_admin_realms_realm_clients_client_uuid_authz_resource_server_resource_resource_id_permissions.asyncio,
+            realm or self.realm,
+            client_uuid=client_uuid,
+            resource_id=resource_id,
+        )
+
+    def get_resource_scopes(self, realm: str | None = None, *, client_uuid: str, resource_id: str) -> list[ScopeRepresentation] | None:
+        """Get scopes for a resource (sync).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            resource_id: Resource ID
+            
+        Returns:
+            List of scopes for the resource
+        """
+        return self._sync(
+            get_admin_realms_realm_clients_client_uuid_authz_resource_server_resource_resource_id_scopes.sync,
+            realm or self.realm,
+            client_uuid=client_uuid,
+            resource_id=resource_id,
+        )
+
+    async def aget_resource_scopes(self, realm: str | None = None, *, client_uuid: str, resource_id: str) -> list[ScopeRepresentation] | None:
+        """Get scopes for a resource (async).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            resource_id: Resource ID
+            
+        Returns:
+            List of scopes for the resource
+        """
+        return await self._async(
+            get_admin_realms_realm_clients_client_uuid_authz_resource_server_resource_resource_id_scopes.asyncio,
+            realm or self.realm,
+            client_uuid=client_uuid,
+            resource_id=resource_id,
+        )
+
+    # Scope additional endpoints
+    def get_scope_permissions(self, realm: str | None = None, *, client_uuid: str, scope_id: str) -> list | None:
+        """Get permissions for a scope (sync).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            scope_id: Scope ID
+            
+        Returns:
+            List of permissions for the scope
+        """
+        return self._sync(
+            get_admin_realms_realm_clients_client_uuid_authz_resource_server_scope_scope_id_permissions.sync,
+            realm or self.realm,
+            client_uuid=client_uuid,
+            scope_id=scope_id,
+        )
+
+    async def aget_scope_permissions(self, realm: str | None = None, *, client_uuid: str, scope_id: str) -> list | None:
+        """Get permissions for a scope (async).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            scope_id: Scope ID
+            
+        Returns:
+            List of permissions for the scope
+        """
+        return await self._async(
+            get_admin_realms_realm_clients_client_uuid_authz_resource_server_scope_scope_id_permissions.asyncio,
+            realm or self.realm,
+            client_uuid=client_uuid,
+            scope_id=scope_id,
+        )
+
+    def get_scope_resources(self, realm: str | None = None, *, client_uuid: str, scope_id: str) -> list[ResourceRepresentation] | None:
+        """Get resources for a scope (sync).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            scope_id: Scope ID
+            
+        Returns:
+            List of resources for the scope
+        """
+        return self._sync(
+            get_admin_realms_realm_clients_client_uuid_authz_resource_server_scope_scope_id_resources.sync,
+            realm or self.realm,
+            client_uuid=client_uuid,
+            scope_id=scope_id,
+        )
+
+    async def aget_scope_resources(self, realm: str | None = None, *, client_uuid: str, scope_id: str) -> list[ResourceRepresentation] | None:
+        """Get resources for a scope (async).
+        
+        Args:
+            realm: The realm name
+            client_uuid: Client UUID
+            scope_id: Scope ID
+            
+        Returns:
+            List of resources for the scope
+        """
+        return await self._async(
+            get_admin_realms_realm_clients_client_uuid_authz_resource_server_scope_scope_id_resources.asyncio,
+            realm or self.realm,
+            client_uuid=client_uuid,
+            scope_id=scope_id,
+        )
 
 
 class AuthorizationClientMixin:

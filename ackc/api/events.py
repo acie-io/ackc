@@ -3,7 +3,7 @@ from datetime import datetime
 from functools import cached_property
 
 from .base import BaseAPI
-from ..exceptions import AuthError
+from ..exceptions import APIError
 from ..generated.api.realms_admin import (
     get_admin_realms_realm_events,
     delete_admin_realms_realm_events,
@@ -136,22 +136,36 @@ class EventsAPI(BaseAPI):
         )
 
     def delete_events(self, realm: str | None = None) -> None:
-        """Delete all user events (sync)."""
+        """Delete all user events (sync).
+        
+        Args:
+            realm: The realm name
+            
+        Raises:
+            APIError: If deletion fails
+        """
         response = self._sync_detailed(
             delete_admin_realms_realm_events.sync_detailed,
             realm=realm
         )
         if response.status_code not in (200, 204):
-            raise AuthError(f"Failed to delete events: {response.status_code}")
+            raise APIError(f"Failed to delete events: {response.status_code}")
 
     async def adelete_events(self, realm: str | None = None) -> None:
-        """Delete all user events (async)."""
+        """Delete all user events (async).
+        
+        Args:
+            realm: The realm name
+            
+        Raises:
+            APIError: If deletion fails
+        """
         response = await self._async_detailed(
             delete_admin_realms_realm_events.asyncio_detailed,
             realm=realm
         )
         if response.status_code not in (200, 204):
-            raise AuthError(f"Failed to delete events: {response.status_code}")
+            raise APIError(f"Failed to delete events: {response.status_code}")
 
     def get_admin_events(
         self, 
@@ -284,29 +298,57 @@ class EventsAPI(BaseAPI):
         )
 
     def delete_admin_events(self, realm: str | None = None) -> None:
-        """Delete all admin events (sync)."""
+        """Delete all admin events (sync).
+        
+        Args:
+            realm: The realm name
+            
+        Raises:
+            APIError: If deletion fails
+        """
         response = self._sync_detailed(
             delete_admin_realms_realm_admin_events.sync_detailed,
             realm=realm
         )
         if response.status_code not in (200, 204):
-            raise AuthError(f"Failed to delete admin events: {response.status_code}")
+            raise APIError(f"Failed to delete admin events: {response.status_code}")
 
     async def adelete_admin_events(self, realm: str | None = None) -> None:
-        """Delete all admin events (async)."""
+        """Delete all admin events (async).
+        
+        Args:
+            realm: The realm name
+            
+        Raises:
+            APIError: If deletion fails
+        """
         response = await self._async_detailed(
             delete_admin_realms_realm_admin_events.asyncio_detailed,
             realm=realm
         )
         if response.status_code not in (200, 204):
-            raise AuthError(f"Failed to delete admin events: {response.status_code}")
+            raise APIError(f"Failed to delete admin events: {response.status_code}")
 
     def get_events_config(self, realm: str | None = None) -> RealmEventsConfigRepresentation | None:
-        """Get events configuration (sync)."""
+        """Get events configuration (sync).
+        
+        Args:
+            realm: The realm name
+            
+        Returns:
+            Event configuration for the realm
+        """
         return self._sync(get_admin_realms_realm_events_config.sync, realm)
 
     async def aget_events_config(self, realm: str | None = None) -> RealmEventsConfigRepresentation | None:
-        """Get events configuration (async)."""
+        """Get events configuration (async).
+        
+        Args:
+            realm: The realm name
+            
+        Returns:
+            Event configuration for the realm
+        """
         return await self._async(get_admin_realms_realm_events_config.asyncio, realm)
 
     def update_events_config(self, realm: str | None = None, *, config: dict | RealmEventsConfigRepresentation) -> None:
@@ -333,7 +375,7 @@ class EventsAPI(BaseAPI):
             body=config_obj
         )
         if response.status_code not in (200, 204):
-            raise AuthError(f"Failed to update events config: {response.status_code}")
+            raise APIError(f"Failed to update events config: {response.status_code}")
 
     async def aupdate_events_config(self, realm: str | None = None, *, config: dict | RealmEventsConfigRepresentation) -> None:
         """Update events configuration (async).
@@ -359,14 +401,17 @@ class EventsAPI(BaseAPI):
             body=config_obj
         )
         if response.status_code not in (200, 204):
-            raise AuthError(f"Failed to update events config: {response.status_code}")
+            raise APIError(f"Failed to update events config: {response.status_code}")
 
 
 class EventsClientMixin:
-    """Mixin for BaseClientManager subclasses to be connected to the EventsAPI.
-    """
+    """Mixin for BaseClientManager subclasses to be connected to the EventsAPI."""
 
     @cached_property
     def events(self) -> EventsAPI:
-        """Get the EventsAPI instance."""
+        """Get the EventsAPI instance.
+        
+        Returns:
+            EventsAPI instance for managing events
+        """
         return EventsAPI(manager=self)  # type: ignore[arg-type]

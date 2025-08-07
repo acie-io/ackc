@@ -18,6 +18,12 @@ class KeysAPI(BaseAPI):
         - Active keys for signing
         - Passive keys for verification
         - Key algorithms and providers
+        
+        Args:
+            realm: The realm name
+            
+        Returns:
+            Keys metadata including active, passive, and disabled keys
         """
         return self._sync(get_admin_realms_realm_keys.sync, realm)
 
@@ -28,6 +34,12 @@ class KeysAPI(BaseAPI):
         - Active keys for signing
         - Passive keys for verification  
         - Key algorithms and providers
+        
+        Args:
+            realm: The realm name
+            
+        Returns:
+            Keys metadata including active, passive, and disabled keys
         """
         return await self._async(get_admin_realms_realm_keys.asyncio, realm)
 

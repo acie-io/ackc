@@ -3,11 +3,11 @@
 import json
 from typing import Any, Callable, Protocol, Awaitable
 
-from ..exceptions import AuthError
+from ..exceptions import AuthError, APIError
 from ..generated import AuthenticatedClient, Client
 
 __all__ = (
-    "AuthError",
+    "AuthError", "APIError",
     "AuthenticatedClient", "Client",
     "BaseAPI",
     "BaseClientManager",

@@ -19,9 +19,17 @@ from .authentication import *
 from .authorization import *
 from .protocol_mappers import *
 from .keys import *
+from .scope_mappings import *
+from .client_role_mappings import *
+from .role_mapper import *
+from .roles_by_id import *
+from .attack_detection import *
+from .client_initial_access import *
+from .client_attribute_certificate import *
+from .client_registration_policy import *
 
 __all__ = (
-    "AuthError", "AuthenticatedClient", "Client", "BaseAPI", "BaseClientManager",
+    "AuthError", "APIError", "AuthenticatedClient", "Client", "BaseAPI", "BaseClientManager",
     "UsersAPI", "UsersClientMixin", "UserRepresentation",
     "RealmsAPI", "RealmsClientMixin", "RealmRepresentation",
     "ClientsAPI", "ClientsClientMixin", "ClientRepresentation",
@@ -37,6 +45,14 @@ __all__ = (
     "AuthorizationAPI", "AuthorizationClientMixin", "ResourceServerRepresentation", "ResourceRepresentation", "ScopeRepresentation", "AbstractPolicyRepresentation", "PolicyProviderRepresentation", "PolicyEvaluationResponse", "EvaluationResultRepresentation",
     "ProtocolMappersAPI", "ProtocolMappersClientMixin", "ProtocolMapperRepresentation",
     "KeysAPI", "KeysClientMixin", "KeysMetadataRepresentation",
+    "ScopeMappingsAPI", "ScopeMappingsClientMixin",
+    "ClientRoleMappingsAPI", "ClientRoleMappingsClientMixin",
+    "RoleMapperAPI", "RoleMapperClientMixin",
+    "RolesByIdAPI", "RolesByIdClientMixin",
+    "AttackDetectionAPI", "AttackDetectionClientMixin",
+    "ClientInitialAccessAPI", "ClientInitialAccessClientMixin",
+    "ClientAttributeCertificateAPI", "ClientAttributeCertificateClientMixin",
+    "ClientRegistrationPolicyAPI", "ClientRegistrationPolicyClientMixin",
     "KeycloakClientMixin",
 )
 
@@ -57,6 +73,14 @@ class KeycloakClientMixin(
     AuthorizationClientMixin,
     ProtocolMappersClientMixin,
     KeysClientMixin,
+    ScopeMappingsClientMixin,
+    ClientRoleMappingsClientMixin,
+    RoleMapperClientMixin,
+    RolesByIdClientMixin,
+    AttackDetectionClientMixin,
+    ClientInitialAccessClientMixin,
+    ClientAttributeCertificateClientMixin,
+    ClientRegistrationPolicyClientMixin,
 ):
     """
     Mixin that provides all Keycloak API methods in a single class.

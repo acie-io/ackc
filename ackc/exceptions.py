@@ -35,3 +35,8 @@ class RealmNotFoundError(ClientError):
 class ClientNotFoundError(ClientError):
     """Client not found in Keycloak."""
     pass
+
+
+class APIError(ClientError):
+    """General API operation error."""
+    pass
